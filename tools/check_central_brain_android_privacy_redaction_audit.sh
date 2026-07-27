@@ -13,9 +13,23 @@ MAIN_MANIFEST="central-brain/android-runtime/runtime-service/src/main/AndroidMan
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_PRIVACY_DATA_LIFECYCLE.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -190,16 +204,16 @@ done
 
 require_text "$DOC" 'W04C_SOFTWARE_VERIFIED / TARGET_PROBE_PENDING'
 require_text "README.md" 'P9 Privacy Redaction/Audit Probe'
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" 'P9-W04c privacy redaction/audit Android probe'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" 'P9-W04c privacy redaction/audit probe trace'
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" 'Android P9-W04c Privacy Redaction/Audit Probe Contract'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W04c privacy redaction/audit Android probe'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W04c privacy redaction/audit probe trace'
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" 'Android P9-W04c Privacy Redaction/Audit Probe Contract'
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" 'P9-W04c privacy redaction/audit probe architecture'
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" 'P9-W04c privacy redaction/audit probe detailed design'
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" 'Android P9-W04c Privacy Redaction/Audit Probe'
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" 'P9-W04c Privacy Redaction/Audit Probe Driver/HAL Boundary'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" 'DEV-093 P9-W04c probe availability is not owner policy or target evidence'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" 'ISSUE-051 P9 durable privacy lifecycle policies are incomplete'
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" 'P9-W04c Privacy Redaction/Audit Probe progress'
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" 'P9-W04c privacy redaction/audit probe detailed design'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'Android P9-W04c Privacy Redaction/Audit Probe'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W04c Privacy Redaction/Audit Probe Driver/HAL Boundary'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'DEV-093 P9-W04c probe availability is not owner policy or target evidence'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'ISSUE-051 P9 durable privacy lifecycle policies are incomplete'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W04c Privacy Redaction/Audit Probe progress'
 
 printf '%s\n' \
   'Central Brain Android privacy redaction/audit probe check passed' \

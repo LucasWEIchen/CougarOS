@@ -131,7 +131,7 @@ The companion project is
 `apk-labs/renderservice-central-brain`. It patches only the launcher
 Addressables bundle and does not replace `libtuanjie.so` or the Android system
 image. Build and install both signed APKs for this feature. See
-`docs/CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md`.
+`docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`.
 
 The four visible XML scenario tags remain stable two-segment UI aliases. A 14-entry exact bridge
 compatibility allowlist still maps all supported aliases to qualified Session IDs before Runtime admission; unknown
@@ -354,7 +354,7 @@ implementation_stage=P9-W03
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
-[`docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`](../../docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md).
+[`docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`](../../docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md).
 
 ## Boundaries
 

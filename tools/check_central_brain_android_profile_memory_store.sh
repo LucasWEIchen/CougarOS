@@ -16,6 +16,20 @@ READINESS="central-brain/android-runtime/runtime-service/src/main/java/com/centr
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -137,16 +151,16 @@ for marker in \
 done
 
 require_text "central-brain/android-runtime/README.md" "P5-W07 ProfileMemoryStore"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P5-W07` ProfileMemoryStore'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P5-W07 ProfileMemoryStore trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P5-W07 ProfileMemoryStore"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" '`P5-W07` ProfileMemoryStore'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P5-W07 ProfileMemoryStore trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P5-W07 ProfileMemoryStore"
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" "P5-W07 ProfileMemoryStore architecture"
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" "P5-W07 ProfileMemoryStore detailed design"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P5-W07 ProfileMemoryStore"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P5-W07 ProfileMemoryStore Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "DEV-069 P5-W07 contract cipher is not production encrypted storage"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "ISSUE-042 Profile Memory authority, key owner and durable repository publication"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P5-W07 ProfileMemoryStore"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "P5-W07 ProfileMemoryStore detailed design"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P5-W07 ProfileMemoryStore"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P5-W07 ProfileMemoryStore Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "DEV-069 P5-W07 contract cipher is not production encrypted storage"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "ISSUE-042 Profile Memory authority, key owner and durable repository publication"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P5-W07 ProfileMemoryStore"
 require_text "README.md" "P5 ProfileMemoryStore"
 
 printf '%s\n' \

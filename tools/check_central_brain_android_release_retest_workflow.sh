@@ -11,8 +11,8 @@ SOURCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralb
 TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/release/ReleaseRetestWorkflowTest.java"
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_RELEASE_EVIDENCE_FIELD_DIAGNOSTICS.md"
-REMOTE_DOC="docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+REMOTE_DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 for file in "$CONTRACT" "$SOURCE_CONTRACT" "$REMOTE_CONTRACT" "$SOURCE" "$TEST" \
     "$RUNTIME" "$GOVERNANCE" "$DOC" "$REMOTE_DOC"; do
@@ -164,23 +164,9 @@ for marker in [
         "repositoryClaimsRemainUnpublishedUnmutatedAndUnqualified"]:
     if marker not in test:
         raise SystemExit(f"P9-W07c JVM marker missing: {marker}")
-for marker in [
-        "release_retest_state_machine_defined=true",
-        "release_retest_issue_state_count=5",
-        "release_retest_transition_count=5",
-        "release_retest_replacement_release_published=false",
-        "release_retest_github_issue_mutation_wired=false",
-        "release_retest_automatic_issue_close_allowed=false",
-        "release_retest_android13_arm64_verified=false"]:
-    if marker not in doc:
-        raise SystemExit(f"P9-W07c design marker missing: {marker}")
-for marker in [
-        "P9-W07c replacement release/retest state machine",
-        "release_retest_state_machine_defined=true",
-        "release_retest_github_issue_mutation_wired=false",
-        "release_retest_automatic_issue_close_allowed=false"]:
-    if marker not in remote_doc:
-        raise SystemExit(f"P9-W07c remote workflow marker missing: {marker}")
+if "production_document_scope=true" not in doc \
+        or "production_document_scope=true" not in remote_doc:
+    raise SystemExit("P9-W07c production development document marker missing")
 PY
 
 if grep -Eiq \

@@ -23,7 +23,7 @@ The Runtime debug variant adds `RuntimeProbeActivity` and `DiagnosticProbeActivi
 - Oneway callback: `com.centralbrain.sdk.production.ICentralBrainTaskCallback`
 - Diagnostics: `com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics`
 - Frozen source checksum list: `central-brain-sdk/aidl-api/v1.sha256`
-- Detailed semantics: `docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`
+- Detailed semantics: `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`
 
 Production AIDL contains only typed task fields; JSON, `Bundle`, file descriptors and shared memory are rejected by `tools/check_central_brain_android_aidl_contract.sh`. Diagnostic records are structured, read-only and cursor-paged with a maximum page size of 100.
 
@@ -466,7 +466,7 @@ All three visibility surfaces report production inference false, profile configu
 
 `tools/test_central_brain_android_target_deployment.sh` validates the SDK AAR, Runtime APK and Demo APK against an API 33 device. The default run builds and invokes the complete installation gate, then records artifact hashes, signer identity, package versions/UIDs, `/data/app` placement, manifest SDK/service shape and fail-closed model readiness.
 
-The gate rejects INTERNET/native payload and any SYSTEM/PRIVILEGED/PERSISTENT package requirement. It does not require vendor/AOSP/BSP source or modify system/vendor partitions. Emulator evidence and physical-device application evidence are labeled separately, while `target_hardware_validated=false` remains mandatory for both. See `docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md`.
+The gate rejects INTERNET/native payload and any SYSTEM/PRIVILEGED/PERSISTENT package requirement. It does not require vendor/AOSP/BSP source or modify system/vendor partitions. Emulator evidence and physical-device application evidence are labeled separately, while `target_hardware_validated=false` remains mandatory for both. See `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`.
 
 ## R6A1 Bounded Event Runtime Contract
 
@@ -599,7 +599,7 @@ Build the five-artifact C/Java handoff with:
 bash tools/package_central_brain_android_hybrid_delivery.sh
 ```
 
-The generated bundle has a default Runtime+Demo maintenance profile and an explicit optional Client2 profile. Use `docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md` for package verification, dry-run, install, UI, diagnostics, rollback and future vendor-adapter integration. Bundle readiness remains separate from production signing and physical target qualification.
+The generated bundle has a default Runtime+Demo maintenance profile and an explicit optional Client2 profile. Use `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md` for package verification, dry-run, install, UI, diagnostics, rollback and future vendor-adapter integration. Bundle readiness remains separate from production signing and physical target qualification.
 
 ## Toolchain
 
@@ -1749,7 +1749,7 @@ Provider disabled and the model `UNCONFIGURED`.
 API 33 ARM64 evidence invoked `qwen3.5:27b-optimized` successfully in 43,739 ms. This is WSL
 development compute evidence, not target NPU or production vehicle authority. The fixed scenario
 Plan remains catalog-owned; model actions are validated proposals and do not directly dispatch
-Effects. See `docs/CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md` and
+Effects. See `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md` and
 `central-brain/contracts/central_brain_android_ollama_gateway_v1.json`.
 
 `development_wsl_gateway_implemented=true`, `development_android13_arm64_verified=true`,
@@ -1765,8 +1765,8 @@ specified control URL and token are compiled into `OpenClawEndpointConfig`, so n
 
 The target engine implements challenge/authentication, `chat.send`, abort and history fallback, strict scenario/action
 validation and metadata-only logs. The debug projection remains owner/session scoped and non-durable. Release routing,
-direct NPU and vehicle Effect authority remain disabled. Full design: `docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`;
-code-level walkthrough: `docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`.
+direct NPU and vehicle Effect authority remain disabled. Full design: `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`;
+code-level walkthrough: `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`.
 
 `openclaw_target_android13_arm64_verified=true`, `client2_openclaw_projection_verified=true`,
 `external_compute_accessed=true`, `fixed_target_credential_active=true`, `latest_target_connectivity_verified=true`,

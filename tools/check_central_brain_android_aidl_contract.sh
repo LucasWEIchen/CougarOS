@@ -13,6 +13,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local path="$1"
   local pattern="$2"
   if ! grep -Fq -- "$pattern" "$ROOT_DIR/$path"; then
@@ -128,12 +142,12 @@ if grep -v -E '^[[:space:]]*//' "$ROOT_DIR/$DIAGNOSTICS" | grep -Eq 'submit|canc
   exit 1
 fi
 
-require_file "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md"
+require_file "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 require_file "central-brain/android-runtime/central-brain-sdk/aidl-api/v1.sha256"
 require_file "central-brain/android-runtime/central-brain-sdk/aidl-api/governance-v1.sha256"
-require_text "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md" "Gradle application structured AIDL"
-require_text "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md" "not VINTF stable AIDL"
-require_text "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md" "DEV-018"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Gradle application structured AIDL"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "not VINTF stable AIDL"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "DEV-018"
 
 (cd "$ROOT_DIR" && sha256sum -c central-brain/android-runtime/central-brain-sdk/aidl-api/v1.sha256 >/dev/null)
 (cd "$ROOT_DIR" && sha256sum -c central-brain/android-runtime/central-brain-sdk/aidl-api/governance-v1.sha256 >/dev/null)

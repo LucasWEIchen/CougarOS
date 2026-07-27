@@ -116,15 +116,15 @@ done
 
 for doc_marker in \
   'README.md|P4 Client2 approval/recovery UX' \
-  'docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md|P4-W07` Approval/partial/retry/undo UX' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|P4-W07 approval/partial/retry/undo UX trace' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-057 P4-W07 recovery command details' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|P4-W07 进展：Client2 recovery UX' \
-  'docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|P4-W07 Approval and Recovery UX' \
-  'docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|P4-W07 Approval/recovery UX Driver/HAL Boundary' \
-  'docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md|Client2 P4-W07 Approval and Recovery Interfaces' \
-  'docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md|R7C-E-010' \
-  'docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md|P4-W07 approval/recovery UX evidence'; do
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W07` Approval/partial/retry/undo UX' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W07 approval/partial/retry/undo UX trace' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|DEV-057 P4-W07 recovery command details' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W07 进展：Client2 recovery UX' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W07 Approval and Recovery UX' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W07 Approval/recovery UX Driver/HAL Boundary' \
+  'docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|Client2 P4-W07 Approval and Recovery Interfaces' \
+  'docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|R7C-E-010' \
+  'docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|P4-W07 approval/recovery UX evidence'; do
   path="${doc_marker%%|*}"
   marker="${doc_marker#*|}"
   grep -Fq -- "$marker" "$ROOT_DIR/$path"

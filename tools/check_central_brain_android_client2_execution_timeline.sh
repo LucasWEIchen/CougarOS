@@ -121,15 +121,15 @@ done
 
 for doc_marker in \
   'README.md|P4 Client2 observable execution timeline' \
-  'docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md|P4-W06` Plan/effect execution timeline' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|P4-W06 observable execution timeline trace' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-056 P4-W06 timeline projection' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|P4-W06 进展：Client2 Execution surface' \
-  'docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|P4-W06 Observable Execution Timeline' \
-  'docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|P4-W06 Observable execution timeline Driver/HAL Boundary' \
-  'docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md|Client2 P4-W06 Observable Execution Timeline Interfaces' \
-  'docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md|R7C-E-009' \
-  'docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md|P4-W06 observable execution timeline evidence'; do
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W06` Plan/effect execution timeline' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W06 observable execution timeline trace' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|DEV-056 P4-W06 timeline projection' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W06 进展：Client2 Execution surface' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W06 Observable Execution Timeline' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W06 Observable execution timeline Driver/HAL Boundary' \
+  'docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|Client2 P4-W06 Observable Execution Timeline Interfaces' \
+  'docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|R7C-E-009' \
+  'docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|P4-W06 observable execution timeline evidence'; do
   path="${doc_marker%%|*}"
   marker="${doc_marker#*|}"
   grep -Fq -- "$marker" "$ROOT_DIR/$path"

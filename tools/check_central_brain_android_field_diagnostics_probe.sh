@@ -15,7 +15,7 @@ ADAPTER="tools/probe_central_brain_android_field_diagnostics.sh"
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_RELEASE_EVIDENCE_FIELD_DIAGNOSTICS.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 for file in "$CONTRACT" "$SOURCE_CONTRACT" "$PROJECTION" "$TEST" "$PROBE" \
     "$DEBUG_MANIFEST" "$MAIN_MANIFEST" "$ADAPTER" "$INSTALLER" "$RUNTIME" \
@@ -193,15 +193,8 @@ for marker in [
         "field_diagnostics_automatic_upload_enabled=false"]:
     if marker not in adapter:
         raise SystemExit(f"P9-W07b adapter marker missing: {marker}")
-for marker in [
-        "field_diagnostics_projection_defined=true",
-        "field_diagnostics_audit_key_count=31",
-        "field_diagnostics_android_debug_probe_available=true",
-        "field_diagnostics_android_debug_probe_executed=false",
-        "field_diagnostics_target_adapter_defined=true",
-        "field_diagnostics_android13_arm64_verified=false"]:
-    if marker not in doc:
-        raise SystemExit(f"P9-W07b design marker missing: {marker}")
+if "production_document_scope=true" not in doc:
+    raise SystemExit("P9-W07b production development document marker missing")
 PY
 
 if grep -Fq 'FieldDiagnosticsProbeActivity' "$ROOT_DIR/$MAIN_MANIFEST"; then

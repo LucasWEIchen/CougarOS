@@ -14,6 +14,20 @@ GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/cent
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -117,16 +131,16 @@ if grep -R -Eiq \
 fi
 
 require_text "central-brain/android-runtime/README.md" "P7-W02 ModelProviderRegistry/health"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P7-W02` ModelProviderRegistry/health'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P7-W02 ModelProviderRegistry/health trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P7-W02 ModelProviderRegistry/health"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" '`P7-W02` ModelProviderRegistry/health'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P7-W02 ModelProviderRegistry/health trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P7-W02 ModelProviderRegistry/health"
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" "P7-W02 ModelProviderRegistry/health architecture"
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" "P7-W02 ModelProviderRegistry/health detailed design"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P7-W02 ModelProviderRegistry/health"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P7-W02 ModelProviderRegistry/health Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "P7-W02 Registry health is metadata, not production availability"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "P7-W02 ModelProviderRegistry/health progress"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P7-W02 ModelProviderRegistry/health progress"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "P7-W02 ModelProviderRegistry/health detailed design"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P7-W02 ModelProviderRegistry/health"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P7-W02 ModelProviderRegistry/health Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P7-W02 Registry health is metadata, not production availability"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P7-W02 ModelProviderRegistry/health progress"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P7-W02 ModelProviderRegistry/health progress"
 require_text "README.md" "P7 ModelProviderRegistry/health"
 
 printf '%s\n' \

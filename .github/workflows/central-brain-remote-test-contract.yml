@@ -11,8 +11,6 @@ on:
       - "central-brain/**"
       - "apk-labs/client2-central-brain/**"
       - "docs/CENTRAL_BRAIN_*"
-      - "docs/ui/cockpit-hmi-design/**"
-      - "docs/assets/cockpit-hmi-design/**"
       - "tools/*central_brain*"
   pull_request:
     paths:
@@ -22,8 +20,6 @@ on:
       - "central-brain/**"
       - "apk-labs/client2-central-brain/**"
       - "docs/CENTRAL_BRAIN_*"
-      - "docs/ui/cockpit-hmi-design/**"
-      - "docs/assets/cockpit-hmi-design/**"
       - "tools/*central_brain*"
 
 permissions:
@@ -46,6 +42,7 @@ jobs:
             base_revision="${{ github.event.before }}"
           fi
           bash tools/check_central_brain_github_publication_tree.sh HEAD
+          bash tools/check_central_brain_production_document_set.sh
           bash tools/check_central_brain_github_repository_completeness.sh
           bash tools/check_central_brain_github_repository_completeness.sh \
             --changed-range "$base_revision" "$GITHUB_SHA"
@@ -138,6 +135,5 @@ jobs:
           bash tools/check_central_brain_android_ollama_gateway.sh
           bash tools/check_central_brain_android_openclaw_development_gateway.sh
           bash tools/check_central_brain_android_openclaw_target_gateway.sh
-          bash tools/check_central_brain_aios_architecture_document_readiness.sh
           bash tools/check_central_brain_root_readme.sh
           bash tools/check_central_brain_android_software_completion.sh

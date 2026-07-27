@@ -32,5 +32,5 @@ AAR:
 bash tools/verify_central_brain_native_runtime_aar.sh
 ```
 
-See `docs/CENTRAL_BRAIN_NATIVE_RUNTIME_C_ABI.md` for the stable ABI and ownership
+See `docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md` for the stable ABI and ownership
 contract.

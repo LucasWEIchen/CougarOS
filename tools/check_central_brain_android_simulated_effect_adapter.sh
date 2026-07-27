@@ -20,6 +20,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local path="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$path" \
@@ -106,14 +120,14 @@ if grep -Eq 'SimulatedEffectAdapter|SimulationClock|FaultInjectionProfile' \
 fi
 
 require_text "central-brain/android-runtime/README.md" "P2-W08 Simulated Effect Adapter Base"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P2-W08` SimulatedVehicleAdapter base'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P2-W08 Simulated Effect Adapter base trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P2-W08 Simulated Effect Adapter Base"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P2-W08 Simulated Effect Adapter Base"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P2-W08 Simulated Effect Adapter Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "P2-W08 进展"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "P2-W08 进展"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P2-W08 SimulatedVehicleAdapter base"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" '`P2-W08` SimulatedVehicleAdapter base'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P2-W08 Simulated Effect Adapter base trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P2-W08 Simulated Effect Adapter Base"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P2-W08 Simulated Effect Adapter Base"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P2-W08 Simulated Effect Adapter Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P2-W08 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P2-W08 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P2-W08 SimulatedVehicleAdapter base"
 
 printf '%s\n' \
   "Central Brain Android simulated Effect adapter base check passed" \

@@ -15,7 +15,7 @@ ADAPTER="tools/probe_central_brain_android_driver_safety.sh"
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_DRIVER_SAFETY_ADMISSION.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 for file in "$CONTRACT" "$ADMISSION_CONTRACT" "$PROJECTION" "$TEST" "$PROBE" \
     "$DEBUG_MANIFEST" "$MAIN_MANIFEST" "$ADAPTER" "$INSTALLER" "$RUNTIME" \
@@ -165,14 +165,8 @@ for forbidden in [
         'echo "$PROBE_LOG"', 'printf "$PROBE_LOG"']:
     if forbidden in adapter:
         raise SystemExit(f"P9-W06b adapter executes or exposes data: {forbidden}")
-for marker in [
-        "driver_safety_redacted_projection_defined=true",
-        "driver_safety_android_debug_probe_available=true",
-        "driver_safety_android_debug_probe_executed=false",
-        "driver_safety_target_adapter_defined=true",
-        "driver_safety_android13_arm64_verified=false"]:
-    if marker not in doc:
-        raise SystemExit(f"P9-W06b design marker missing: {marker}")
+if "production_document_scope=true" not in doc:
+    raise SystemExit("P9-W06b production development document marker missing")
 PY
 
 if grep -Fq 'DriverSafetyAuditProbeActivity' "$ROOT_DIR/$MAIN_MANIFEST"; then

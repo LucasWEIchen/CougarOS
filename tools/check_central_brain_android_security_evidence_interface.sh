@@ -11,21 +11,35 @@ WORKFLOW=".github/workflows/central-brain-remote-test-contract.yml"
 DOCUMENTS=(
   "README.md"
   "central-brain/README.md"
-  "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
-  "docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md"
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
-  "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
-  "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
-  "docs/CENTRAL_BRAIN_ROADMAP.md"
-  "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md"
-  "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
   "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md"
-  "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 )
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \

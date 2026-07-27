@@ -171,12 +171,12 @@ done
 
 for doc_marker in \
   'README.md|P4 Client2 HVAC control surface' \
-  'docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md|P4-W04' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|P4-W04 HVAC control surface trace' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-054' \
-  'docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|P4-W04 进展' \
-  'docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|P4-W04 HVAC Control Surface' \
-  'docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|P4-W04 HVAC control surface Driver/HAL Boundary'; do
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W04' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W04 HVAC control surface trace' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|DEV-054' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W04 进展' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W04 HVAC Control Surface' \
+  'docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W04 HVAC control surface Driver/HAL Boundary'; do
   path="${doc_marker%%|*}"
   marker="${doc_marker#*|}"
   grep -Fq -- "$marker" "$ROOT_DIR/$path"

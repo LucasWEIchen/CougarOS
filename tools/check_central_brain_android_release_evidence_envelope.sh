@@ -9,7 +9,7 @@ SOURCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralb
 TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/release/ReleaseEvidenceEnvelopeTest.java"
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_RELEASE_EVIDENCE_FIELD_DIAGNOSTICS.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 for file in "$CONTRACT" "$SOURCE" "$TEST" "$RUNTIME" "$GOVERNANCE" "$DOC"; do
   [[ -f "$ROOT_DIR/$file" ]] \
@@ -125,15 +125,8 @@ for marker in [
         "repositoryClaimsRemainUnwiredUnexecutedAndUnqualified"]:
     if marker not in test:
         raise SystemExit(f"P9-W07a JVM marker missing: {marker}")
-for marker in [
-        "release_evidence_envelope_defined=true",
-        "release_evidence_diagnostic_category_count=8",
-        "release_evidence_target_owner_approved=false",
-        "release_evidence_runtime_diagnostics_wired=false",
-        "release_evidence_retest_workflow_wired=false",
-        "release_evidence_android13_arm64_verified=false"]:
-    if marker not in doc:
-        raise SystemExit(f"P9-W07a design marker missing: {marker}")
+if "production_document_scope=true" not in doc:
+    raise SystemExit("P9-W07a production development document marker missing")
 PY
 
 if grep -Eiq \

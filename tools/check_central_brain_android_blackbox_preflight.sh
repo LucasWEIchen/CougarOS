@@ -9,7 +9,7 @@ SNAPSHOT="central-brain/android-runtime/runtime-service/src/debug/java/com/centr
 PROBE="central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/blackbox/BlackBoxEnvironmentProbeActivity.java"
 TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/blackbox/BlackBoxEnvironmentSnapshotTest.java"
 CONTRACT="central-brain/contracts/central_brain_android_b3_blackbox_acceptance.json"
-DOC="docs/CENTRAL_BRAIN_ANDROID13_BLACKBOX_PREFLIGHT.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 PREFLIGHT="tools/preflight_central_brain_android13_blackbox.sh"
 ACCEPTANCE="tools/test_central_brain_android_blackbox_acceptance.sh"
 SIGNER_GUARD="tools/test_central_brain_android_blackbox_signer_guard.sh"
@@ -19,6 +19,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   grep -Fq -- "$2" "$ROOT_DIR/$1" \
     || { echo "missing B3 pattern '$2' in $1" >&2; exit 1; }
 }
@@ -47,13 +61,13 @@ require_text "$ACCEPTANCE" "post_recovery_hmi_rebind_verified=true"
 require_text "$SIGNER_GUARD" "blackbox_preflight_failed_before_install=true"
 require_text "$CONTRACT" '"preflight_mutations": []'
 require_text "$DOC" "ISSUE-027"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "B3 black-box Android 13 preflight trace"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "2026-07-12 B3 进展"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "2026-07-12 B3 进展"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android B3 Black-Box Preflight And Acceptance"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "B3 Black-Box Preflight Driver/HAL Result"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android B3 Black-Box Preflight Interfaces"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器 + 物理应用层） |"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "B3 black-box Android 13 preflight trace"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "2026-07-12 B3 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "2026-07-12 B3 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android B3 Black-Box Preflight And Acceptance"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "B3 Black-Box Preflight Driver/HAL Result"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android B3 Black-Box Preflight Interfaces"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器 + 物理应用层） |"
 
 if grep -Fq "BlackBoxEnvironmentProbeActivity" \
     "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml"; then

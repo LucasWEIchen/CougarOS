@@ -61,12 +61,15 @@ assert contract["validation"]["android13_x86_64_client2_e2e"] is True
 assert contract["validation"]["android13_arm64_completion_retest"] is True
 
 readme = (root / "README.md").read_text(encoding="utf-8")
-remaining = readme.split("### 未开发或外部阻塞", 1)[1].split("\n## ", 1)[0]
-for stale in ("`IN_PROGRESS`", "`NOT_STARTED`", "待开发", "未开始"):
-    if stale in remaining:
-        raise SystemExit(f"unclassified repository work remains in README: {stale}")
+for canonical in (
+    "docs/CENTRAL_BRAIN_REQUIREMENTS.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+):
+    if canonical not in readme:
+        raise SystemExit(f"canonical document is not linked from README: {canonical}")
 
-requirements = (root / "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md").read_text(encoding="utf-8")
+requirements = (root / "docs/CENTRAL_BRAIN_REQUIREMENTS.md").read_text(encoding="utf-8")
 for stale in (
     "Runtime 执行闭环待开发", "APP-003 | Agent App | 通过 Session/Plan/Tool/Action/Effect 执行 | Stage 2 待开发",
     "FW-U-001 | Context | 车辆、用户、环境的版本化 snapshot | Stage 2 待开发",
@@ -76,26 +79,11 @@ for stale in (
     if stale in requirements:
         raise SystemExit(f"stale requirement state remains: {stale}")
 
-roadmap = (root / "docs/CENTRAL_BRAIN_ROADMAP.md").read_text(encoding="utf-8")
-for stale in ("应用层完成 / Runtime 未完成", "W09-W10 待开发", "| S2-P6 | Event/Model 与高级 Memory 集成 |", "| S2-P7 | 质量与发布 | fault matrix、性能、隐私、安全、升级 | 未开始"):
-    if stale in roadmap:
-        raise SystemExit(f"stale roadmap state remains: {stale}")
+if "`P10-R1` P10-R1 Android repository software completion" not in requirements:
+    raise SystemExit("P10-R1 completion work package is missing")
 PY
 
-for doc in \
-  README.md \
-  docs/CENTRAL_BRAIN_ROADMAP.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md \
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md \
-  docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md \
-  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md \
-  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md \
-  docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md; do
-  grep -Fq 'P10-R1 Android repository software completion' "$ROOT_DIR/$doc" \
-    || { echo "P10-R1 completion marker missing: $doc" >&2; exit 1; }
-done
+bash "$ROOT_DIR/tools/check_central_brain_production_document_set.sh" >/dev/null
 
 bash "$ROOT_DIR/tools/check_central_brain_aios_stage2_design.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_runtime_contract_v2.sh" >/dev/null

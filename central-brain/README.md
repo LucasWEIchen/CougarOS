@@ -59,7 +59,7 @@ Android 13/API 33 ARM64 上完成 UID/package/signer spoof 负例。该接口不
 Governance -> Durable Effect -> readback 链路。Android debug/test 可使用持续标记为 `SIMULATED` 的
 Digital Twin；release/production 不允许在 target adapter unavailable 时隐式回退仿真。当前
 `cockpit_demo_control_loop_implemented=false`，详见
-[`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`](../docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md)。
+[软件开发文档](../docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)。
 
 ## 模型与硬件边界
 
@@ -79,7 +79,7 @@ bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
 物理设备安装和完整交付见
-`docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md`。
+`docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`。
 
 ## 退役约束
 

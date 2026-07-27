@@ -8,13 +8,13 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROFILE="central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json"
 TARGET_INPUTS="central-brain/delivery/android-hybrid/target-inputs.example.json"
 README="central-brain/delivery/android-hybrid/README.md"
-GUIDE="docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md"
-PHYSICAL_REPORT="docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"
+GUIDE="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+PHYSICAL_REPORT="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 PY_TOOL="tools/central_brain_android_hybrid_delivery.py"
 PACKAGE_TOOL="tools/package_central_brain_android_hybrid_delivery.sh"
 INSTALLER="tools/install_central_brain_android_hybrid_delivery.sh"
 REMOTE_CONTRACT="central-brain/contracts/central_brain_github_remote_testing.json"
-REMOTE_GUIDE="docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+REMOTE_GUIDE="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 REMOTE_RUNNER="tools/run_central_brain_android_remote_acceptance.sh"
 
 require_file() {
@@ -22,6 +22,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   grep -Fq -- "$2" "$ROOT_DIR/$1" \
     || { echo "missing B4 hybrid pattern '$2' in $1" >&2; exit 1; }
 }
@@ -41,7 +55,7 @@ require_text "$PROFILE" '"runtime_dispatch_enabled": false'
 require_text "$PROFILE" '"default_install": false'
 require_text "$PROFILE" '"automatic_uninstall_on_signer_mismatch": false'
 require_text "$PROFILE" '"bundle_path": "contracts/central_brain_github_remote_testing.json"'
-require_text "$PROFILE" '"bundle_path": "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"'
+require_text "$PROFILE" '"bundle_path": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"'
 require_text "$PROFILE" '"bundle_path": "tools/run_central_brain_android_remote_acceptance.sh"'
 require_text "$TARGET_INPUTS" '"physical_controller_evidence_available": false'
 require_text "$GUIDE" "SIGNER_MIGRATION_REQUIRED"
@@ -61,13 +75,13 @@ require_text "$INSTALLER" "EXECUTE=false"
 require_text "$INSTALLER" "INCLUDE_CLIENT2=false"
 require_text "$INSTALLER" "automatic_uninstall_enabled=false"
 require_text "$INSTALLER" "SIGNER_MIGRATION_REQUIRED"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "B4 hybrid C/Java software handoff trace"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "2026-07-12 B4 结果"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "2026-07-12 B4 进展"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android B4 Hybrid C/Java Software Handoff"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "B4 Hybrid Delivery Driver/HAL Result"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android B4 Hybrid Delivery Contracts"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 已完成（软件交付） |"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "B4 hybrid C/Java software handoff trace"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "2026-07-12 B4 结果"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "2026-07-12 B4 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android B4 Hybrid C/Java Software Handoff"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "B4 Hybrid Delivery Driver/HAL Result"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android B4 Hybrid Delivery Contracts"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 已完成（软件交付） |"
 
 if rg -n 'central-brain/deploy/linux|linux frontend' "$ROOT_DIR/$PROFILE"; then
   echo "B4 Android hybrid profile must not contain Linux frontend artifacts" >&2
