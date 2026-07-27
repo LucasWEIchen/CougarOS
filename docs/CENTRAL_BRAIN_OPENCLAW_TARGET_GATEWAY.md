@@ -185,6 +185,10 @@ OPENCLAW_PROTOCOL_VERSION=3
 The current engine remains in the integration source set and release routing remains disabled. The endpoint contract
 therefore describes the production network, while release qualification remains open.
 
+For a target board that already has byte-identical Runtime and Client2 APKs installed, the shared HMI runner accepts
+`CENTRAL_BRAIN_SKIP_ANDROID_INSTALL=true`. It verifies each installed base APK against the local SHA-256 before
+starting the target Ethernet scenario; this mode cannot bypass a missing or mismatched package.
+
 ## 8. Verification state
 
 Historical Android 13 ARM64 evidence verifies target text-only WebSocket, challenge/auth, `chat.send` ACK, structured

@@ -1,7 +1,7 @@
 # 中央大脑架构偏差登记表
 
-版本：0.9
-日期：2026-07-26
+版本：1.0
+日期：2026-07-27
 状态：Android 13 实际工程基线
 
 ## DEV-134 Unity supersampling 与动态 HVAC 仍是黑盒应用层补丁
@@ -14,9 +14,11 @@ APK 的清晰度与调温体验，但不能替代 Unity 源工程中的 URP、�
 处理：接受为当前 debug 演示路径。真机日志和截图未通过前只标记“requested”，不能标记
 “graphics quality qualified”。动态温度仍是 HMI 仿真，不是 Vehicle/VHAL target/readback；
 生产 adapter 缺失时继续失败关闭。测试板已验证非旋转子项，但因没有物理触摸 event node，
-车模旋转仍需目标触摸硬件复测；生产板暂时下线。
+车模旋转仍需目标触摸硬件复测。生产板已通过应用层部署、真实目标以太 OpenClaw 三场景、
+1.5 render scale/2880x1620 framebuffer 和稳定性复验，并暴露物理触摸 event node；仍缺
+真实手指滑动的车模朝向与车门点击联合验收。
 
-状态：`Accepted Temporary / Testboard Partial / Physical Touch Retest Open`。
+状态：`Accepted Temporary / Production Application Partial / Physical Touch Retest Open`。
 `unity_render_scale_1_5_requested=true`、`unity_dynamic_temperature_defined=true`、
 `vehicle_bus_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`APP-004`、`S2-HMI-001..004`、

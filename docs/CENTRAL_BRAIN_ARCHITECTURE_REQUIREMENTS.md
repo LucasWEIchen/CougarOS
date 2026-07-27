@@ -1,7 +1,7 @@
 # 中央大脑架构需求基线
 
-版本：1.1
-日期：2026-07-26
+版本：1.2
+日期：2026-07-27
 状态：Android 13 实际工程基线
 
 ## P4-R7 render fidelity, dynamic HVAC and orbit requirement
@@ -23,11 +23,18 @@
 Vehicle/VHAL/CAN/Driver-HAL。没有物理触摸 event node 的测试板只能验证非旋转子项，不得将
 ADB 合成 swipe 提升为物理触摸旋转证据。
 
+2026-07-27 生产板应用层复验已覆盖 1.5 render scale/2880x1620 framebuffer，以及经目标
+以太 OpenClaw 完成的 Cold、Fatigue 和 multimodal 场景。生产板存在
+`ft7252-ts-01` 物理触摸 event node，但在记录真实手指连续滑动改变车模朝向且车门点击仍
+有效前，P4-R7 仍不得标记完整目标硬件验收。模型输出只进入白名单 Graph 和 UI 仿真
+Effect；OpenClaw 外部算力访问不等于 NPU 直连或车辆执行器访问。
+
 当前 `unity_dynamic_temperature_defined=true`、
 `unity_temperature_range_18_30=true`、`unity_temperature_step_0_5=true`、
 `unity_vendor_orbit_input_preserved=true`、
 `unity_render_scale_1_5_requested=true`、
 `p4_r7_testboard_partial_verified=true`、
+`p4_r7_production_android13_arm64_partial_verified=true`、
 `p4_r7_testboard_android13_arm64_verified=false`、
 `vehicle_bus_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`APP-004`、`S2-HMI-001..004`、

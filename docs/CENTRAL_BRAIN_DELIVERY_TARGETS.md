@@ -1,12 +1,12 @@
 # Android 13 座舱域交付目标
 
-版本：3.9
+版本：4.0
 
-日期：2026-07-26
+日期：2026-07-27
 
 ## P4-R7 render fidelity, dynamic HVAC and orbit delivery
 
-交付两个必须成对安装的 Android 13 ARM64 debug APK：
+交付两个必须成对安装的 Android 13 ARM64 HMI debug APK：
 
 1. `renderservice-central-brain.debug.apk`，SHA-256
    `852be3788328ac788de903f9f2173ab296c30b393dbd2857118e3914a758cc88`；
@@ -17,11 +17,21 @@
 `2079de9bf19818b40d25acbcd8cb7643549b04a536b057997ef9103e1dc241a1`。
 交付同时包含幂等 Unity bundle patch、Java bridge、静态门禁和 P4-R7 详设。
 
+生产 OpenClaw 场景还必须安装同签的
+`central-brain-runtime-debug.apk`，SHA-256
+`5b4b1a96278f9d27be5efcb3d9f9c36599ff50f4dd0b442dcf42a9bdb5a9043c`，构建 profile 为
+`target_openclaw_transitional`。三包安装后必须分别核对 installed base APK SHA-256；
+允许复验脚本以 `CENTRAL_BRAIN_SKIP_ANDROID_INSTALL=true` 跳过重复安装，但只在逐包哈希
+完全一致时继续，否则失败关闭。
+
 当前 `p4_r7_repository_software_complete=true`、
-`p4_r7_testboard_partial_verified=true`、`p4_r7_testboard_android13_arm64_verified=false`。
+`p4_r7_testboard_partial_verified=true`、`p4_r7_testboard_android13_arm64_verified=false`、
+`p4_r7_production_android13_arm64_partial_verified=true`。
 测试板已验证 1.5 render scale/2880x1620 framebuffer、双区 18.0/30.0°C 边界、0.5°C
 步进、车门点击、座椅展开、真实 WSL OpenClaw/Ollama 闭环及 crash/ANR。测试板无物理触摸
-event node，车模旋转必须在目标触摸硬件上复测。生产板暂时下线，不在本轮部署。
+event node。生产板已完成三包哈希一致部署、目标以太 OpenClaw Cold/Fatigue/multimodal
+实际调用、1.5 render scale/2880x1620 framebuffer 和 crash/ANR 复验；它存在物理触摸
+event node，但车模旋转与车门联合人工验收仍开放。
 `vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：

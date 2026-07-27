@@ -1,8 +1,8 @@
 # Client2 渲染清晰度、动态温区与车模旋转修复详设
 
-版本：1.1
-日期：2026-07-26
-状态：`TESTBOARD_PARTIAL_VERIFIED / ORBIT_BLOCKED_NO_TOUCH_DEVICE`
+版本：1.2
+日期：2026-07-27
+状态：`PRODUCTION_BOARD_PARTIAL_VERIFIED / ORBIT_PHYSICAL_TOUCH_RETEST_OPEN`
 
 ## 1. 需求与追踪
 
@@ -126,7 +126,7 @@ SHA-256 71c9176c86bf363a51206ff02c4eed27e9494b4bf6db00028de7bd8fec3901ed
 
 ## 6. 2026-07-26 测试板验收
 
-设备为 Android 13/API 33、ARM64、1920x1080 的 `testboard`。生产板未操作。
+设备为 Android 13/API 33、ARM64、1920x1080 的 `testboard`。
 
 | 用例 | 结果 | 证据边界 |
 | --- | --- | --- |
@@ -169,7 +169,42 @@ bash tools/run_client2_central_brain_openclaw_development_test.sh
 物理旋转关闭条件：在带触摸输入的目标硬件上，记录一次连续滑动前后车模朝向变化，并确认
 车门 Button 仍可点击。不得用 ADB 合成 swipe 替代。
 
-## 8. 外部边界
+## 8. 2026-07-27 生产板部署与复验
+
+生产板为 Android 13/API 33、ARM64、1920x1080。Runtime、Client2 和 RenderService
+安装后的 base APK SHA-256 均与本地交付物一致；Client2 位于主屏前台，三个进程存活。
+
+| 用例 | 结果 | 证据边界 |
+| --- | --- | --- |
+| 冷启动渲染 | PASS | RenderService 采纳 `renderScale=1.5` 并创建 2880x1620 framebuffer |
+| Cold | PASS / APPLICATION | 目标以太 OpenClaw v3；37009 ms；2 个 UI 仿真 Effect |
+| Fatigue | PASS / APPLICATION | 目标以太 OpenClaw v3；11942 ms；座椅授权后 3 个 UI 仿真 Effect |
+| Multimodal | PASS / APPLICATION | 2244206-byte 图片；15868 ms；购物、购买和导航三次确认 |
+| 稳定性 | PASS | 三进程存活；近期日志无 crash/ANR |
+| 物理触摸设备 | PRESENT | `ft7252-ts-01`，`BTN_TOUCH`，1920x1080 多点坐标 |
+| 车模旋转 | OPEN | 尚缺真实手指滑动前后朝向变化及车门继续可点击的联合记录 |
+
+生产复验使用 `target_openclaw_transitional`，通过车机以太直接访问 OpenClaw。日志只保留
+协议阶段、时延、长度和图片哈希，不记录原始提示词、回复、图片或凭据。OpenClaw 是外部
+算力；`direct_npu_accessed=false`。模型输出只进入白名单 Graph 和 UI 仿真，
+`vehicle_bus_accessed=false`。
+
+为避免从 WSL UNC 路径重复安装大 APK，复验脚本支持：
+
+```bash
+ADB_SERVER_PORT=5038 \
+ANDROID_SERIAL=<production-device-selector> \
+CENTRAL_BRAIN_CLIENT2_MODEL_ROUTE=target_openclaw_transitional \
+CENTRAL_BRAIN_CLIENT2_SCENARIO=fatigue \
+CENTRAL_BRAIN_SKIP_CLIENT2_BUILD=true \
+CENTRAL_BRAIN_SKIP_ANDROID_INSTALL=true \
+bash tools/run_client2_central_brain_openclaw_development_test.sh
+```
+
+跳过安装前，脚本会逐包比较本地 APK 与设备 installed base APK 的 SHA-256；包缺失或哈希
+不一致时失败关闭。设备选择器和凭据不得写入 GitHub 证据。
+
+## 9. 外部边界
 
 本交付仍是 HMI 仿真。真实 HVAC/Seat target、readback、Safety authority、VHAL/SOA adapter、
 量产 signer、GPU 性能标定和 Unity 源工程合入不在本增量内，保持

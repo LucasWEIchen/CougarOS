@@ -1,7 +1,7 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.9
-日期：2026-07-26
+版本：1.0
+日期：2026-07-27
 状态：Android 13 实际工程基线
 
 ## P4-R7 issue update
@@ -12,7 +12,10 @@
 Android MotionEvent、RenderService display 和 Unity InputSystem target 的编号混用。
 
 `testboard` 没有物理触摸 event node，ADB 合成 swipe 无法触发原厂或修改后 RenderService
-的 Unity Pan recognizer，因此只阻塞车模旋转的物理触摸验收。生产板暂时下线且未操作。
+的 Unity Pan recognizer，因此只阻塞车模旋转的物理触摸验收。生产板现已完成三包部署、
+目标以太 OpenClaw Cold/Fatigue/multimodal 实际调用、1.5 render scale/2880x1620
+framebuffer 和 crash/ANR 复验；它暴露 1920x1080 物理触摸设备，但尚无真实手指滑动的
+车模朝向变化与车门点击联合证据。
 `production_ready=false`、`target_hardware_validated=false`。
 
 ## P4-R6 issue update
@@ -117,7 +120,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
 | ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
 | ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 和生产板通过；生产板 ADB 连接恢复，目标以太真实 OpenClaw、Unity 原生双区 28.0°C、靠背展开及 crash/ANR 检查通过。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Resolved / Production Application Retest |
-| ISSUE-061 | P4-R7 清晰度、动态温区、车门、座椅、真实模型链和稳定性已在 `testboard` 通过；测试板无物理触摸 event node，ADB swipe 连原厂 APK 也不能验证 Unity 旋转。 | S2-HMI-001..004, S2-UX-002/003, DEL-004, P4-R7 | Testboard Partial / Physical Touch Retest Open |
+| ISSUE-061 | P4-R7 已在生产板完成目标以太真实模型三场景、1.5 render scale/2880x1620 和稳定性复验；生产板有物理触摸 event node，但尚缺真实手指滑动车模与车门联合验收。 | S2-HMI-001..004, S2-UX-002/003, DEL-004, P4-R7 | Production Application Partial / Physical Touch Retest Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1564,7 +1567,13 @@ OpenClaw/Ollama Fatigue 回归也完成 3 个模拟 Effect，未访问车辆总�
 最终 bundle 保留并门禁原厂 Pan 配置：`targetInputDisplay=2`、raycast=true、
 finger polling=false。
 
-关闭条件：在带真实触摸屏输入、且映射到厂商 Unity InputSystem target 的目标硬件上，验证
-连续滑动改变车模朝向，同时车门点击继续有效。生产板暂时下线，不用于替代验收。
+2026-07-27 已在生产板部署 Runtime、Client2 和 RenderService。逐包安装哈希与本地交付物
+一致；Cold、Fatigue、multimodal 均经目标以太 OpenClaw 完成，且冷启动日志确认
+`renderScale=1.5` 和 2880x1620 framebuffer。生产板的 `ft7252-ts-01` 暴露
+`BTN_TOUCH` 及 1920x1080 多点坐标，因此测试夹具阻塞已解除；但自动化不能代替真实手指
+滑动，尚未取得车模朝向变化与车门继续可点击的联合验收记录。
 
-状态：`Testboard Partial / Physical Touch Retest Open`。
+关闭条件：在当前生产板上用真实手指连续滑动，记录车模朝向变化，同时确认车门点击继续
+有效。不得用 ADB 合成 swipe 替代。
+
+状态：`Production Application Partial / Physical Touch Retest Open`。

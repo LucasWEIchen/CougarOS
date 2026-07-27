@@ -117,6 +117,11 @@ CENTRAL_BRAIN_CLIENT2_OPENCLAW_TIMEOUT_SECONDS=180 \
 Client2 APK 与新 Runtime 混装；否则 Parcelable 字段或投影摘要可能被 Client2 SDK 判为
 `SDK_PROJECTION_INVALID`。
 
+如果 Windows ADB 不能从 WSL UNC 路径重复安装，但两个 APK 已通过原生 Windows 路径部署，
+可以设置 `CENTRAL_BRAIN_SKIP_ANDROID_INSTALL=true`。该模式不是无条件跳过：runner 会读取
+设备已安装 base APK，并分别与本地 Runtime/Client2 APK 计算 SHA-256；任一包缺失或哈希不一致
+都会以 `PREINSTALLED_PACKAGE_MISSING` 或 `PREINSTALLED_APK_HASH_MISMATCH` 失败关闭。
+
 只建立/检查桥接：
 
 ```bash

@@ -1,8 +1,8 @@
 # 驱动层接口支持矩阵
 
-版本：2.9
+版本：3.0
 
-日期：2026-07-26
+日期：2026-07-27
 
 ## P4-R7 render/HVAC/orbit Driver-HAL boundary
 
@@ -15,6 +15,9 @@ device node、sysfs、ioctl、Kernel、Driver 或 HAL。
 `vehicle_bus_accessed=false`。真实 HVAC target/readback、座椅和 GPU/Unity 量产标定仍由
 OEM/Vendor 外部接口承担。测试板缺少物理触摸 input event 属于当前测试夹具能力限制；只有
 目标座舱硬件同样缺少 OEM 触摸输入映射时，才升级为厂商输入集成缺口，不在本轮新增 Driver/HAL。
+2026-07-27 生产板已确认存在 `ft7252-ts-01` 物理触摸 event node，因此当前没有新增
+Driver/HAL 开发量；剩余工作是应用/Unity 输入路径的真实手指验收。目标以太 OpenClaw
+三场景通过也不改变 Driver/HAL 边界，模型输出仍只进入 UI 仿真 Effect。
 `production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-HMI-001..004`、
 `S2-UX-002/003`、`S2-ADP-001/002`、`DEL-004`；tracking：

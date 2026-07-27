@@ -1,12 +1,12 @@
 # Central Brain Android 13 开发路线图
 
-版本：1.2
-日期：2026-07-26
+版本：1.3
+日期：2026-07-27
 状态：Stage 2 P6 in progress
 
-## 2026-07-26 P4-R7 render fidelity, dynamic HVAC and orbit input
+## 2026-07-27 P4-R7 render fidelity, dynamic HVAC and orbit input
 
-状态：`TESTBOARD_PARTIAL_VERIFIED / ORBIT_BLOCKED_NO_TOUCH_DEVICE`。P4-R7 已将 P4-R6
+状态：`PRODUCTION_BOARD_PARTIAL_VERIFIED / ORBIT_PHYSICAL_TOUCH_RETEST_OPEN`。P4-R7 已将 P4-R6
 固定 26.5/28.0°C 双状态升级为 Unity 原生动态 TextMeshPro，支持双区 18.0-30.0°C、
 0.5°C 步进和 360 ms 逐级动画；Client2 经 RenderService `c2sSendMessage(..., "set_text", ...)`
 更新温区。TextMeshPro 单参数消息已由错误的 `SetText` 修正为 `set_text`。Unity Pan
@@ -14,22 +14,32 @@ recognizer 保留原厂 `targetInputDisplay=2`、raycast=true、finger polling=f
 MotionEvent `displayId=0`、RenderService `DisplayIndex=1` 和 Unity InputSystem target
 不属于同一编号空间，不再依据数值相似性改写。Client2 的观察型触摸监听继续返回 false。
 
-两个 APK 已完成构建、同签、离线 bundle 检查和 `testboard` ARM64 部署。真机确认
+两个 HMI APK 已完成构建、同签、离线 bundle 检查和 `testboard` ARM64 部署。测试板确认
 RenderService 采纳 1.5 render scale 并将 framebuffer 提升到 2880x1620；双区初始 26.5°C、
 0.5°C 步进、18.0/30.0°C 边界、驾驶/乘员独立调节、车门点击和 Fatigue 座椅 15° -> 30°
 展开均通过。真实 WSL OpenClaw/Ollama Fatigue 链路完成 3 个 UI 仿真 Effect，模型延迟
 117383 ms，且保持 `VEHICLE BUS NOT ACCESSED`。
 
+2026-07-27 已把同签的 Runtime、Client2 和 RenderService 部署到 Android 13/API 33、
+ARM64、1920x1080 生产板，安装后 APK SHA-256 与本地交付物逐包一致。生产板经
+`target_openclaw_transitional` 目标以太链路完成 Cold、Fatigue 和 multimodal 三个真实模型
+场景：模型延迟分别为 37009 ms、11942 ms 和 15868 ms；多模态实际发送 2244206-byte 图片，
+并依次经过购物授权、购买确认和导航确认。所有执行仍为 UI 仿真，OpenClaw 属于外部算力，
+`direct_npu_accessed=false`、`vehicle_bus_accessed=false`。冷启动日志确认 1.5 render scale
+被 RenderService 采纳并创建 2880x1620 framebuffer；三个应用进程存活且无 crash/ANR。
+
 车模旋转仍开放：测试板 `/proc/bus/input/devices` 和 `getevent -lp` 只有按键类设备，没有
 物理触摸 event node；ADB 合成 swipe 的 `deviceId=-1/displayId=0` 不能代表厂商 Unity
 InputSystem target。未修改的原厂 RenderService 在同一 ADB swipe 下也不旋转，因此该项是
-测试环境验收阻塞，不是本次 bundle 回归。生产板按用户决定暂时下线且未操作。
+测试环境验收阻塞，不是本次 bundle 回归。生产板已暴露 1920x1080 `ft7252-ts-01` 物理
+触控设备，但还缺一次真实手指连续滑动前后车模朝向变化以及车门仍可点击的人工验收记录。
 
 当前 `p4_r7_repository_software_complete=true`、
 `p4_r7_testboard_android13_arm64_verified=false`、
 `p4_r7_testboard_partial_verified=true`、
+`p4_r7_production_android13_arm64_partial_verified=true`、
 `p4_r7_orbit_physical_touch_verified=false`、
-`production_board_touched=false`、`vehicle_bus_accessed=false`、
+`production_board_deployed=true`、`vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
 `DEV-134`、`ISSUE-061`；stage `P4-R7-RENDER-HVAC-ORBIT`。
