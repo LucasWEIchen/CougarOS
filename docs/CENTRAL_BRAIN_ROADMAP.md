@@ -28,6 +28,13 @@ ARM64、1920x1080 生产板，安装后 APK SHA-256 与本地交付物逐包一�
 `direct_npu_accessed=false`、`vehicle_bus_accessed=false`。冷启动日志确认 1.5 render scale
 被 RenderService 采纳并创建 2880x1620 framebuffer；三个应用进程存活且无 crash/ANR。
 
+生产板首次部署后，Client1 旧任务虽然仍显示为 resumed，但 RenderService 替换造成的旧渲染
+会话没有恢复。冷启动 Client1 后已重新绑定副屏 Android `displayId=2`、RenderService
+`DisplayIndex=0` 和 1920x720 Surface，服务端 `combinedDispMask=3`。新增
+`recover_central_brain_android_client1_render_session.sh`，只重启 Client1 进程、不清数据、
+不重启 Client2，并验证副屏 Activity 和 Surface。tracking：`ISSUE-062`；stage
+`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`。
+
 车模旋转仍开放：测试板 `/proc/bus/input/devices` 和 `getevent -lp` 只有按键类设备，没有
 物理触摸 event node；ADB 合成 swipe 的 `deviceId=-1/displayId=0` 不能代表厂商 Unity
 InputSystem target。未修改的原厂 RenderService 在同一 ADB swipe 下也不旋转，因此该项是
@@ -38,11 +45,12 @@ InputSystem target。未修改的原厂 RenderService 在同一 ADB swipe 下也
 `p4_r7_testboard_android13_arm64_verified=false`、
 `p4_r7_testboard_partial_verified=true`、
 `p4_r7_production_android13_arm64_partial_verified=true`、
+`p4_r7_client1_render_session_recovery_verified=true`、
 `p4_r7_orbit_physical_touch_verified=false`、
 `production_board_deployed=true`、`vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
-`APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
-`DEV-134`、`ISSUE-061`；stage `P4-R7-RENDER-HVAC-ORBIT`。
+`APP-001/004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
+`DEV-134`、`ISSUE-061/062`；stage `P4-R7-RENDER-HVAC-ORBIT`。
 
 ## 2026-07-24 P4-R6 Unity-native HVAC and seat correction
 

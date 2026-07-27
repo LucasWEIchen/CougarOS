@@ -18,10 +18,14 @@ OEM/Vendor 外部接口承担。测试板缺少物理触摸 input event 属于�
 2026-07-27 生产板已确认存在 `ft7252-ts-01` 物理触摸 event node，因此当前没有新增
 Driver/HAL 开发量；剩余工作是应用/Unity 输入路径的真实手指验收。目标以太 OpenClaw
 三场景通过也不改变 Driver/HAL 边界，模型输出仍只进入 UI 仿真 Effect。
+
+`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY` 只通过公开 ADB ActivityManager 命令重启 Client1
+应用进程，并以 `dumpsys activity`/SurfaceFlinger 做只读验证。它不访问 input device、
+Kernel、Driver、HAL、Vehicle/VHAL/CAN 或系统分区，因此新增 Driver/HAL 开发量为零。
 `production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-HMI-001..004`、
 `S2-UX-002/003`、`S2-ADP-001/002`、`DEL-004`；tracking：
-`DEV-134`、`ISSUE-061`。
+`DEV-134`、`ISSUE-061/062`。
 
 ## P4-R6 Unity-native HVAC/Seat Driver-HAL boundary
 

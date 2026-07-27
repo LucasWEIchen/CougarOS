@@ -184,6 +184,23 @@ bash tools/run_client2_central_brain_openclaw_development_test.sh
 | 物理触摸设备 | PRESENT | `ft7252-ts-01`，`BTN_TOUCH`，1920x1080 多点坐标 |
 | 车模旋转 | OPEN | 尚缺真实手指滑动前后朝向变化及车门继续可点击的联合记录 |
 
+### 8.1 Client1 副屏会话恢复
+
+RenderService 替换后，Client1 原 Activity 可能继续显示为 resumed，但旧 Binder/Surface
+渲染会话不能据此视为已经恢复。生产板首次部署出现该状态后，冷启动 Client1 确认：
+
+```text
+Android activity displayId=2
+RenderService DisplayIndex=0
+Client1 surface=1920x720
+combinedDispMask=3
+```
+
+仓库通过 `recover_central_brain_android_client1_render_session.sh` 固化恢复动作。它只
+force-stop Client1，再通过 `am start -W --display 2` 启动；随后验证 PID、resumed Activity
+和 SurfaceFlinger Surface。它不清数据、不重启 Client2、不修改 RenderService 或系统分区。
+stage：`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`；tracking：`ISSUE-062`。
+
 生产复验使用 `target_openclaw_transitional`，通过车机以太直接访问 OpenClaw。日志只保留
 协议阶段、时延、长度和图片哈希，不记录原始提示词、回复、图片或凭据。OpenClaw 是外部
 算力；`direct_npu_accessed=false`。模型输出只进入白名单 Graph 和 UI 仿真，

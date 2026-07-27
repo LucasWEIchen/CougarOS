@@ -29,16 +29,23 @@ ADB 合成 swipe 提升为物理触摸旋转证据。
 有效前，P4-R7 仍不得标记完整目标硬件验收。模型输出只进入白名单 Graph 和 UI 仿真
 Effect；OpenClaw 外部算力访问不等于 NPU 直连或车辆执行器访问。
 
+RenderService APK 被替换或进程被重启后，部署流程必须重新建立 Client1 副屏渲染会话。恢复
+动作必须将 `com.tuanjie.urasclient/.MainActivity` 显式启动到 Android `displayId=2`，验证
+进程、resumed Activity 和 SurfaceFlinger Surface；不得清除 Client1 数据，不得为了恢复
+Client1 重启 Client2，不得把 Android `displayId=2` 与 RenderService `DisplayIndex=0`
+混为同一编号空间。stage `P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`，tracking：`ISSUE-062`。
+
 当前 `unity_dynamic_temperature_defined=true`、
 `unity_temperature_range_18_30=true`、`unity_temperature_step_0_5=true`、
 `unity_vendor_orbit_input_preserved=true`、
 `unity_render_scale_1_5_requested=true`、
 `p4_r7_testboard_partial_verified=true`、
 `p4_r7_production_android13_arm64_partial_verified=true`、
+`p4_r7_client1_render_session_recovery_verified=true`、
 `p4_r7_testboard_android13_arm64_verified=false`、
 `vehicle_bus_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`。Req IDs：`APP-004`、`S2-HMI-001..004`、
-`S2-UX-002/003`、`DEL-004`；tracking：`DEV-134`、`ISSUE-061`；stage
+`target_hardware_validated=false`。Req IDs：`APP-001/004`、`S2-HMI-001..004`、
+`S2-UX-002/003`、`DEL-004`；tracking：`DEV-134`、`ISSUE-061/062`；stage
 `P4-R7-RENDER-HVAC-ORBIT`。
 
 ## P4-R6 Unity-native HVAC and seat animation correction

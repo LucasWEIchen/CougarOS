@@ -24,9 +24,23 @@
 允许复验脚本以 `CENTRAL_BRAIN_SKIP_ANDROID_INSTALL=true` 跳过重复安装，但只在逐包哈希
 完全一致时继续，否则失败关闭。
 
+RenderService 安装或重启后必须运行 Client1 副屏会话恢复门禁：
+
+```bash
+ADB_SERVER_PORT=<adb-server-port> \
+ANDROID_SERIAL=<device-selector> \
+bash tools/recover_central_brain_android_client1_render_session.sh
+```
+
+该步骤默认将 Client1 启动到 Android `displayId=2`，验证 resumed Activity 和
+SurfaceFlinger Surface，不清除应用数据、不重启 Client2。生产板已验证
+`client1_render_session_recovered=true`。stage：
+`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`；tracking：`ISSUE-062`。
+
 当前 `p4_r7_repository_software_complete=true`、
 `p4_r7_testboard_partial_verified=true`、`p4_r7_testboard_android13_arm64_verified=false`、
-`p4_r7_production_android13_arm64_partial_verified=true`。
+`p4_r7_production_android13_arm64_partial_verified=true`、
+`p4_r7_client1_render_session_recovery_verified=true`。
 测试板已验证 1.5 render scale/2880x1620 framebuffer、双区 18.0/30.0°C 边界、0.5°C
 步进、车门点击、座椅展开、真实 WSL OpenClaw/Ollama 闭环及 crash/ANR。测试板无物理触摸
 event node。生产板已完成三包哈希一致部署、目标以太 OpenClaw Cold/Fatigue/multimodal
@@ -34,8 +48,8 @@ event node。生产板已完成三包哈希一致部署、目标以太 OpenClaw 
 event node，但车模旋转与车门联合人工验收仍开放。
 `vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
-`APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
-`DEV-134`、`ISSUE-061`；stage `P4-R7-RENDER-HVAC-ORBIT`。
+`APP-001/004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
+`DEV-134`、`ISSUE-061/062`；stage `P4-R7-RENDER-HVAC-ORBIT`。
 
 ## P4-R6 Unity-native HVAC and seat delivery
 
