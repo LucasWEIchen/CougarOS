@@ -1,14 +1,41 @@
 # Central Brain AIOS Stage 2 开发计划与最小工作包
 
-版本：1.5
+版本：1.6
 
-日期：2026-07-23
+日期：2026-07-27
 
-状态：Implementation backlog baseline；P4-R5/P4-R6 repository software complete
+状态：`ARCHITECTURE_BASELINE_READY / P4_R7_IMPLEMENTATION_DRAFT /
+EXTERNAL_ACTIVATION_OPEN`
 
 目标平台：黑盒 Android 13 座舱域控制器
 
 主要语言：Java、AIDL、C；构建/验收脚本使用 Bash；Python AIOS 原型已退役且不得作为兼容参考或测试 oracle
+
+## P10-R1 文档与工作包收口
+
+P4-R6 及此前最小工作包已归类为已开发、debug/process-local、外部阻塞、挂起或范围外。
+P4-R7 已进入总体架构、总详设和接口设计，但实现仍在 Draft PR #130。后续新增仓库功能必须
+先获得新的 Req ID 和工作包，不得在现有 `DONE` 状态下隐式扩展。
+
+当前 backlog 只继续承载外部激活和验收条件：Vehicle/VHAL、可信 Safety/Context、实时媒体、
+Navigation/Commerce、生产 Model/NPU、生产签名、隐私/发布 owner、性能/72h/故障证据，以及
+P4-R7 现场视觉和物理触摸复验。它们不得用 UI 仿真、debug adapter 或静态合同关闭。
+
+## P4-R7 双屏渲染、动态温区与车模旋转
+
+- 状态：`DESIGN_READY / IMPLEMENTATION_DRAFT_PR_130 /
+  VISUAL_AND_PHYSICAL_TOUCH_RETEST_OPEN`。
+- 模块：Client1、Client2 coordinator、`TuanjieView`、共享 RenderService、Unity bundle patch、
+  双屏恢复和配对 APK 门禁。
+- DoD：Client1 d2/DisplayIndex0 必须先于 Client2 d0/DisplayIndex1 建立；主屏请求 1.5 render
+  scale；双区温度 18.0-30.0°C、0.5°C 步进且场景/手动共用 reducer；原厂 Pan 合同不被猜测改写。
+- Draft 证据：PR #130 记录生产板双 Activity/Surface、1920x720、1920x1080、2880x1620
+  framebuffer、`combinedDispMask=3`、三个进程和无相关 crash/ANR；不提升为 `main` 实现证据。
+- 开放：Client1 `FLAG_SECURE` 副屏现场外观；真实手指滑动车模且车门仍可点击。
+- 交付：
+  [P4-R7 渲染、动态温区与旋转详设](CENTRAL_BRAIN_CLIENT2_RENDER_FIDELITY_HVAC_ORBIT.md)。
+- 边界：无 Vehicle/VHAL/CAN/Driver-HAL、无真实 HVAC/Seat readback、无 Unity 源工程图形质量
+  标定；ADB 空截图和合成 swipe 均不能关闭现场验收。
 
 ## P4-R6 Unity 原生 HVAC 与座椅动画修正
 

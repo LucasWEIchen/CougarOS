@@ -5,13 +5,14 @@
 ```mermaid
 flowchart TB
   subgraph HMI["Android 13 座舱应用与 HMI"]
-    Client2["Client2 中控 APK"]
+    Client1["Client1 副屏 APK\nAndroid d2 / Render index0"]
+    Client2["Client2 中控 APK\nAndroid d0 / Render index1"]
     Voice["自然场景输入\n我有些疲惫 / 车里有点冷 / 处理一下"]
     Trace["实时调用链文本框"]
     ModelIO["模型 I/O 实时反馈\n文字 / 图片缩略图 / 居中预览"]
     Feedback["HVAC / Seat / Shopping / Route 仿真反馈"]
     TuanjieView["TuanjieView\n原生触屏事件桥"]
-    UnityHvac["RenderService / Unity Addressables\n双区原生 HVAC 状态"]
+    UnityHvac["共享 RenderService / Unity Addressables\nP4-R7 design / implementation Draft #130"]
     HmiState["Immutable HMI State / Reducer"]
     ClientBridge["OrchestrationRuntimeClient"]
   end
@@ -68,7 +69,8 @@ flowchart TB
   end
 
   subgraph Delivery["交付与测试闭环"]
-    Bundle["Runtime / SDK / Native / Client2 Bundle"]
+    Bundle["Runtime / SDK / Native / Client1 / Client2 / RenderService"]
+    RenderRecovery["双屏渲染恢复设计\nClient1 first / Client2 second\nimplementation Draft #130"]
     GitHub["GitHub Release / Source of Truth"]
     TargetTest["目标侧 ADB 测试"]
     Issue["脱敏 Issue / Replacement / Retest"]
@@ -83,6 +85,7 @@ flowchart TB
   ClientBridge --> ModelIO --> HmiState
   HmiState --> Feedback
   Feedback --> TuanjieView --> UnityHvac
+  Client1 --> UnityHvac
 
   Identity --> Orchestration --> Durable
   Orchestration --> Context --> Scenario --> Graph
@@ -113,6 +116,8 @@ flowchart TB
   Effect -. "Safety authority required" .-> Safety
 
   Bundle --> GitHub --> TargetTest --> Issue
+  TargetTest --> RenderRecovery --> Client1
+  RenderRecovery --> Client2
   Issue -. "fix / replacement / retest" .-> Bundle
 ```
 
