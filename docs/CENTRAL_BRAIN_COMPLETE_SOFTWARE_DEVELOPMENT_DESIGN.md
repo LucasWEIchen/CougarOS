@@ -1,8 +1,100 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.7
+版本：2.8
 
-日期：2026-07-17
+日期：2026-07-27
+
+状态：`REPOSITORY_SOFTWARE_DESIGN_BASELINE_READY /
+PRODUCTION_ACTIVATION_EXTERNAL_BLOCKED / TARGET_HARDWARE_VALIDATION_OPEN`
+
+## 文档收口与实现口径
+
+本文与 `CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md`、`CENTRAL_BRAIN_INTERFACE_DESIGN.md` 共同
+构成当前 Android 13 AIOS 软件工程基线。139 个最小工作包已全部归类；仓库内待实现且未挂起、
+未声明外部阻塞的工作包为 0。本文的 `DONE/DEVELOPED` 只表示相应的软件合同、debug 实现或
+应用层证据完成，不表示生产 owner、车辆 authority 或目标硬件验收完成。
+
+```text
+architecture_document_set_ready=true
+repository_software_requirements_complete=true
+open_repository_software_requirement_count=0
+external_activation_requirements_classified=true
+production_ready=false
+target_hardware_validated=false
+```
+
+最新增量的实现级权威文档如下：
+
+| 增量 | 权威详设 | 本文责任 |
+| --- | --- | --- |
+| P4-R7 | `CENTRAL_BRAIN_CLIENT2_RENDER_FIDELITY_HVAC_ORBIT.md` | 固化双屏、动态温区、触摸和恢复接口在总模块中的位置 |
+| P4-R6 | `CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md` | 固化 Unity 原生 HVAC 与座椅方向演进 |
+| P4-R5 | `CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md` | 固化多模态购物、确认和路线规划 |
+| P7-R3/R5 | OpenClaw target/multimodal 专项文档 | 固化过渡模型 Provider 和媒体边界 |
+
+## P4-R7 render/HVAC/orbit 实现级收口
+
+### 模块与责任
+
+| 模块 | 实现责任 | 不拥有的 authority |
+| --- | --- | --- |
+| Client1 `MainActivity` | 副屏 Android display 2、RenderService DisplayIndex0、1920x720 Surface | AIOS Session、车辆控制、渲染服务生命周期 |
+| Client2 `CockpitControlCoordinator` | 动态温度 reducer、场景动画、RenderService 消息、1.5 render scale 请求 | Vehicle target/readback、触摸驱动映射 |
+| `TuanjieView` | 厂商 Binder 代理、Surface、touch 和 render-scale 用户态入口 | Unity InputSystem target、GPU 质量标定 |
+| RenderService | 共享 Unity runtime、DisplayIndex0/1、Addressables HMI | Android Activity owner、车辆 authority |
+| Bundle patch | TextMeshPro 动态双区对象和原厂 Pan 合同断言 | `libtuanjie.so`、URP、纹理/LOD/MSAA 标定 |
+| Recovery/verification tools | 按序冷启动、日志/Surface/Activity/framebuffer 门禁 | 屏幕视觉判定、应用数据迁移 |
+
+### 温度状态机
+
+Client2 分别维护驾驶席和乘员席温度，初始值 26.5°C，范围 18.0-30.0°C，步进 0.5°C。
+`setUnityTemperature` 必须先 clamp、再按 0.5°C quantize；场景变化由
+`animateTemperature` 每 360 ms 调用同一 setter，不允许维护第二套场景温度状态。
+
+每次状态变化通过反射调用厂商现有 RenderService Binder：
+
+```text
+c2sSendMessage(
+  "CentralBrain_<zone>_temperature_dynamic",
+  "set_text",
+  "<temperature one decimal>°C")
+```
+
+`set_text` 是 TextMeshPro 属性 setter；单字符串消息不得改回双参数 `SetText`。发送失败只
+记录有界状态并保持 HMI desired 值，不得推断 Unity 已应用，更不得生成车辆 readback。
+
+### 双屏恢复状态机
+
+```text
+PRECHECK packages + Android displays 0/2
+  -> STOP Client2
+  -> STOP Client1
+  -> STOP RenderService
+  -> START Client1 on Android d2
+  -> VERIFY PID + RenderService + DisplayIndex0 + 1920x720
+  -> START Client2 on Android d0
+  -> VERIFY PID + DisplayIndex1 + 1920x1080 + 2880x1620
+  -> VERIFY dual resumed Activity + dual Surface + combinedDispMask=3
+```
+
+任一步失败即返回 typed reason 并停止验收，不执行 `pm clear`、卸载、root、remount 或系统
+修改。副屏 `FLAG_SECURE` 需要现场视觉确认。
+
+### 验收边界
+
+生产板已通过结构、日志、进程和 framebuffer 证据。仍开放 Client1 背景/构图现场复验及
+真实手指旋转与车门点击联合验收。当前 `production_ready=false`、
+`target_hardware_validated=false`。
+
+## P4-R6 Unity-native HVAC/Seat 实现级收口
+
+P4-R6 的座椅 View 以底边中心为 pivot，15° 到 30° 变化使用负 rotation，使靠背顶端远离
+坐垫。温度显示不得使用 Android overlay；P4-R6 经 Unity Button/`c2sOnTouchEvent` 切换
+26.5/28.0 状态，P4-R7 后由动态 `set_text` 取代离散状态。旧离散温度只作为迁移历史，
+不得形成并行运行路径。
+
+该模块消费已经 Graph/Policy 准入的 simulated Effect，只产生 UI 动画和 simulated readback。
+生产 HVAC/Seat adapter、车辆状态、Safety approval 和实际 readback 始终失败关闭。
 
 ## P4-R5 cabin shopping and route-planning detailed-design index
 
@@ -78,7 +170,7 @@ cursor replay 恢复；降级 V1 时把可解析 V2 sequence 转为 `e:<sequence
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `S2-EVT-001`、`FW-U-003`、`NV-G-004/006/007`、`XSC-001/005/006`、`DEL-001/003/004`。
 
-状态：Stage 2 implementation baseline
+状态：Repository software implementation baseline；production activation external blocked
 
 面向对象：Android 座舱应用、平台 Runtime、AI/Agent、车辆服务、测试与集成工程师
 
@@ -97,7 +189,9 @@ cursor replay 恢复；降级 V1 时把可解析 V2 sequence 转为 `e:<sequence
 - 真实 Android 车辆/NPU 接口到位后的替换方式；
 - 开发人员可直接采用的目录、类、AIDL、Room schema 和测试设计。
 
-本文是当前唯一实现级总详设。发生冲突时，架构图 Req ID 优先，其次是本文，再其次是分模块接口和验收文档。Python 原型退役边界见 `CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md`。
+本文是当前实现级总详设。发生冲突时依次采用架构需求基线、总体软件架构、本文、接口设计和
+专项详设；状态与证据以 Roadmap、Catalog、Issues、Deviations 和 Delivery 文档为准。
+Python 原型退役边界见 `CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md`。
 
 ## 2. 状态定义
 

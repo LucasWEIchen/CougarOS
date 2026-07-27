@@ -1,8 +1,28 @@
 # Central Brain Android 13 开发路线图
 
-版本：1.3
+版本：1.4
 日期：2026-07-27
-状态：Stage 2 P6 in progress
+状态：`REPOSITORY_SOFTWARE_COMPLETE / ARCHITECTURE_BASELINE_READY /
+PRODUCTION_ACTIVATION_EXTERNAL_BLOCKED / TARGET_RETEST_OPEN`
+
+## 2026-07-27 AIOS 架构文档收口
+
+总体架构、完整软件详设和接口设计已同步到 P4-R7，模块用例图和 GitHub 首页架构图已纳入
+Client1/Client2/共享 RenderService、动态 Unity HVAC、OpenClaw 过渡 Provider、多模态输入和
+外部空接口。三份主文档统一声明：
+
+```text
+architecture_document_set_ready=true
+repository_software_requirements_complete=true
+open_repository_software_requirement_count=0
+external_activation_requirements_classified=true
+production_ready=false
+target_hardware_validated=false
+```
+
+该状态表示仓库内软件架构和实现工作包已经形成可供工程师开发、评审和外部集成的基线，不表示
+量产激活完成。P8/P9/OEM/Vendor 项、P4-R7 副屏视觉复验和物理触摸验收继续按 Issues、
+Deviations、Delivery 与 Driver/HAL 文档跟踪。
 
 ## 2026-07-27 P4-R7 render fidelity, dynamic HVAC and orbit input
 
