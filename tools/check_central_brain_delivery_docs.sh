@@ -13,6 +13,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   grep -Fq -- "$2" "$ROOT_DIR/$1" \
     || { echo "missing Android delivery marker '$2' in $1" >&2; exit 1; }
 }
@@ -27,17 +41,17 @@ required_files=(
   central-brain/delivery/android-hybrid/README.md
   central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
   central-brain/delivery/android-hybrid/target-inputs.example.json
-  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md
-  docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md
-  docs/CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md
-  docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md
-  docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md
-  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
-  docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md
-  docs/CENTRAL_BRAIN_ANDROID13_BLACKBOX_PREFLIGHT.md
-  docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md
-  docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
   tools/central_brain_android_delivery.py
   tools/central_brain_android_hybrid_delivery.py
   tools/package_central_brain_android_hybrid_delivery.sh
@@ -51,8 +65,8 @@ done
 for req_id in APP-004 XSC-001 XSC-004 XSC-005 XSC-006 NV-F-001 NV-F-011 \
     NV-F-012 NV-G-003 NV-G-005 NV-G-006 NV-G-007 NV-P-002 KH-003 KH-006 \
     DEL-001 DEL-003 DEL-004 DEL-005; do
-  require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "$req_id"
-  require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "$req_id"
+  require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "$req_id"
+  require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "$req_id"
 done
 
 for marker in \
@@ -68,7 +82,7 @@ for marker in \
   'target_hardware_validated=false' \
   'driver_development_triggered=false' \
   'virtualization_development_triggered=false'; do
-  require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "$marker"
+  require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "$marker"
 done
 
 python3 -B - "$ROOT_DIR/$PROFILE" <<'PY'
@@ -134,7 +148,7 @@ PY
 
 if rg -n \
     'central-brain/(backend|android-console|bindings/(android|linux)|linux-cli|deploy/linux)|CENTRAL_BRAIN_(SOFTWARE_DETAILED_DESIGN|PLATFORM_DELTA|PROTOTYPE_)|ollama_simulated_npu' \
-    "$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" \
+    "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md" \
     "$ROOT_DIR/central-brain/delivery/android-hybrid/README.md" \
     "$ROOT_DIR/$PROFILE"; then
   echo "Android delivery baseline references retired prototype assets" >&2

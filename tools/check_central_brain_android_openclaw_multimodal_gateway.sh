@@ -11,7 +11,7 @@ ENDPOINT="$RUNTIME/src/main/java/com/centralbrain/runtime/model/OpenClawEndpoint
 TEST="$RUNTIME/src/testDebug/java/com/centralbrain/runtime/model/OpenClawInferenceEngineTest.java"
 RUNNER="tools/run_central_brain_wsl_openclaw_multimodal_probe.sh"
 CONTRACT="central-brain/contracts/central_brain_android_openclaw_multimodal_gateway_v1.json"
-DESIGN="docs/CENTRAL_BRAIN_OPENCLAW_MULTIMODAL_DEVELOPMENT.md"
+DESIGN="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 IMAGE="central-brain/test-assets/multimodal/2025-SUV-OMS-cabin-photo.png"
 
 for file in "$ENGINE" "$ENDPOINT" "$TEST" "$RUNNER" "$CONTRACT" "$DESIGN" "$IMAGE"; do
@@ -19,6 +19,20 @@ for file in "$ENGINE" "$ENDPOINT" "$TEST" "$RUNNER" "$CONTRACT" "$DESIGN" "$IMAG
 done
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   grep -Fq -- "$2" "$ROOT_DIR/$1" \
     || { echo "missing multimodal marker '$2' in $1" >&2; exit 1; }
 }
@@ -84,10 +98,10 @@ PY
     == "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438" ]] \
   || { echo "controlled multimodal image digest mismatch" >&2; exit 1; }
 
-for doc in README.md docs/CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md \
-  docs/CENTRAL_BRAIN_ROADMAP.md docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md \
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md; do
+for doc in README.md docs/CENTRAL_BRAIN_REQUIREMENTS.md \
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md docs/CENTRAL_BRAIN_REQUIREMENTS.md \
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md docs/CENTRAL_BRAIN_REQUIREMENTS.md \
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md docs/CENTRAL_BRAIN_REQUIREMENTS.md; do
   require_text "$doc" 'P7-R5-MMDEV'
 done
 

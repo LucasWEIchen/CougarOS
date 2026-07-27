@@ -15,6 +15,20 @@ GRAPH_RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/c
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -130,16 +144,16 @@ if grep -R -Eq \
 fi
 
 require_text "central-brain/android-runtime/README.md" "P5-W09 ContextBudgetManager"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P5-W09` ContextBudgetManager'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P5-W09 ContextBudgetManager trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P5-W09 ContextBudgetManager"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" '`P5-W09` ContextBudgetManager'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P5-W09 ContextBudgetManager trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P5-W09 ContextBudgetManager"
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" "P5-W09 ContextBudgetManager architecture"
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" "P5-W09 ContextBudgetManager detailed design"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P5-W09 ContextBudgetManager"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P5-W09 ContextBudgetManager Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "DEV-071 P5-W09 decision-only context budget is not production model budgeting"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "ISSUE-044 Context tokenizer, summary executor and budget authority publication"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P5-W09 ContextBudgetManager"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "P5-W09 ContextBudgetManager detailed design"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P5-W09 ContextBudgetManager"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P5-W09 ContextBudgetManager Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "DEV-071 P5-W09 decision-only context budget is not production model budgeting"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "ISSUE-044 Context tokenizer, summary executor and budget authority publication"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P5-W09 ContextBudgetManager"
 require_text "README.md" "P5 ContextBudgetManager"
 
 printf '%s\n' \

@@ -20,6 +20,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local path="$1"
   local pattern="$2"
   if ! grep -Fq -- "$pattern" "$ROOT_DIR/$path"; then
@@ -32,7 +46,7 @@ for path in \
   "$PROFILE" \
   "$TARGET_INPUTS" \
   central-brain/delivery/android/README.md \
-  docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md \
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md \
   "$DELIVERY_TOOL" \
   "$PACKAGE_TOOL" \
   "$INSTALL_TOOL"; do
@@ -75,13 +89,13 @@ expected_support = {
     "contracts/central_brain_android_r7c_acceptance.json",
     "contracts/central-brain.android-delivery-profile.json",
     "contracts/target-inputs.example.json",
-    "docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md",
-    "docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md",
-    "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
     "tools/test_central_brain_android_target_deployment.sh",
     "tools/test_client2_central_brain_recovery.sh",
-    "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md",
-    "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+    "docs/CENTRAL_BRAIN_REQUIREMENTS.md",
     "tools/central_brain_android_delivery.py",
     "tools/install_central_brain_android_delivery.sh",
 }
@@ -138,14 +152,14 @@ if grep -Eq '\$\{?ADB[^[:space:]]*\}?[^\n]*(root|remount|uninstall)' \
 fi
 
 for trace in \
-  "docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md|R7D Android 13 software handoff" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|R7D Android 13 software handoff trace" \
-  "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md|Android R7D Delivery And Empty Integration Slots" \
-  "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|Android R7D Software Handoff Package" \
-  "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|R7D Handoff Driver/HAL Boundary" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|R7D 进展" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|R7D 进展" \
-  "docs/CENTRAL_BRAIN_ROADMAP.md|R7D Android 13 software handoff" \
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|R7D Android 13 software handoff" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7D Android 13 software handoff trace" \
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|Android R7D Delivery And Empty Integration Slots" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|Android R7D Software Handoff Package" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7D Handoff Driver/HAL Boundary" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7D 进展" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7D 进展" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7D Android 13 software handoff" \
   "central-brain/android-runtime/README.md|R7D Android Software Handoff"; do
   IFS='|' read -r path pattern <<<"$trace"
   require_text "$path" "$pattern"

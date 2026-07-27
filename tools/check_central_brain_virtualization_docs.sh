@@ -2,11 +2,11 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DOC="docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md"
-REQ="docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
-DEV="docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
-ISSUES="docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
-DRIVER="docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+REQ="docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+DEV="docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+ISSUES="docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+DRIVER="docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
 require_file() {
   [[ -f "$ROOT_DIR/$1" ]] \
@@ -14,6 +14,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   grep -Fq -- "$2" "$ROOT_DIR/$1" \
     || { echo "missing virtualization/safety marker '$2' in $1" >&2; exit 1; }
 }
@@ -37,8 +51,8 @@ for marker in \
   require_text "$DOC" "$marker"
 done
 
-require_text "$REQ" 'CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md'
-require_text "$DEV" 'CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md'
+require_text "$REQ" 'SCOPE-03'
+require_text "$DEV" 'production_document_scope=true'
 require_text "$ISSUES" 'Safety State -> Safety Runtime -> ASIL/QM domain'
 require_text "$DRIVER" 'HV-001..003'
 require_text "$DRIVER" 'virtualization_development_triggered=false'

@@ -33,6 +33,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local path="$1"
   local pattern="$2"
   if ! grep -Fq -- "$pattern" "$ROOT_DIR/$path"; then
@@ -283,14 +297,14 @@ if grep -Fq "CLIENT2_BINDER_MIGRATION_PENDING" "$ROOT_DIR/$SNAPSHOT"; then
 fi
 
 for doc_pattern in \
-  "docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md|R7B Client2 SDK/Binder migration" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|R7B Client2 SDK/Binder migration trace" \
-  "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md|Android R7B Client2 SDK/Binder Migration" \
-  "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|Android R7B Client2 SDK/Binder Migration" \
-  "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|R7B Client2 Binder Driver/HAL Boundary" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|R7B 进展" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|R7B 进展" \
-  "docs/CENTRAL_BRAIN_ROADMAP.md|R7B Client2 SDK/Binder migration"; do
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|R7B Client2 SDK/Binder migration" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7B Client2 SDK/Binder migration trace" \
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|Android R7B Client2 SDK/Binder Migration" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|Android R7B Client2 SDK/Binder Migration" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7B Client2 Binder Driver/HAL Boundary" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7B 进展" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7B 进展" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|R7B Client2 SDK/Binder migration"; do
   path="${doc_pattern%%|*}"
   pattern="${doc_pattern#*|}"
   require_text "$path" "$pattern"
@@ -300,14 +314,14 @@ for doc_pattern in \
   "README.md|四项自然场景、Intent/Plan/Execution/Result、typed Session/Event、immutable reducer" \
   "README.md|cockpit_demo_control_loop_implemented=false" \
   "apk-labs/client2-central-brain/README.md|bottom navigation" \
-  "docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md|2026-07-15 导航菜单真机验收" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|Client2 navigation-triggered menu trace" \
-  "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|client2_navigation_menu_acceptance_passed=true" \
-  "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|Client2 Navigation Menu Driver/HAL Result" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-051 Client2 UI alias 仍是兼容边界" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|P4-W01 进展：Client2 已不再通过单次" \
-  "docs/CENTRAL_BRAIN_ROADMAP.md|### 2026-07-15" \
-  "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md|client2_navigation_menu_acceptance_passed=true"; do
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|2026-07-15 导航菜单真机验收" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|Client2 navigation-triggered menu trace" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|client2_navigation_menu_acceptance_passed=true" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|Client2 Navigation Menu Driver/HAL Result" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|DEV-051 Client2 UI alias 仍是兼容边界" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|P4-W01 进展：Client2 已不再通过单次" \
+  "docs/CENTRAL_BRAIN_REQUIREMENTS.md|### 2026-07-15" \
+  "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md|client2_navigation_menu_acceptance_passed=true"; do
   path="${doc_pattern%%|*}"
   pattern="${doc_pattern#*|}"
   require_text "$path" "$pattern"

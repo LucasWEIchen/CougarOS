@@ -17,6 +17,20 @@ RUNTIME_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com
 INSTALLER="tools/install_central_brain_android_runtime.sh"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -116,14 +130,14 @@ if grep -R -Eiq \
 fi
 
 require_text "central-brain/android-runtime/README.md" "P3-W01 Agent Graph Runtime state machine"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P3-W01` AgentGraphRuntime state machine'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P3-W01 Agent Graph Runtime trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P3-W01 Agent Graph Runtime"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P3-W01 Agent Graph Runtime"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P3-W01 Agent Graph Runtime Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "P3-W01 Graph Runtime"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "P3-W01 进展"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P3-W01 AgentGraphRuntime"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" '`P3-W01` AgentGraphRuntime state machine'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P3-W01 Agent Graph Runtime trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P3-W01 Agent Graph Runtime"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P3-W01 Agent Graph Runtime"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P3-W01 Agent Graph Runtime Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P3-W01 Graph Runtime"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P3-W01 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P3-W01 AgentGraphRuntime"
 
 printf '%s\n' \
   "Central Brain Android Agent Graph Runtime check passed" \

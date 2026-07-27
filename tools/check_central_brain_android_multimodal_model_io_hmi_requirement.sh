@@ -98,22 +98,9 @@ assert evidence["image_consumption_projection_verified"] is True
 assert evidence["vehicle_bus_accessed"] is False
 PY
 
-for doc in \
-  README.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
-  docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md \
-  docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md \
-  docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md \
-  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md \
-  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md \
-  docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md \
-  docs/CENTRAL_BRAIN_ROADMAP.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md \
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md \
-  docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md; do
-  grep -Fq 'P4-R4' "$ROOT_DIR/$doc" \
-    || { echo "P4-R4 requirement marker missing: $doc" >&2; exit 1; }
-done
+bash "$ROOT_DIR/tools/check_central_brain_production_document_set.sh" >/dev/null
+grep -Fq '`P4-R4` Multimodal model I/O live HMI' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
 for marker in \
   'centralBrainMultimodalButton' \

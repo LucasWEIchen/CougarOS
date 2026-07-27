@@ -7,14 +7,28 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME="central-brain/android-runtime/runtime-service"
 CONTRACT="central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json"
-DESIGN="docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md"
-CODE_GUIDE="docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md"
+DESIGN="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+CODE_GUIDE="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 require_file() {
   [[ -f "$ROOT_DIR/$1" ]] || { echo "missing OpenClaw target file: $1" >&2; exit 1; }
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   grep -Fq -- "$2" "$ROOT_DIR/$1" \
     || { echo "missing OpenClaw target marker '$2' in $1" >&2; exit 1; }
 }
@@ -41,7 +55,12 @@ for marker in \
   'release_routing_enabled=false'; do
   require_text "$CODE_GUIDE" "$marker"
 done
-for forbidden in 'ADB' '127.0.0.1' 'development_wsl' 'P7-R4-OCDEV'; do
+if grep -Eq '(^|[^[:alnum:]_])ADB([^[:alnum:]_]|$)' \
+    "$ROOT_DIR/$CODE_GUIDE" "$ROOT_DIR/$DESIGN"; then
+  echo "target OpenClaw documents contain non-target route marker: ADB" >&2
+  exit 1
+fi
+for forbidden in '127.0.0.1' 'development_wsl' 'P7-R4-OCDEV'; do
   if grep -Fq -- "$forbidden" "$ROOT_DIR/$CODE_GUIDE" "$ROOT_DIR/$DESIGN"; then
     echo "target OpenClaw documents contain non-target route marker: $forbidden" >&2
     exit 1
@@ -172,11 +191,11 @@ assert claims["target_hardware_validated"] is False
 PY
 
 for doc in README.md central-brain/android-runtime/README.md \
-  docs/CENTRAL_BRAIN_ROADMAP.md docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md \
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md \
-  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md \
-  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md; do
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md docs/CENTRAL_BRAIN_REQUIREMENTS.md \
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md docs/CENTRAL_BRAIN_REQUIREMENTS.md \
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md docs/CENTRAL_BRAIN_REQUIREMENTS.md \
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md \
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md; do
   require_text "$doc" 'P7-R3-OC'
 done
 

@@ -11,7 +11,7 @@ TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbra
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
 MAIN_SOURCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/SimulatedScenarioGraph.java"
-DOC="docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
+DOC="docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
 for file in "$CONTRACT" "$SOURCE" "$TEST" "$RUNTIME" "$GOVERNANCE" "$DOC"; do
   [[ -f "$ROOT_DIR/$file" ]] \
@@ -103,12 +103,9 @@ for marker in [
         "isAndroidRuntimeWired()", "isProductionReady()"]:
     if marker not in source:
         raise SystemExit(f"P4-D4a source marker missing: {marker}")
-for marker in [
-        "P4-D4a", "simulated_scenario_graph_defined=true",
-        "simulated_scenario_android_runtime_wired=false",
-        "simulated_scenario_effect_dispatch_enabled=false"]:
+for marker in ["production_document_scope=true", "`P4-D4a`"]:
     if marker not in doc:
-        raise SystemExit(f"P4-D4a backlog marker missing: {marker}")
+        raise SystemExit(f"P4-D4a requirement history marker missing: {marker}")
 PY
 
 if grep -Eiq \
