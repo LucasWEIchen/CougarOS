@@ -90,16 +90,16 @@
       "bundle_path": "contracts/target-inputs.example.json"
     },
     {
-      "source": "docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md",
-      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md"
+      "source": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
     },
     {
-      "source": "docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md",
-      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md"
+      "source": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
     },
     {
-      "source": "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md",
-      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md"
+      "source": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
     },
     {
       "source": "tools/test_central_brain_android_target_deployment.sh",
@@ -110,12 +110,12 @@
       "bundle_path": "tools/test_client2_central_brain_recovery.sh"
     },
     {
-      "source": "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md",
-      "bundle_path": "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+      "source": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
     },
     {
-      "source": "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md",
-      "bundle_path": "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+      "source": "docs/CENTRAL_BRAIN_REQUIREMENTS.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_REQUIREMENTS.md"
     },
     {
       "source": "tools/central_brain_android_delivery.py",

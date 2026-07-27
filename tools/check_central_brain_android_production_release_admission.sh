@@ -12,9 +12,23 @@ DEMO_BUILD="central-brain/android-runtime/demo-hmi/build.gradle.kts"
 DATABASE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/CentralBrainDatabase.java"
 RUNTIME_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_PRODUCTION_RELEASE_ADMISSION.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -191,16 +205,16 @@ fi
 require_text "$DOC" 'SOFTWARE_CONTRACT_DEFINED / PRODUCTION_OWNER_INPUT_OPEN'
 require_text "$DOC" 'production_release_admission_defined=true'
 require_text "README.md" 'P9 Production Release Admission'
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" 'P9-W05a production release admission'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" 'P9-W05a production release admission trace'
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" 'Android P9-W05a Production Release Admission Contract'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W05a production release admission'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W05a production release admission trace'
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" 'Android P9-W05a Production Release Admission Contract'
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" 'P9-W05a production release admission architecture'
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" 'P9-W05a production release admission detailed design'
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" 'Android P9-W05a Production Release Admission'
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" 'P9-W05a Production Release Admission Driver/HAL Boundary'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" 'DEV-094 P9-W05a contract admission is not a production release'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" 'ISSUE-052 P9 production signer and rollback owner evidence is unavailable'
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" 'P9-W05a Production Release Admission progress'
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" 'P9-W05a production release admission detailed design'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'Android P9-W05a Production Release Admission'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W05a Production Release Admission Driver/HAL Boundary'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'DEV-094 P9-W05a contract admission is not a production release'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'ISSUE-052 P9 production signer and rollback owner evidence is unavailable'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" 'P9-W05a Production Release Admission progress'
 
 printf '%s\n' \
   'Central Brain Android production release admission check passed' \

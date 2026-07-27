@@ -185,23 +185,10 @@ for marker in \
     || { echo "P4-R2 device marker missing: $marker" >&2; exit 1; }
 done
 
-for doc in \
-  docs/CENTRAL_BRAIN_ROADMAP.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md \
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md \
-  docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md \
-  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md \
-  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md \
-  docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md; do
-  grep -Fq 'P4-R2 Client2 Orchestration V1 migration' "$ROOT_DIR/$doc" \
-    || { echo "P4-R2 documentation marker missing: $doc" >&2; exit 1; }
-done
-
+bash "$ROOT_DIR/tools/check_central_brain_production_document_set.sh" >/dev/null
+grep -Fq '`P4-R2` Client2 Orchestration V1 migration' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
-grep -Fq -- '| `P4-R2` |' "$ROOT_DIR/README.md" \
-  || { echo "P4-R2 README tracking row missing" >&2; exit 1; }
 
 bash "$ROOT_DIR/tools/check_central_brain_android_orchestration_v1.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh" >/dev/null

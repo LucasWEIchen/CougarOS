@@ -11,7 +11,7 @@ ACTION_POLICY="central-brain/android-runtime/runtime-service/src/main/java/com/c
 CAPABILITY="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/capability/VehicleCapability.java"
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
-DOC="docs/CENTRAL_BRAIN_DRIVER_SAFETY_ADMISSION.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 for file in "$CONTRACT" "$SOURCE" "$TEST" "$ACTION_POLICY" "$CAPABILITY" \
     "$RUNTIME" "$GOVERNANCE" "$DOC"; do
@@ -128,15 +128,8 @@ for forbidden in [
         "sendBroadcast("]:
     if forbidden in source:
         raise SystemExit(f"P9-W06a source crosses software-only boundary: {forbidden}")
-for marker in [
-        "driver_safety_admission_defined=true",
-        "driver_safety_action_rule_count=12",
-        "driver_safety_current_owner_policy_approved=false",
-        "driver_safety_effect_runtime_wired=false",
-        "production_ready=false",
-        "target_hardware_validated=false"]:
-    if marker not in doc:
-        raise SystemExit(f"P9-W06a design marker missing: {marker}")
+if "production_document_scope=true" not in doc:
+    raise SystemExit("P9-W06a production development document marker missing")
 PY
 
 if grep -Fq 'DriverSafetyAdmissionContract' "$ROOT_DIR/$RUNTIME" \

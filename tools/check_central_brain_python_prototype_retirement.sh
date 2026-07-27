@@ -65,9 +65,9 @@ required_paths=(
   central-brain/contracts/central_brain_android_b3_blackbox_acceptance.json
   central-brain/contracts/central_brain_android_r7c_acceptance.json
   central-brain/contracts/central_brain_github_remote_testing.json
-  docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md
-  docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md
-  docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
   tools/central_brain_android_delivery.py
   tools/central_brain_android_hybrid_delivery.py
 )
@@ -83,20 +83,20 @@ active_files=(
   README.md
   central-brain/README.md
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
-  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md
-  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
-  docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md
-  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
-  docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md
-  docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md
-  docs/CENTRAL_BRAIN_ROADMAP.md
-  docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md
-  docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md
-  docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md
-  docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md
-  docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md
-  docs/CENTRAL_BRAIN_MODULE_USE_CASE_DIAGRAM.md
-  docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
+  docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md
   .github/workflows/central-brain-remote-test-contract.yml
 )
 
@@ -114,12 +114,13 @@ if rg -n \
   exit 1
 fi
 
-grep -Fq 'python_prototype_runtime_maintained=false' "$ROOT_DIR/README.md"
+grep -Fq 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md"
 grep -Fq 'vendor.npu.empty' \
   "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderProfiles.java"
-grep -Fq 'target_hardware_validated=false' "$ROOT_DIR/docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
-grep -Fq 'driver_development_triggered=false' "$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
-grep -Fq '不开发 Hypervisor' "$ROOT_DIR/docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md"
+grep -Fq 'target_hardware_validated=false' "$ROOT_DIR/docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+grep -Fq '`SCOPE-03` | `已退出生产基线`' "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+grep -Fq '`SCOPE-04` Unapproved kernel/Driver/HAL extension' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
 printf '%s\n' \
   'Central Brain Python prototype retirement check passed' \

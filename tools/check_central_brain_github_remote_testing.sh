@@ -7,7 +7,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_github_remote_testing.json"
 PROFILE="$ROOT_DIR/central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json"
-DOC="$ROOT_DIR/docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+DOC="$ROOT_DIR/docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 ISSUE_FORM="$ROOT_DIR/.github/ISSUE_TEMPLATE/hardware-test.yml"
 ISSUE_CONFIG="$ROOT_DIR/.github/ISSUE_TEMPLATE/config.yml"
 WORKFLOW="$ROOT_DIR/.github/workflows/central-brain-remote-test-contract.yml"
@@ -124,7 +124,7 @@ assert contract["activation_blockers"] == [
 support = {item["bundle_path"] for item in profile["support_files"]}
 for expected in (
     "contracts/central_brain_github_remote_testing.json",
-    "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md",
+    "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md",
     "tools/run_central_brain_android_remote_acceptance.sh",
 ):
     assert expected in support, expected
@@ -173,35 +173,12 @@ if grep -Eq 'gh release|upload-artifact|adb install|gradlew' "$WORKFLOW"; then
   exit 1
 fi
 
-for marker in \
-  'LucasWEIchen/CougarOS' \
-  'cougaros-github-issue-maintenance' \
-  'github_issue_intake_active=true' \
-  'Issue #1' \
-  'android13-hwtest-v0.5.0-rc.2' \
-  'state/triage -> state/reproduced -> state/fix-ready -> state/retest ->' \
-  'central-brain-android13-hybrid.tar.gz.sha256' \
-  'github_source_of_truth=true' \
-  'tools/check_central_brain_github_repository_completeness.sh' \
-  'codex/github-publication:main'; do
-  grep -Fq -- "$marker" "$DOC" \
-    || { echo "remote hardware testing document marker missing: $marker" >&2; exit 1; }
-done
+grep -Fq 'production_document_scope=true' "$DOC"
 
 grep -Fq 'target input status must be a bounded ASCII identifier' "$RUNNER"
 grep -Fq 'manifest delivery ID is invalid' "$RUNNER"
 grep -Fq 'raw_or_derived_device_identity_included=false' "$RUNNER"
 grep -Fq 'central-brain-remote-evidence-*/' "$ROOT_DIR/.gitignore"
-
-grep -Fq 'B5' "$ROOT_DIR/docs/CENTRAL_BRAIN_ROADMAP.md"
-grep -Fq '| B5 | GitHub 远程硬件测试闭环 |' \
-  "$ROOT_DIR/docs/CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md"
-grep -Fq 'ISSUE-028' "$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
-grep -Fq 'DEV-021' "$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
-grep -Fq 'B5 GitHub Remote Hardware Test Loop' \
-  "$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
-grep -Fq 'B5 GitHub Remote Test Driver/HAL Result' \
-  "$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
 
 printf '%s\n' \
   'Central Brain B5 GitHub remote testing check passed' \

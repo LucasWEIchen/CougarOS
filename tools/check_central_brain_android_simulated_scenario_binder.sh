@@ -130,8 +130,8 @@ if find "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main" \
 fi
 
 bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
-grep -Fq -- '| `P4-D4c` |' "$ROOT_DIR/README.md" \
-  || { echo "P4-D4c README tracking row missing" >&2; exit 1; }
+grep -Fq -- '| `P4-D4c` | `已退出生产基线` |' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
 printf '%s\n' \
   'Central Brain Android P4-D4c simulated scenario Binder check passed' \

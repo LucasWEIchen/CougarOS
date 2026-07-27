@@ -7,9 +7,23 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONTRACT="central-brain/contracts/central_brain_android_p8_target_capability_discovery.json"
 COLLECTOR="tools/collect_central_brain_android_target_capabilities.sh"
-DOC="docs/CENTRAL_BRAIN_TARGET_CAPABILITY_DISCOVERY.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -197,16 +211,16 @@ for marker in \
   require_text "$DOC" "$marker"
 done
 require_text "README.md" "P8 Target Capability Discovery"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" "P8-W01 public inventory"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P8-W01 target capability discovery trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P8-W01 Target Capability Discovery"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P8-W01 public inventory"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P8-W01 target capability discovery trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P8-W01 Target Capability Discovery"
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" "P8-W01 target capability discovery architecture"
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" "P8-W01 target capability discovery detailed design"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P8-W01 Target Capability Discovery Preparation"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P8-W01 Target Capability Discovery Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "P8-W01 discovery tooling does not complete target discovery"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "ISSUE-047 P8 target capability discovery evidence is unavailable"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P8-W01 Target Capability Discovery software preparation"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "P8-W01 target capability discovery detailed design"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P8-W01 Target Capability Discovery Preparation"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P8-W01 Target Capability Discovery Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P8-W01 discovery tooling does not complete target discovery"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "ISSUE-047 P8 target capability discovery evidence is unavailable"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P8-W01 Target Capability Discovery software preparation"
 
 printf '%s\n' \
   "Central Brain Android target capability discovery check passed" \

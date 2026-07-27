@@ -127,8 +127,8 @@ if grep -Eq 'import android\.|java\.io\.|java\.net\.|ProcessBuilder|Runtime\.get
 fi
 
 bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
-grep -Fq -- '| `P4-D4b` |' "$ROOT_DIR/README.md" \
-  || { echo "P4-D4b README tracking row missing" >&2; exit 1; }
+grep -Fq -- '| `P4-D4b` | `已退出生产基线` |' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
 printf '%s\n' \
   'Central Brain Android P4-D4b simulated scenario runtime check passed' \

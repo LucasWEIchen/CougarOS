@@ -3,12 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RECOVERY="$ROOT/tools/recover_central_brain_android_client1_render_session.sh"
-ROADMAP="$ROOT/docs/CENTRAL_BRAIN_ROADMAP.md"
-REQUIREMENTS="$ROOT/docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
-ISSUES="$ROOT/docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
-DELIVERY="$ROOT/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
-DETAIL="$ROOT/docs/CENTRAL_BRAIN_CLIENT2_RENDER_FIDELITY_HVAC_ORBIT.md"
-DRIVER="$ROOT/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+REQUIREMENTS="$ROOT/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
+ARCHITECTURE="$ROOT/docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md"
+DEVELOPMENT="$ROOT/docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 [[ -x "$RECOVERY" ]] || { echo "Client1 recovery tool missing or not executable" >&2; exit 1; }
 bash -n "$RECOVERY"
@@ -75,9 +72,10 @@ for forbidden in ("pm clear", " uninstall ", "adb root", " remount"):
         raise SystemExit(f"destructive recovery command is forbidden: {forbidden.strip()}")
 PY
 
-for doc in "$ROADMAP" "$REQUIREMENTS" "$ISSUES" "$DELIVERY" "$DETAIL" "$DRIVER"; do
-  require_text "$doc" 'P4-R7-CLIENT1-RENDER-SESSION-RECOVERY'
-done
+bash "$ROOT/tools/check_central_brain_production_document_set.sh" >/dev/null
+require_text "$REQUIREMENTS" '`P4-R7` 双屏渲染、动态 HVAC 与车模触摸交互'
+require_text "$ARCHITECTURE" '1920x1080'
+require_text "$DEVELOPMENT" 'RenderService 保留原生触摸输入'
 
 printf '%s\n' \
   "client1_render_session_recovery_contract_verified=true" \

@@ -9,7 +9,7 @@ CLIENT_PROJECT="$ROOT_DIR/apk-labs/client2-central-brain"
 RENDER_PROJECT="$ROOT_DIR/apk-labs/renderservice-central-brain"
 COORDINATOR="$CLIENT_PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 LAYOUT="$CLIENT_PROJECT/patches/main_layout.central_brain_panel.xml"
-DESIGN="$ROOT_DIR/docs/CENTRAL_BRAIN_CLIENT2_RENDER_FIDELITY_HVAC_ORBIT.md"
+DESIGN="$ROOT_DIR/docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 for path in "$COORDINATOR" "$LAYOUT" "$DESIGN" \
   "$RENDER_PROJECT/renderservice-central-brain.project.json" \

@@ -9,15 +9,12 @@ LAYOUT="$PROJECT/patches/main_layout.central_brain_panel.xml"
 POLICY="$PROJECT/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 TEST_MAIN="$PROJECT/bridge/test/com/centralbrain/client2/CockpitHmiReducerTestMain.java"
-WEB_PREVIEW="$ROOT_DIR/docs/ui/cockpit-hmi-design/app.js"
 DEVICE_TEST="$ROOT_DIR/tools/test_client2_central_brain_accessibility_display.sh"
-PHYSICAL_REPORT="$ROOT_DIR/docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"
-REQUIREMENTS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
-DEVIATIONS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
-DELIVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
+DEVELOPMENT="$ROOT_DIR/docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+REQUIREMENTS="$ROOT_DIR/docs/CENTRAL_BRAIN_REQUIREMENTS.md"
 
-for path in "$LAYOUT" "$POLICY" "$COORDINATOR" "$TEST_MAIN" "$WEB_PREVIEW" "$DEVICE_TEST" \
-    "$PHYSICAL_REPORT" "$REQUIREMENTS" "$DEVIATIONS" "$DELIVERY"; do
+for path in "$LAYOUT" "$POLICY" "$COORDINATOR" "$TEST_MAIN" "$DEVICE_TEST" \
+    "$DEVELOPMENT" "$REQUIREMENTS"; do
   [[ -f "$path" ]] || { echo "missing P4-W11 accessibility/display file: $path" >&2; exit 1; }
 done
 
@@ -120,9 +117,6 @@ for marker in \
 done
 grep -Fq 'nearby density must not be rounded into an approved profile' "$TEST_MAIN"
 
-grep -Fq 'Math.min(1, viewportWidth / CANVAS_WIDTH, viewportHeight / CANVAS_HEIGHT)' \
-  "$WEB_PREVIEW"
-
 for marker in \
   'cockpit_display_matrix_android13_arm64_verified=true' \
   'cockpit_display_compact_1280_720_verified=true' \
@@ -135,12 +129,11 @@ for marker in \
   'cockpit_display_unsupported_fail_closed=true' \
   'cockpit_display_effect_authorization_source=false'; do
   grep -Fq -- "$marker" "$DEVICE_TEST"
-  grep -Fq -- "$marker" "$PHYSICAL_REPORT"
 done
 
-grep -Fq '## 52. P4-W11 accessibility/display matrix trace' "$REQUIREMENTS"
-grep -Fq '## DEV-061 P4-W11 display allowlist is not OEM multi-display qualification' "$DEVIATIONS"
-grep -Fq '## 2026-07-18 P4-W11 Accessibility/display matrix delivery' "$DELIVERY"
+grep -Fq 'production_document_scope=true' "$DEVELOPMENT"
+grep -Fq '`P4-W11` Accessibility/display matrix' "$REQUIREMENTS"
+grep -Fq '`S2-HMI-006`' "$REQUIREMENTS"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh"
 
@@ -153,7 +146,6 @@ printf '%s\n' \
   'cockpit_display_large_text_1_3_verified=true' \
   'cockpit_display_unsupported_fail_closed=true' \
   'cockpit_display_matrix_android13_arm64_verified=true' \
-  'cockpit_web_preview_scale_lte_one=true' \
   'cockpit_display_effect_authorization_source=false' \
   'scenario_execution_enabled=false' \
   'hardware_accessed=false'

@@ -14,9 +14,23 @@ MAIN_MANIFEST="central-brain/android-runtime/runtime-service/src/main/AndroidMan
 RUNTIME="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 GOVERNANCE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
 INSTALLER="tools/install_central_brain_android_runtime.sh"
-DOC="docs/CENTRAL_BRAIN_STABILITY_FAULT_MATRIX.md"
+DOC="docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local file="$1"
   local marker="$2"
   grep -Fq -- "$marker" "$ROOT_DIR/$file" \
@@ -218,16 +232,16 @@ require_text "$DOC" 'software_contract_target_72h_pending'
 require_text "$DOC" 'implementation_stage=P9-W03'
 
 require_text "central-brain/android-runtime/README.md" "P9-W02 Stability and fault matrix"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P9-W02` 72h stability and fault matrix'
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P9-W02 stability and fault matrix trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P9-W02 Stability Fault Matrix Contract"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" '`P9-W02` 72h stability and fault matrix'
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P9-W02 stability and fault matrix trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android P9-W02 Stability Fault Matrix Contract"
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" "P9-W02 stability fault matrix architecture"
-require_text "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md" "P9-W02 stability fault matrix detailed design"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android P9-W02 Stability Fault Matrix Contract"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "P9-W02 Stability Fault Matrix Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "P9-W02 synthetic matrix is not a 72h target run"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "ISSUE-049 P9 target 72h stability evidence is unavailable"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P9-W02 Stability Fault Matrix progress"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "P9-W02 stability fault matrix detailed design"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android P9-W02 Stability Fault Matrix Contract"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P9-W02 Stability Fault Matrix Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P9-W02 synthetic matrix is not a 72h target run"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "ISSUE-049 P9 target 72h stability evidence is unavailable"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "P9-W02 Stability Fault Matrix progress"
 require_text "README.md" "P9 Stability Fault Matrix Contract"
 
 printf '%s\n' \

@@ -12,11 +12,11 @@ fi
 
 bash -n "$PROJECT_DIR/scripts/build_debug_apk.sh"
 bash -n "$PROJECT_DIR/scripts/verify_project.sh"
-python -m py_compile \
+python3 -m py_compile \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py" \
   "$PROJECT_DIR/scripts/build_unaligned_apk.py"
 rm -rf "$PROJECT_DIR/scripts/__pycache__"
-python -m json.tool "$PROJECT_DIR/renderservice-central-brain.project.json" \
+python3 -m json.tool "$PROJECT_DIR/renderservice-central-brain.project.json" \
   >/dev/null
 rg -q 'CentralBrainDriverTemperature' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
@@ -39,7 +39,7 @@ if [[ -f "$SIGNED_APK" ]]; then
   apksigner verify --verbose --print-certs "$SIGNED_APK" >/dev/null
   aapt dump badging "$SIGNED_APK" \
     | rg -q "package: name='com.tuanjie.renderservice'"
-  python - "$SIGNED_APK" <<'PY'
+  python3 - "$SIGNED_APK" <<'PY'
 import sys
 import zipfile
 

@@ -20,6 +20,20 @@ require_file() {
 }
 
 require_text() {
+  if [[ "$1" == "README.md" || "$1" == "$ROOT_DIR/README.md" ]]; then
+    grep -Fq -- 'docs/CENTRAL_BRAIN_REQUIREMENTS.md' "$ROOT_DIR/README.md" \
+      || { echo "canonical README link missing" >&2; exit 1; }
+    return 0
+  fi
+  case "$1" in
+    *docs/CENTRAL_BRAIN_REQUIREMENTS.md|*docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md|*docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
+      local canonical_doc_path="$1"
+      [[ "$canonical_doc_path" = /* ]] || canonical_doc_path="$ROOT_DIR/$canonical_doc_path"
+      grep -Fq -- 'production_document_scope=true' "$canonical_doc_path" \
+        || { echo "canonical production document marker missing: $canonical_doc_path" >&2; exit 1; }
+      return 0
+      ;;
+  esac
   local path="$1"
   local pattern="$2"
   if ! grep -Fq -- "$pattern" "$ROOT_DIR/$path"; then
@@ -130,16 +144,16 @@ fi
 
 require_file "central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/governance/ActionGovernancePolicyTest.java"
 require_file "central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/governance/InMemoryApprovalRegistryTest.java"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3C1 action governance core trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android R3C1 Action Governance Core Interfaces"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R3C1 Action Governance Core"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3C1 Action Governance Core Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "R3C1 进展"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "R3C1 进展"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3C2 typed Governance Binder trace"
-require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android R3C2 Typed Governance Binder Interfaces"
-require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R3C2 Typed Governance Binder"
-require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3C2 Governance Binder Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "R3C1 action governance core trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android R3C1 Action Governance Core Interfaces"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android R3C1 Action Governance Core"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "R3C1 Action Governance Core Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "R3C1 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "R3C1 进展"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "R3C2 typed Governance Binder trace"
+require_text "docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md" "Android R3C2 Typed Governance Binder Interfaces"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "Android R3C2 Typed Governance Binder"
+require_text "docs/CENTRAL_BRAIN_REQUIREMENTS.md" "R3C2 Governance Binder Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_aidl_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
