@@ -26,13 +26,14 @@ flowchart LR
 
 ## 权威文档
 
-仓库只维护三份生产软件权威文档：
+仓库维护三份根级生产软件权威文档；模块级实现细节统一由软件开发文档索引到
+`docs/modules/`，不再新增平级专题文档：
 
 | 文档 | 内容 |
 | --- | --- |
 | [生产软件需求文档](docs/CENTRAL_BRAIN_REQUIREMENTS.md) | 全部 139 个工作包、Req ID、需求说明、验收和进度状态 |
 | [生产软件架构文档](docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md) | 自上而下的部署、分层、模块、数据、流程、安全和恢复架构 |
-| [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | Java/AIDL/C/Room/HMI/模型/车辆模块详设和对外接口 |
+| [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | 公共开发规则、对外接口摘要，以及 16 份模块详设入口 |
 
 ## 当前状态
 

@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件开发文档
 
-版本：2.0
+版本：2.1
 状态：生产软件详设与接口权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-07-27
+更新日期：2026-07-28
 
 `production_document_scope=true`
 `production_development_document=true`
@@ -35,9 +35,34 @@
 | `central-brain/contracts` | 机器可读合同 | Schema、能力、发布和外部接口约束 |
 | `apk-labs/client2-central-brain` | Client2 集成代码 | 座舱 HMI、输入、执行链路和 Unity 协同 |
 | `apk-labs/renderservice-central-brain` | RenderService 集成代码 | Unity 原生 HVAC、座椅和渲染资源更新 |
+| `docs/modules` | 模块详设 | 需求、源码、符号、接口、流程、校对清单和增量规则 |
 
 `apk-labs` 当前承载已部署 HMI 集成源。量产发布前应迁移到 OEM 可持续构建的正式工程；迁移不得改变
 本文定义的 SDK、Runtime 和状态语义。
+
+### 2.1 模块详设索引
+
+本文定义跨模块公共规则和接口摘要；代码校对与增量开发必须继续阅读对应模块详设。模块详设中的
+“当前缺口”是生产激活边界，不能因为类或合同已存在而标记为已完成。
+
+| 模块 | 详细设计 | 主要代码范围 |
+| --- | --- | --- |
+| SDK 与 Binder 合同 | [01-sdk-binder-contracts.md](modules/01-sdk-binder-contracts.md) | AIDL、Parcelable、Java facade、Binder 生命周期 |
+| Runtime Service 组合 | [02-runtime-service-composition.md](modules/02-runtime-service-composition.md) | Application、Service、组合根、Task 生命周期 |
+| Session 与持久化 | [03-session-persistence.md](modules/03-session-persistence.md) | Room v4、Repository、Outbox、恢复 |
+| Context 与 Vehicle Twin | [04-context-vehicle-twin.md](modules/04-context-vehicle-twin.md) | 信号 Schema、Capability、Context、Digital Twin |
+| Scenario 与 Plan | [05-scenario-plan.md](modules/05-scenario-plan.md) | Manifest、Catalog、Resolver、Compiler |
+| Agent Graph 与 Orchestration | [06-agent-graph-orchestration.md](modules/06-agent-graph-orchestration.md) | Graph 状态机、Executor、Checkpoint、Endpoint |
+| Governance、Approval 与 Identity | [07-governance-approval-identity.md](modules/07-governance-approval-identity.md) | 调用方身份、Capability、驾驶安全、审批 |
+| Tool 与 Skill Runtime | [08-tool-skill-runtime.md](modules/08-tool-skill-runtime.md) | Manifest、Registry、Resolver、Executor、Skill 校验 |
+| Memory Lifecycle | [09-memory-lifecycle.md](modules/09-memory-lifecycle.md) | Working/Profile/Episodic、Consent、Context Budget |
+| Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
+| Model、Scheduler 与 OpenClaw | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、Prompt、输出校验 |
+| Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
+| Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态 |
+| RenderService Unity | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | Unity bundle、TextMeshPro、温度状态、触摸链 |
+| Native Runtime | [15-native-runtime.md](modules/15-native-runtime.md) | C ABI、JNI、Native handle、NPU 扩展 |
+| Security、Privacy、Release 与 Observability | [16-security-privacy-release-observability.md](modules/16-security-privacy-release-observability.md) | 安全库存、隐私、诊断、准入、复测 |
 
 ## 3. 构建与进程模型
 

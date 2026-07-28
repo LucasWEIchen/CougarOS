@@ -101,8 +101,11 @@ fi
 
 ((tracked_project_file_count >= 100)) \
   || { echo "tracked maintained project file inventory is unexpectedly small" >&2; exit 1; }
-[[ "$tracked_doc_count" -eq 3 ]] \
-  || { echo "canonical production document count must be 3: $tracked_doc_count" >&2; exit 1; }
+[[ "$tracked_doc_count" -eq 19 ]] \
+  || {
+    echo "production document set must contain 3 canonical documents and 16 module designs: $tracked_doc_count" >&2
+    exit 1
+  }
 
 bash "$ROOT_DIR/tools/check_central_brain_production_document_set.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
@@ -115,5 +118,7 @@ printf '%s\n' \
   'maintained_project_files_tracked=true' \
   "tracked_project_file_count=$tracked_project_file_count" \
   "tracked_central_brain_doc_count=$tracked_doc_count" \
+  'canonical_production_document_count=3' \
+  'module_detailed_design_count=16' \
   'controlled_inputs_published=false' \
   'raw_evidence_published=false'

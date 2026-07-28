@@ -11,6 +11,7 @@ on:
       - "central-brain/**"
       - "apk-labs/client2-central-brain/**"
       - "docs/CENTRAL_BRAIN_*"
+      - "docs/modules/**"
       - "tools/*central_brain*"
   pull_request:
     paths:
@@ -20,6 +21,7 @@ on:
       - "central-brain/**"
       - "apk-labs/client2-central-brain/**"
       - "docs/CENTRAL_BRAIN_*"
+      - "docs/modules/**"
       - "tools/*central_brain*"
 
 permissions:

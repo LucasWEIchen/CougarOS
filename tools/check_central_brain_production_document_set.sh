@@ -11,18 +11,38 @@ expected_docs=(
   "CENTRAL_BRAIN_REQUIREMENTS.md"
   "CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md"
   "CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
+  "modules/01-sdk-binder-contracts.md"
+  "modules/02-runtime-service-composition.md"
+  "modules/03-session-persistence.md"
+  "modules/04-context-vehicle-twin.md"
+  "modules/05-scenario-plan.md"
+  "modules/06-agent-graph-orchestration.md"
+  "modules/07-governance-approval-identity.md"
+  "modules/08-tool-skill-runtime.md"
+  "modules/09-memory-lifecycle.md"
+  "modules/10-event-trigger-suggestion.md"
+  "modules/11-model-scheduler-openclaw.md"
+  "modules/12-effect-vehicle-adapter.md"
+  "modules/13-client2-hmi.md"
+  "modules/14-renderservice-unity.md"
+  "modules/15-native-runtime.md"
+  "modules/16-security-privacy-release-observability.md"
 )
 mapfile -t actual_docs < <(
   find "$ROOT_DIR/docs" -type f -printf '%P\n' | LC_ALL=C sort
 )
 if [[ "${actual_docs[*]}" != "${expected_docs[*]}" ]]; then
-  printf 'docs/ must contain exactly the three production documents.\nexpected:\n%s\nactual:\n%s\n' \
+  printf 'docs/ must contain the three canonical production documents and the exact module detailed-design set.\nexpected:\n%s\nactual:\n%s\n' \
     "$(printf '%s\n' "${expected_docs[@]}")" \
     "$(printf '%s\n' "${actual_docs[@]}")" >&2
   exit 1
 fi
 
-for file in "$REQ" "$ARCH" "$DEV"; do
+mapfile -t MODULE_DOCS < <(
+  find "$ROOT_DIR/docs/modules" -maxdepth 1 -type f -name '*.md' -print | LC_ALL=C sort
+)
+
+for file in "$REQ" "$ARCH" "$DEV" "${MODULE_DOCS[@]}"; do
   [[ -s "$file" ]] || { echo "production document missing or empty: $file" >&2; exit 1; }
   grep -Fq 'production_document_scope=true' "$file" \
     || { echo "production scope marker missing: $file" >&2; exit 1; }
@@ -35,6 +55,10 @@ done
 grep -Fq 'production_requirements_document=true' "$REQ"
 grep -Fq 'production_architecture_document=true' "$ARCH"
 grep -Fq 'production_development_document=true' "$DEV"
+for file in "${MODULE_DOCS[@]}"; do
+  grep -Fq 'module_detailed_design=true' "$file" \
+    || { echo "module detailed-design marker missing: $file" >&2; exit 1; }
+done
 
 python3 - "$REQ" "$ARCH" "$DEV" "$README" "$ROOT_DIR" <<'PY'
 from __future__ import annotations
@@ -52,6 +76,10 @@ architecture = architecture_path.read_text(encoding="utf-8")
 development = development_path.read_text(encoding="utf-8")
 readme = readme_path.read_text(encoding="utf-8")
 root = root_path
+module_paths = sorted((root / "docs" / "modules").glob("*.md"))
+if len(module_paths) != 16:
+    raise SystemExit(f"module detailed-design count must be 16: {len(module_paths)}")
+modules = {path: path.read_text(encoding="utf-8") for path in module_paths}
 
 work_ids = re.findall(
     r"^\| `((?:P\d+(?:-P\d+)?-(?:W|R|D|EV|EXT|ACT)[A-Za-z0-9-]*)|(?:SCOPE-\d+))`",
@@ -89,6 +117,13 @@ required_atomic_ids = (
 for requirement_id in required_atomic_ids:
     if f"| `{requirement_id}` |" not in requirements:
         raise SystemExit(f"atomic production requirement is not defined: {requirement_id}")
+module_corpus = "\n".join(modules.values())
+for requirement_id in required_atomic_ids:
+    if f"`{requirement_id}`" not in module_corpus:
+        raise SystemExit(
+            f"atomic production requirement is not mapped to a module design: "
+            f"{requirement_id}"
+        )
 
 required_requirement_markers = (
     "## 2. 产品定义",
@@ -125,6 +160,7 @@ for marker in (
 
 for marker in (
     "## 2. 源码结构与模块归属",
+    "### 2.1 模块详设索引",
     "## 5. AIDL 对外接口",
     "## 6. SDK 详设",
     "## 8. Session 与 Persistence",
@@ -144,6 +180,53 @@ for marker in (
     if marker not in development:
         raise SystemExit(f"development marker missing: {marker}")
 
+required_module_headings = (
+    "## 1. 设计目标与边界",
+    "## 2. 需求映射",
+    "## 3. 源码地图",
+    "## 4. 核心设计",
+    "## 5. 接口与数据",
+    "## 6. 关键流程",
+    "## 7. 失败关闭与并发",
+    "## 8. 代码校对清单",
+    "## 9. 增量开发规则",
+    "## 10. 当前缺口",
+)
+for module_path, module in modules.items():
+    for heading in required_module_headings:
+        if heading not in module:
+            raise SystemExit(
+                f"module detailed-design heading missing in {module_path.name}: {heading}"
+            )
+    if not re.search(r"`(?:APP|S2)-[A-Z0-9-]+`", module):
+        raise SystemExit(f"module has no production Req ID mapping: {module_path.name}")
+    source_links = re.findall(r"\]\((\.\./\.\./[^)#]+)(?:#[^)]+)?\)", module)
+    if len(source_links) < 5:
+        raise SystemExit(
+            f"module must link at least five source artifacts: "
+            f"{module_path.name}={len(source_links)}"
+        )
+    index_target = f"modules/{module_path.name}"
+    if development.count(index_target) != 1:
+        raise SystemExit(
+            f"development document must link module exactly once: {index_target}"
+        )
+    for target in re.findall(r"\]\(([^)]+)\)", module):
+        relative_target = target.split("#", 1)[0]
+        if "://" in relative_target or not relative_target:
+            continue
+        resolved = (module_path.parent / relative_target).resolve()
+        try:
+            resolved.relative_to(root.resolve())
+        except ValueError as error:
+            raise SystemExit(
+                f"module link escapes repository: {module_path.name}:{target}"
+            ) from error
+        if not resolved.exists():
+            raise SystemExit(
+                f"module link target missing: {module_path.name}:{target}"
+            )
+
 for forbidden in (
     r"\btestboard\b",
     r"\bADB\b",
@@ -161,15 +244,21 @@ for forbidden in (
     r"localhost",
     r"127\.0\.0\.1",
 ):
-    for path, content in (
+    documents = [
         (requirements_path, requirements),
         (architecture_path, architecture),
         (development_path, development),
-    ):
+        *modules.items(),
+    ]
+    for path, content in documents:
         if re.search(forbidden, content, flags=re.IGNORECASE):
-            raise SystemExit(f"environment-specific content found in {path.name}: {forbidden}")
+            raise SystemExit(
+                f"environment-specific content found in {path.name}: {forbidden}"
+            )
 
-if "Iluvatar1!" in requirements + architecture + development + readme:
+all_formal_documents = requirements + architecture + development + readme
+all_formal_documents += "".join(modules.values())
+if "Iluvatar1!" in all_formal_documents:
     raise SystemExit("embedded credential must not be copied into formal documentation")
 
 expected_links = (
@@ -211,11 +300,14 @@ if legacy_references:
 
 print("production_requirement_work_package_count=139")
 print(f"production_architecture_mermaid_diagram_count={mermaid_count}")
+print(f"production_module_detailed_design_count={len(module_paths)}")
 PY
 
 printf '%s\n' \
   'central_brain_production_document_set_ready=true' \
-  'central_brain_docs_file_count=3' \
+  'central_brain_canonical_document_count=3' \
+  'central_brain_module_detailed_design_count=16' \
+  'central_brain_docs_file_count=19' \
   'production_environment_only=true' \
   'legacy_document_reference_count=0' \
   'production_ready=false' \
