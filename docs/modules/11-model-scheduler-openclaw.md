@@ -86,6 +86,9 @@ Provider 不可用时 fallback 必须由请求和 privacy policy 显式允许，
 `OpenClawEndpointConfig.targetProductionTransitional()` 固定生产 link-local host、协议版本、连接和读取超时，
 并构造 WebSocket/控制 URI。凭据封装在配置对象中，但不得出现在日志、Event、HMI、异常或文档。
 
+上层 Binder V2、图片 FD、Ethernet Network 选择、protocol 3 frame、流式回调与错误映射由
+[OpenClaw 生产以太网 API 详设](11a-openclaw-production-ethernet-api.md)定义。
+
 当前 `release` 源集尚无实现 `ModelProvider` 的 OpenClaw 网络执行器，也未把该 Provider 装配到
 production router。因此配置与合同已存在，但生产推理尚未激活。
 

@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件开发文档
 
-版本：2.1
+版本：2.2
 状态：生产软件详设与接口权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-07-28
+更新日期：2026-07-29
 
 `production_document_scope=true`
 `production_development_document=true`
@@ -58,6 +58,7 @@
 | Memory Lifecycle | [09-memory-lifecycle.md](modules/09-memory-lifecycle.md) | Working/Profile/Episodic、Consent、Context Budget |
 | Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
 | Model、Scheduler 与 OpenClaw | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、Prompt、输出校验 |
+| OpenClaw 生产以太网 API | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 上层文字/图片接口、Binder V2、ETH、WebSocket、流式回复 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
 | Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态 |
 | RenderService Unity | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | Unity bundle、TextMeshPro、温度状态、触摸链 |
@@ -569,6 +570,9 @@ Provider assurance 为 `EMPTY / TEST_ONLY / DEBUG_ONLY / TARGET_INTEGRATION / PR
 选择结果必须记录 provider ID 和决策摘要。`NO_FALLBACK` 不得路由到第二 Provider。
 
 ### 15.4 OpenClaw 过渡 Provider
+
+上层应用、Binder V2、图片 FD、车载以太网、WebSocket frame、流式回复和错误映射的字段级设计见
+2.1 节索引的“OpenClaw 生产以太网 API”模块详设。
 
 生产目标连接：
 
