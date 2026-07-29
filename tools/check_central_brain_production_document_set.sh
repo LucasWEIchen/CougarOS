@@ -22,6 +22,7 @@ expected_docs=(
   "modules/09-memory-lifecycle.md"
   "modules/10-event-trigger-suggestion.md"
   "modules/11-model-scheduler-openclaw.md"
+  "modules/11a-openclaw-production-ethernet-api.md"
   "modules/12-effect-vehicle-adapter.md"
   "modules/13-client2-hmi.md"
   "modules/14-renderservice-unity.md"
@@ -77,8 +78,8 @@ development = development_path.read_text(encoding="utf-8")
 readme = readme_path.read_text(encoding="utf-8")
 root = root_path
 module_paths = sorted((root / "docs" / "modules").glob("*.md"))
-if len(module_paths) != 16:
-    raise SystemExit(f"module detailed-design count must be 16: {len(module_paths)}")
+if len(module_paths) != 17:
+    raise SystemExit(f"module detailed-design count must be 17: {len(module_paths)}")
 modules = {path: path.read_text(encoding="utf-8") for path in module_paths}
 
 work_ids = re.findall(
@@ -306,8 +307,8 @@ PY
 printf '%s\n' \
   'central_brain_production_document_set_ready=true' \
   'central_brain_canonical_document_count=3' \
-  'central_brain_module_detailed_design_count=16' \
-  'central_brain_docs_file_count=19' \
+  'central_brain_module_detailed_design_count=17' \
+  'central_brain_docs_file_count=20' \
   'production_environment_only=true' \
   'legacy_document_reference_count=0' \
   'production_ready=false' \

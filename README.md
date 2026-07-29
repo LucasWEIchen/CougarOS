@@ -33,7 +33,7 @@ flowchart LR
 | --- | --- |
 | [生产软件需求文档](docs/CENTRAL_BRAIN_REQUIREMENTS.md) | 全部 139 个工作包、Req ID、需求说明、验收和进度状态 |
 | [生产软件架构文档](docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md) | 自上而下的部署、分层、模块、数据、流程、安全和恢复架构 |
-| [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | 公共开发规则、对外接口摘要，以及 16 份模块详设入口 |
+| [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | 公共开发规则、对外接口摘要，以及 17 份模块详设入口 |
 
 ## 当前状态
 
@@ -41,7 +41,7 @@ flowchart LR
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
 | P4-R7 HMI 实现 | 当前 Draft 分支已包含，尚未进入 `main` |
-| 生产 Model Provider | 待量产准入 |
+| OpenClaw 生产以太网文字/图片接口 | 详设已形成，release Provider 待实现与准入 |
 | 真实 Vehicle/NPU Adapter | 外部接口阻塞 |
 | 生产签名、隐私、安全和目标资格 | 待 owner 与目标证据 |
 | `production_ready` | `false` |

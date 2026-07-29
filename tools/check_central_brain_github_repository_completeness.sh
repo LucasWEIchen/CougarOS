@@ -101,9 +101,9 @@ fi
 
 ((tracked_project_file_count >= 100)) \
   || { echo "tracked maintained project file inventory is unexpectedly small" >&2; exit 1; }
-[[ "$tracked_doc_count" -eq 19 ]] \
+[[ "$tracked_doc_count" -eq 20 ]] \
   || {
-    echo "production document set must contain 3 canonical documents and 16 module designs: $tracked_doc_count" >&2
+    echo "production document set must contain 3 canonical documents and 17 module designs: $tracked_doc_count" >&2
     exit 1
   }
 
@@ -119,6 +119,6 @@ printf '%s\n' \
   "tracked_project_file_count=$tracked_project_file_count" \
   "tracked_central_brain_doc_count=$tracked_doc_count" \
   'canonical_production_document_count=3' \
-  'module_detailed_design_count=16' \
+  'module_detailed_design_count=17' \
   'controlled_inputs_published=false' \
   'raw_evidence_published=false'
