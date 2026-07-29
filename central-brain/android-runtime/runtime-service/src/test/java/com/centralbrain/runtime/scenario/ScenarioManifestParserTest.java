@@ -27,10 +27,10 @@ public final class ScenarioManifestParserTest {
     private static final Path ASSETS = Path.of("src/main/assets/scenarios");
 
     @Test
-    public void loadsFourVersionedBuiltInScenariosWithStableDigests() throws Exception {
+    public void loadsFiveVersionedBuiltInScenariosWithStableDigests() throws Exception {
         ScenarioCatalog catalog = ScenarioCatalog.load(builtInAssets());
 
-        assertEquals(4, catalog.size());
+        assertEquals(5, catalog.size());
         assertTrue(catalog.disabled().isEmpty());
         assertTrue(catalog.getCatalogDigest().matches("[0-9a-f]{64}"));
         assertEquals(
@@ -39,6 +39,8 @@ public final class ScenarioManifestParserTest {
         ScenarioManifest fatigue = catalog.require("scene.fatigue.assist.v1");
         ScenarioManifest multimodal =
                 catalog.require("scene.cabin.multimodal.assist.v1");
+        ScenarioManifest freeform =
+                catalog.require("scene.aios.freeform.v1");
         assertEquals(2, multimodal.getVersion());
         assertEquals(RiskClass.HIGH, multimodal.getRiskClass());
         assertTrue(multimodal.getRequiredCapabilities().stream()
@@ -53,6 +55,10 @@ public final class ScenarioManifestParserTest {
                 .count());
         assertTrue(multimodal.getPlanTemplate().getNodes().stream()
                 .noneMatch(node -> "effect.execute".equals(node.getNodeType())));
+        assertEquals(4, freeform.getPlanTemplate().getNodes().size());
+        assertTrue(freeform.getPlanTemplate().getNodes().stream()
+                .noneMatch(node -> "tool.invoke".equals(node.getNodeType())
+                        || "effect.execute".equals(node.getNodeType())));
         assertEquals(RiskClass.HIGH, fatigue.getRiskClass());
         assertTrue(fatigue.getPlanTemplate().getNodes().stream()
                 .anyMatch(node -> "vehicle.seat.recline".equals(
@@ -184,6 +190,8 @@ public final class ScenarioManifestParserTest {
         Map<String, byte[]> result = new LinkedHashMap<>();
         result.put("scene.cabin.multimodal.assist.v1.json",
                 asset("scene.cabin.multimodal.assist.v1.json"));
+        result.put("scene.aios.freeform.v1.json",
+                asset("scene.aios.freeform.v1.json"));
         result.put("scene.comfort.cold.v1.json", asset("scene.comfort.cold.v1.json"));
         result.put("scene.fatigue.assist.v1.json", asset("scene.fatigue.assist.v1.json"));
         result.put("scene.rest.nap.v1.json", asset("scene.rest.nap.v1.json"));
