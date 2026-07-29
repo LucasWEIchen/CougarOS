@@ -41,7 +41,7 @@ flowchart LR
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
 | P4-R7 HMI 实现 | 独立 Draft，尚未进入 `main` |
-| OpenClaw 生产以太网文字/图片接口 | 详设已形成，release Provider 待实现与准入 |
+| OpenClaw 生产以太网文字/图片接口 | [客户 ETH 联调说明与 Java/Python 示例](central-brain/integration/openclaw-eth-client/README.md)已形成，release Provider 待实现与准入 |
 | 真实 Vehicle/NPU Adapter | 外部接口阻塞 |
 | 生产签名、隐私、安全和目标资格 | 待 owner 与目标证据 |
 | `production_ready` | `false` |
