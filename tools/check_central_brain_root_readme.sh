@@ -21,11 +21,15 @@ done
 
 grep -Fq '| `production_ready` | `false` |' "$README"
 grep -Fq '| `target_hardware_validated` | `false` |' "$README"
+grep -Fq 'DirectModelServiceDevelopmentProbeActivity.java' "$README"
+grep -Fq 'run_central_brain_android_direct_model_development_probe.sh' "$README"
+grep -Fq '仅为开发验证' "$README"
 
 printf '%s\n' \
   'Central Brain focused GitHub homepage README check passed' \
   'root_readme_architecture_documented=true' \
   'root_readme_canonical_document_count=3' \
   'root_readme_requirements_linked=true' \
+  'root_readme_direct_model_development_validation_linked=true' \
   'production_ready=false' \
   'target_hardware_validated=false'

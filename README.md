@@ -42,6 +42,7 @@ flowchart LR
 | 仓库软件合同与主模块 | 已形成 |
 | P4-R7 HMI 实现 | 独立 Draft，尚未进入 `main` |
 | AIOS 直连基座模型文字/图片接口 | 合同、HTTP/NDJSON Adapter、Provider 核心和路由目标已形成；production input/health owner 与 release 注册待完成 |
+| Android 本地 Ollama 直连验证 | [Debug 探针](central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/DirectModelServiceDevelopmentProbeActivity.java) 和 [执行脚本](tools/run_central_brain_android_direct_model_development_probe.sh) 已在 Android 13 ARM64 `testboard` 经 ADB reverse 调用 WSL Ollama 通过；仅为开发验证 |
 | 真实 Vehicle/NPU Adapter | 外部接口阻塞 |
 | 生产签名、隐私、安全和目标资格 | 待 owner 与目标证据 |
 | `production_ready` | `false` |
