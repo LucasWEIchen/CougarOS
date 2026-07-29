@@ -1,6 +1,6 @@
 # CougarOS Central Brain 生产软件开发文档
 
-版本：2.2
+版本：2.3
 状态：生产软件详设与接口权威基线
 适用平台：Android 13 座舱域控制器
 更新日期：2026-07-29
@@ -130,6 +130,7 @@
 | 单次图片附件 | 1 张，PNG 或 JPEG |
 
 超限必须在边界处拒绝，不能先完整解析再截断。
+Client2 任意文本入口采用更严格的 1..1024 字符产品上限；公共模型合同的更大上限不允许 HMI 绕过该限制。
 
 ## 5. AIDL 对外接口
 
@@ -705,6 +706,7 @@ HMI 使用 immutable state + reducer。核心状态：
 ```text
 session
 inputProjection
+textInputVisibility
 modelOutputProjection
 planTimeline
 pendingApproval
@@ -719,6 +721,13 @@ presentationMode
 View 只根据 state 渲染；点击事件转换为 reducer input 或 SDK command。
 
 ### 17.2 任务触发
+
+底部入口映射：
+
+- 导航图标：切换固定场景任务面板；
+- 电话图标：切换任意文本输入框；
+- 两个浮层互斥；固定面板由重复导航或外部点击关闭，文本输入由关闭控件或外部点击关闭；
+- 文本框内容只在当前进程内保留到 Session 接收，不能写入 HMI checkpoint、Event 或审计。
 
 “我累了”：
 
@@ -737,6 +746,15 @@ View 只根据 state 渲染；点击事件转换为 reducer input 或 SDK comman
 4. 模型输出乘员和意图候选。
 5. 编译购物与路线 DAG。
 6. 显示候选、独立审批和后续执行。
+
+任意文本：
+
+1. 裁剪输入并校验 1..1024 字符。
+2. 创建 `agent.freeform` Session，并映射到 `scene.aios.freeform.v1`。
+3. 将 owner、Session、文本摘要和座舱上下文绑定为一次消费输入。
+4. 使用 `CockpitModelPrompt.forFreeform()` 注入座舱角色、安全边界和动作白名单。
+5. 校验模型回复及候选动作，拒绝未知动作、重复动作、缺失必要回复和超限输出。
+6. 显示实际输入、模型运行、回复和候选动作；未生成 typed Tool/Effect 节点时显示零执行记录，禁止伪造车辆完成状态。
 
 ### 17.3 执行链路
 

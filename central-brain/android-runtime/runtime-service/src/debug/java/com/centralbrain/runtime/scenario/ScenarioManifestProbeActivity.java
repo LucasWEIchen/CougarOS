@@ -114,6 +114,8 @@ public final class ScenarioManifestProbeActivity extends Activity {
 
     private Map<String, byte[]> builtInAssets() throws IOException {
         Map<String, byte[]> result = new LinkedHashMap<>();
+        result.put("scene.aios.freeform.v1.json", readAsset(
+                "scenarios/scene.aios.freeform.v1.json"));
         result.put("scene.cabin.multimodal.assist.v1.json", readAsset(
                 "scenarios/scene.cabin.multimodal.assist.v1.json"));
         result.put("scene.comfort.cold.v1.json", readAsset(

@@ -25,6 +25,9 @@ public final class CockpitHmiReducerTestMain {
         CockpitHmiState state = CockpitHmiState.initial();
         check(state.getPanelVisibility() == CockpitHmiState.PanelVisibility.HIDDEN,
                 "initial panel must be hidden");
+        check(state.getTextInputVisibility()
+                        == CockpitHmiState.TextInputVisibility.HIDDEN,
+                "initial free-form input must be hidden");
         check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.INTENT,
                 "intent must be the initial surface");
         check(state.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
@@ -41,7 +44,18 @@ public final class CockpitHmiReducerTestMain {
 
         state = CockpitHmiReducer.reduce(
                 state,
+                CockpitHmiReducer.Event.textInputVisibility(true));
+        check(state.getTextInputVisibility()
+                        == CockpitHmiState.TextInputVisibility.VISIBLE
+                        && state.getPanelVisibility()
+                        == CockpitHmiState.PanelVisibility.HIDDEN,
+                "phone input must exclude the task panel");
+        state = CockpitHmiReducer.reduce(
+                state,
                 CockpitHmiReducer.Event.panelVisibility(true));
+        check(state.getTextInputVisibility()
+                        == CockpitHmiState.TextInputVisibility.HIDDEN,
+                "navigation panel must exclude free-form input");
         state = CockpitHmiReducer.reduce(
                 state,
                 CockpitHmiReducer.Event.surfaceSelected(CockpitHmiState.SurfaceStage.RESULT));

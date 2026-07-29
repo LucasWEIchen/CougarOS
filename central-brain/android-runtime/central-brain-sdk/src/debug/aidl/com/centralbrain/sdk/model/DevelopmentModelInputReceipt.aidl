@@ -1,8 +1,9 @@
 package com.centralbrain.sdk.model;
 
-// Receipt for an ephemeral debug multimodal input accepted by the runtime process.
+// Receipt for an ephemeral debug text or multimodal input accepted by the runtime process.
 parcelable DevelopmentModelInputReceipt {
-    int schemaVersion = 1;
+    int schemaVersion = 2;
+    int inputMode = 0;
     String sessionId = "";
     String scenarioId = "";
     String inputText = "";

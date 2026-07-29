@@ -87,6 +87,25 @@ public final class SimulatedScenarioInputFactoryTest {
     }
 
     @Test
+    public void freeformInputPublishesAResponseOnlyPlanWithoutEffects() throws Exception {
+        SimulatedScenarioRuntime runtime = runtime();
+        Input input = factory().create(
+                ScenarioKind.AIOS_FREEFORM, DrivingProfile.PARKED);
+
+        SimulatedScenarioRuntime.Snapshot snapshot = runtime.start(
+                input.getRequest(),
+                input.getResolution(),
+                input.getContext(),
+                input.getCapabilities());
+
+        assertEquals("scene.aios.freeform.v1", snapshot.getScenarioId());
+        assertEquals(
+                SimulatedScenarioRuntime.SessionState.COMPLETED,
+                snapshot.getSessionState());
+        assertEquals(null, snapshot.getPendingNode());
+    }
+
+    @Test
     public void nullOrInvalidFactoryInputsFailClosed() throws Exception {
         SimulatedScenarioInputFactory factory = factory();
 
@@ -176,6 +195,7 @@ public final class SimulatedScenarioInputFactoryTest {
     private static ScenarioCatalog catalog() throws Exception {
         Map<String, byte[]> assets = new LinkedHashMap<>();
         for (String name : List.of(
+                "scene.aios.freeform.v1.json",
                 "scene.comfort.cold.v1.json",
                 "scene.fatigue.assist.v1.json",
                 "scene.rest.nap.v1.json")) {

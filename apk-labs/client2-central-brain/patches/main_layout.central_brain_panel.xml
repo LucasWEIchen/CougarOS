@@ -75,10 +75,25 @@
         </FrameLayout>
     </FrameLayout>
 
+    <FrameLayout android:id="@+id/centralBrainFreeformInputOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="true" android:focusable="false">
+        <LinearLayout android:id="@+id/centralBrainFreeformInputCard" android:orientation="vertical" android:layout_width="720.0dp" android:layout_height="220.0dp" android:layout_gravity="bottom|center_horizontal" android:layout_marginBottom="112.0dp" android:background="@drawable/central_brain_panel_background" android:clickable="true" android:elevation="9.0dp" android:focusable="false" android:paddingLeft="20.0dp" android:paddingTop="16.0dp" android:paddingRight="20.0dp" android:paddingBottom="16.0dp">
+            <FrameLayout android:layout_width="match_parent" android:layout_height="44.0dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="left|center_vertical" android:text="告诉 AIOS 你需要什么" android:textColor="#172129" android:textSize="18.0sp" android:textStyle="bold" />
+                <Button android:id="@+id/centralBrainFreeformCloseButton" android:tag="central_brain_freeform_close" android:layout_width="44.0dp" android:layout_height="44.0dp" android:layout_gravity="right|center_vertical" android:background="@android:color/transparent" android:contentDescription="关闭 AIOS 文字输入" android:minHeight="44.0dp" android:minWidth="44.0dp" android:text="×" android:textAllCaps="false" android:textColor="#3C4B54" android:textSize="23.0sp" />
+            </FrameLayout>
+            <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0" android:layout_marginTop="8.0dp" android:gravity="bottom">
+                <EditText android:id="@+id/centralBrainFreeformInput" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:background="@drawable/central_brain_live_trace_background" android:gravity="top|left" android:hint="例如：帮我找一个安静的休息区" android:imeOptions="actionSend" android:inputType="textCapSentences|textMultiLine" android:maxLength="1024" android:maxLines="4" android:minHeight="96.0dp" android:padding="14.0dp" android:textColor="#F1F7F8" android:textColorHint="#9EC0C3" android:textSize="15.0sp" />
+                <Button android:id="@+id/centralBrainFreeformSubmitButton" android:tag="central_brain_freeform_submit" android:layout_width="112.0dp" android:layout_height="56.0dp" android:layout_marginLeft="12.0dp" android:background="@drawable/central_brain_action_button" android:contentDescription="发送给 AIOS" android:elevation="0.0dp" android:minHeight="48.0dp" android:stateListAnimator="@null" android:text="发送" android:textAllCaps="false" android:textColor="#20262D" android:textSize="15.0sp" android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
     <LinearLayout android:id="@+id/centralBrainNavigationTriggerRail" android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="96.0dp" android:layout_gravity="bottom" android:clickable="false" android:focusable="false" android:weightSum="24.0">
         <Space android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="9.5" />
+        <View android:id="@+id/centralBrainPhoneTrigger" android:tag="central_brain_freeform_toggle" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:background="@android:color/transparent" android:clickable="true" android:contentDescription="AIOS text input" android:focusable="true" android:importantForAccessibility="yes" />
+        <Space android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="0.625" />
         <View android:id="@+id/centralBrainNavigationTrigger" android:tag="central_brain_menu_toggle" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:background="@android:color/transparent" android:clickable="true" android:contentDescription="AIOS task menu" android:focusable="true" android:importantForAccessibility="yes" />
-        <Space android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="13.5" />
+        <Space android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="11.875" />
     </LinearLayout>
     <FrameLayout android:id="@+id/centralBrainImagePreviewOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#B8000000" android:clickable="true" android:focusable="true" android:visibility="gone">
         <ImageView android:id="@+id/centralBrainImagePreview" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:layout_marginLeft="96.0dp" android:layout_marginTop="72.0dp" android:layout_marginRight="96.0dp" android:layout_marginBottom="72.0dp" android:adjustViewBounds="true" android:clickable="true" android:contentDescription="座舱模型输入图片大图" android:scaleType="fitCenter" />

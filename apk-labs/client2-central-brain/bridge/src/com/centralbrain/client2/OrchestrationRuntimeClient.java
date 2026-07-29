@@ -12,6 +12,7 @@ import com.centralbrain.sdk.OrchestrationClient;
 import com.centralbrain.sdk.effect.EffectContract;
 import com.centralbrain.sdk.model.DevelopmentModelProjection;
 import com.centralbrain.sdk.model.DevelopmentModelInput;
+import com.centralbrain.sdk.model.DevelopmentModelInputContract;
 import com.centralbrain.sdk.model.DevelopmentModelInputReceipt;
 import com.centralbrain.sdk.orchestration.ApprovalResponse;
 import com.centralbrain.sdk.orchestration.ICentralBrainOrchestration;
@@ -47,7 +48,7 @@ public final class OrchestrationRuntimeClient implements
 
         void onPipelineMilestone(String stage, String status, String detail);
 
-        void onMultimodalInputAccepted(DevelopmentModelInputReceipt receipt);
+        void onModelInputAccepted(DevelopmentModelInputReceipt receipt);
 
         void onModelExchange(
                 String uiScenarioId, DevelopmentModelProjection projection);
@@ -62,6 +63,7 @@ public final class OrchestrationRuntimeClient implements
         private final int motionState;
         private final boolean effectAnimationOnly;
         private CockpitMultimodalInput multimodalInput;
+        private String textInput;
         private DevelopmentModelInputReceipt inputReceipt;
 
         private PendingStart(
@@ -72,7 +74,8 @@ public final class OrchestrationRuntimeClient implements
                 String drivingProfile,
                 int motionState,
                 boolean effectAnimationOnly,
-                CockpitMultimodalInput multimodalInput) {
+                CockpitMultimodalInput multimodalInput,
+                String textInput) {
             this.generation = generation;
             this.sessionId = sessionId;
             this.uiScenarioId = uiScenarioId;
@@ -81,6 +84,7 @@ public final class OrchestrationRuntimeClient implements
             this.motionState = motionState;
             this.effectAnimationOnly = effectAnimationOnly;
             this.multimodalInput = multimodalInput;
+            this.textInput = textInput;
         }
     }
 
@@ -165,6 +169,7 @@ public final class OrchestrationRuntimeClient implements
                 uiScenarioId,
                 drivingState,
                 effectAnimationOnly,
+                null,
                 null);
     }
 
@@ -174,8 +179,37 @@ public final class OrchestrationRuntimeClient implements
             CockpitSeatState.DrivingState drivingState,
             boolean effectAnimationOnly,
             CockpitMultimodalInput multimodalInput) {
+        openOrResume(
+                sessionId,
+                uiScenarioId,
+                drivingState,
+                effectAnimationOnly,
+                multimodalInput,
+                null);
+    }
+
+    public void openOrResume(
+            String sessionId,
+            String uiScenarioId,
+            CockpitSeatState.DrivingState drivingState,
+            boolean effectAnimationOnly,
+            CockpitMultimodalInput multimodalInput,
+            String textInput) {
         Objects.requireNonNull(drivingState, "drivingState");
         String scenario = requireScenario(uiScenarioId);
+        if (multimodalInput != null && textInput != null) {
+            throw new IllegalArgumentException("only one staged model input is allowed");
+        }
+        if ("agent.freeform".equals(scenario)) {
+            String safe = textInput == null ? "" : textInput.trim();
+            if (safe.isEmpty()
+                    || safe.length() > DevelopmentModelInputContract.MAX_TEXT_CHARS) {
+                throw new IllegalArgumentException("free-form model input is invalid");
+            }
+            textInput = safe;
+        } else if (textInput != null) {
+            throw new IllegalArgumentException("text input is bound to free-form scenario");
+        }
         PendingStart start;
         boolean ready;
         synchronized (this) {
@@ -195,7 +229,8 @@ public final class OrchestrationRuntimeClient implements
                             ? ICentralBrainOrchestration.MOTION_PARKED
                             : motionState(drivingState),
                     effectAnimationOnly,
-                    multimodalInput);
+                    multimodalInput,
+                    textInput);
             pendingStart = start;
             ready = connected;
         }
@@ -266,7 +301,7 @@ public final class OrchestrationRuntimeClient implements
                 return;
             }
             start = pendingStart;
-            if (start.multimodalInput != null
+            if ((start.multimodalInput != null || start.textInput != null)
                     && start.inputReceipt == null
                     && !modelProjectionClient.isConnected()) {
                 return;
@@ -274,30 +309,48 @@ public final class OrchestrationRuntimeClient implements
             previous = latestSnapshot;
         }
         try {
-            if (start.multimodalInput != null && start.inputReceipt == null) {
-                stage = "STAGE_MULTIMODAL_INPUT";
-                DevelopmentModelInput input = start.multimodalInput.openParcelable(
-                        start.sessionId, start.canonicalScenarioId);
+            if ((start.multimodalInput != null || start.textInput != null)
+                    && start.inputReceipt == null) {
+                stage = "STAGE_MODEL_INPUT";
+                DevelopmentModelInput input;
+                if (start.multimodalInput != null) {
+                    input = start.multimodalInput.openParcelable(
+                            start.sessionId, start.canonicalScenarioId);
+                } else {
+                    input = textInput(
+                            start.sessionId,
+                            start.canonicalScenarioId,
+                            start.textInput);
+                }
                 ParcelFileDescriptor inputFd = input.imageFd;
                 try {
                     start.inputReceipt =
-                            modelProjectionClient.stageOwnMultimodalInput(input);
+                            modelProjectionClient.stageOwnModelInput(input);
                 } finally {
-                    try {
-                        inputFd.close();
-                    } catch (java.io.IOException ignored) {
-                        // Runtime already duplicated or consumed the descriptor.
+                    if (inputFd != null) {
+                        try {
+                            inputFd.close();
+                        } catch (java.io.IOException ignored) {
+                            // Runtime already duplicated or consumed the descriptor.
+                        }
                     }
-                    start.multimodalInput.close();
+                    if (start.multimodalInput != null) {
+                        start.multimodalInput.close();
+                    }
                     start.multimodalInput = null;
+                    start.textInput = null;
                 }
                 DevelopmentModelInputReceipt accepted = start.inputReceipt;
                 milestone(
                         "MODEL INPUT",
                         "ACCEPTED",
-                        accepted.inputText + " · image/png · "
-                                + accepted.imageByteCount + " bytes");
-                post(() -> callback.onMultimodalInputAccepted(accepted));
+                        accepted.inputMode
+                                        == DevelopmentModelInputContract
+                                                .INPUT_TEXT_AND_IMAGE
+                                ? "text + image · "
+                                        + accepted.imageByteCount + " bytes"
+                                : "text · " + accepted.inputText.length() + " chars");
+                post(() -> callback.onModelInputAccepted(accepted));
             }
             cancelPreviousIfNeeded(previous, start.sessionId);
             OrchestrationSnapshot snapshot = client.getSnapshot(start.sessionId);
@@ -373,6 +426,7 @@ public final class OrchestrationRuntimeClient implements
                         drivingProfile,
                         ICentralBrainOrchestration.MOTION_UNKNOWN,
                         true,
+                        null,
                         null);
                 publish(source, updated, 1);
             } catch (RemoteException failure) {
@@ -394,11 +448,14 @@ public final class OrchestrationRuntimeClient implements
         DevelopmentModelProjection modelProjection = readModelProjection(start, snapshot);
         if (start.inputReceipt != null
                 && (modelProjection == null
-                        || !modelProjection.imageConsumed
                         || !start.inputReceipt.inputAggregateDigest.equals(
-                                modelProjection.inputAggregateDigest))) {
+                                modelProjection.inputAggregateDigest)
+                        || (start.inputReceipt.inputMode
+                                        == DevelopmentModelInputContract
+                                                .INPUT_TEXT_AND_IMAGE
+                                && !modelProjection.imageConsumed))) {
             throw new IllegalArgumentException(
-                    "multimodal model projection consumption proof is missing");
+                    "model input projection consumption proof is missing");
         }
         ScenarioPlan plan = client.getPlan(start.sessionId);
         OrchestrationContract.validatePlanForSnapshot(plan, snapshot);
@@ -941,6 +998,25 @@ public final class OrchestrationRuntimeClient implements
             throw new IllegalArgumentException("unsupported orchestration scenario");
         }
         return uiScenarioId;
+    }
+
+    private static DevelopmentModelInput textInput(
+            String sessionId,
+            String scenarioId,
+            String text) {
+        DevelopmentModelInput input = new DevelopmentModelInput();
+        input.schemaVersion = DevelopmentModelInputContract.SCHEMA_VERSION;
+        input.inputMode = DevelopmentModelInputContract.INPUT_TEXT_ONLY;
+        input.sessionId = sessionId;
+        input.scenarioId = scenarioId;
+        input.inputText = text;
+        input.imageMimeType = "";
+        input.imageFileName = "";
+        input.imageByteCount = 0L;
+        input.imageSha256 = "";
+        input.imageFd = null;
+        DevelopmentModelInputContract.validateMetadata(input);
+        return input;
     }
 
     private static String requireUuid(String value) {

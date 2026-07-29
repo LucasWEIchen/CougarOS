@@ -22,6 +22,7 @@ then rebuilds and signs a debug APK.
 | Android demo delivery | `DEL-001`, `DEL-003` | Produces a debuggable APK for emulator/device validation. |
 | Platform difference visibility | `DEL-004` | Documents that this is an APK patch path, not a production system-service path. |
 | AI SDK entry point | `APP-004`, `S2-HMI-007`, `XSC-001` | The right panel exposes scene triggers and live Runtime milestones; it must not call NPU directly. |
+| Dual-entry free-form AIOS input | `APP-006`, `S2-HMI-010`, `S2-MDL-004/005` | Navigation toggles fixed tasks; phone toggles bounded free-form text that enters the Session/model pipeline and only returns a reply plus allowlisted candidate actions. |
 | Cockpit model context | `S2-MDL-002` | Ollama/OpenClaw share a bounded automotive driver-service prompt and action allowlist. |
 | Live execution projection | `S2-OBS-002` | Ten bounded Runtime/model/effect milestones feed one 32-line scrolling trace. |
 | Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
@@ -92,11 +93,14 @@ Activity
 ├── floating overlay: 600x760 translucent Central Brain panel in the 1920x1080 safe frame
 ├── Unity-native dual-zone HVAC setpoints in the companion RenderService bundle
 ├── left actuator overlay: HVAC and scenario-dependent Seat animation
-└── bottom trigger rail: transparent target over the rendered navigation icon
+└── bottom trigger rail: phone target for free-form text and navigation target for fixed tasks
 ```
 
 The overlay does not resize the vehicle scene. One navigation-target click
-shows the panel; a second click or a click outside the panel hides it. The panel
+shows the fixed-task panel; the phone target opens the free-form text input.
+The two surfaces are mutually exclusive. A repeated navigation click hides the
+task panel; the input close control or a click outside hides the text input.
+The panel
 consumes touches over its own surface so its controls do not dismiss it. P4-R3
 exposes only `care.fatigue`, `care.cold` and one live scrolling call-chain view.
 The former Intent/Plan/Execution/Result tabs, manual HVAC/Seat controls and

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/** Bounded provider-neutral prompt material for fixed cockpit scenarios. */
+/** Bounded provider-neutral prompt material for cockpit scenarios and free-form intent. */
 public final class CockpitModelPrompt {
     public static final String EFFECT_MODE = "UI_SIMULATION_ONLY";
     public static final String SAFETY_MODE = "INTERFACE_RESERVED";
@@ -28,7 +28,7 @@ public final class CockpitModelPrompt {
             Set<String> requiredActions) {
         this.inputDigest = requireDigest(inputDigest);
         this.scenarioId = bounded(scenarioId, 96, "scenarioId");
-        this.utterance = bounded(utterance, 64, "utterance");
+        this.utterance = bounded(utterance, 1_024, "utterance");
         this.context = bounded(context, 1_024, "context");
         this.allowedActions = immutableActions(allowedActions, "allowedActions");
         this.requiredActions = Collections.unmodifiableSet(
@@ -84,6 +84,35 @@ public final class CockpitModelPrompt {
                 "CB_COCKPIT_MODEL_PROMPT: scenario is not allowlisted");
     }
 
+    public static CockpitModelPrompt forFreeform(
+            String inputDigest, String inputText) {
+        return new CockpitModelPrompt(
+                inputDigest,
+                "scene.aios.freeform.v1",
+                inputText,
+                context(
+                        "ROW1_DRIVER",
+                        "UNKNOWN_RESTRICTED",
+                        "ANDROID_HMI_TEXT",
+                        "NOT_OBSERVED",
+                        "NOT_OBSERVED",
+                        "NOT_OBSERVED",
+                        "HVAC,SEAT,MEDIA,NAVIGATION")
+                        + ";input_mode=FREE_FORM"
+                        + ";execution_policy=MODEL_PROPOSAL_ONLY"
+                        + ";vehicle_bus=UNAVAILABLE",
+                List.of(
+                        "assistant.respond",
+                        "hvac.warm_cabin",
+                        "hvac.cool_cabin",
+                        "hvac.ventilate",
+                        "seat.recline",
+                        "media.pause",
+                        "media.resume",
+                        "navigation.find_rest_area"),
+                Set.of("assistant.respond"));
+    }
+
     public static CockpitModelPrompt forMultimodal(
             String inputDigest, String inputText) {
         return new CockpitModelPrompt(
@@ -116,6 +145,7 @@ public final class CockpitModelPrompt {
     public String systemInstruction() {
         return "你是运行在汽车座舱中的AIOS场景规划器，首要目标是服务驾驶员的舒适、清醒和行车任务。"
                 + "你只提出候选动作，不能授权Safety或Effect，也不能声称真实车辆已经执行。"
+                + "对于自由输入，先判断是否属于座舱服务；不明确时只回复并要求澄清。"
                 + "当前末端反馈仅为UI仿真，安全接口仅保留合同。"
                 + "处理图片时只描述画面中直接可见的座舱事实，不识别人身份，不推断敏感属性。"
                 + "当可见事实支持购物候选时，只能提出商品搜索和购买路径规划目标；"
@@ -133,6 +163,17 @@ public final class CockpitModelPrompt {
 
     public void validateAdmittedActions(List<String> admittedActions) {
         Objects.requireNonNull(admittedActions, "admittedActions");
+        if (admittedActions.isEmpty() || admittedActions.size() > 4) {
+            throw new IllegalStateException(
+                    "CB_COCKPIT_MODEL_PROMPT: admitted action count is invalid");
+        }
+        LinkedHashSet<String> unique = new LinkedHashSet<>();
+        for (String action : admittedActions) {
+            if (!allowedActions.contains(action) || !unique.add(action)) {
+                throw new IllegalStateException(
+                        "CB_COCKPIT_MODEL_PROMPT: action is not allowlisted");
+            }
+        }
         if (!admittedActions.containsAll(requiredActions)) {
             throw new IllegalStateException(
                     "CB_COCKPIT_MODEL_PROMPT: required action is missing");
@@ -179,7 +220,7 @@ public final class CockpitModelPrompt {
 
     private static List<String> immutableActions(List<String> actions, String field) {
         Objects.requireNonNull(actions, field);
-        if (actions.isEmpty() || actions.size() > 4) {
+        if (actions.isEmpty() || actions.size() > 8) {
             throw new IllegalArgumentException(
                     "CB_COCKPIT_MODEL_PROMPT: " + field + " count is invalid");
         }

@@ -15,7 +15,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -45,6 +48,9 @@ public final class CockpitControlCoordinator implements
         Application.ActivityLifecycleCallbacks {
     private static final String TAG = "CbClient2Hmi";
     private static final String MENU_TAG = "central_brain_menu_toggle";
+    private static final String FREEFORM_TOGGLE_TAG = "central_brain_freeform_toggle";
+    private static final String FREEFORM_SUBMIT_TAG = "central_brain_freeform_submit";
+    private static final String FREEFORM_CLOSE_TAG = "central_brain_freeform_close";
     private static final String PANEL_CLOSE_TAG = "central_brain_panel_close";
     private static final String DRAWER_CLOSE_TAG = "central_brain_drawer_close";
     private static final String INTENT_STAGE_TAG = "central_brain_stage_intent";
@@ -181,6 +187,10 @@ public final class CockpitControlCoordinator implements
     private View engineerSurface;
     private View panelView;
     private View navigationTrigger;
+    private View phoneTrigger;
+    private View freeformInputOverlay;
+    private View freeformInputCard;
+    private EditText freeformInput;
     private View actuatorOverlay;
     private View hvacFeedbackRegion;
     private View seatFeedbackRegion;
@@ -204,6 +214,7 @@ public final class CockpitControlCoordinator implements
     private boolean traceDrainScheduled;
     private String displayedModelReply = "";
     private CockpitMultimodalInput pendingMultimodalInput;
+    private String pendingFreeformInput;
     private Bitmap modelInputBitmap;
     private final Set<String> admittedModelActions = new LinkedHashSet<>();
     private boolean multimodalConsumptionProved;
@@ -401,10 +412,45 @@ public final class CockpitControlCoordinator implements
         if (navigationTrigger != null) {
             navigationTrigger.setOnClickListener(this);
         }
+        phoneTrigger = findView("centralBrainPhoneTrigger");
+        if (phoneTrigger != null) {
+            phoneTrigger.setOnClickListener(this);
+        }
+        freeformInputOverlay = findView("centralBrainFreeformInputOverlay");
+        freeformInputCard = findView("centralBrainFreeformInputCard");
+        View input = findView("centralBrainFreeformInput");
+        freeformInput = input instanceof EditText ? (EditText) input : null;
+        if (freeformInputOverlay != null) {
+            freeformInputOverlay.setOnClickListener(this);
+        }
+        if (freeformInputCard != null) {
+            freeformInputCard.setOnClickListener(ignored -> {
+                // The input card consumes outside-close clicks.
+            });
+        }
+        View freeformSubmit = findView("centralBrainFreeformSubmitButton");
+        if (freeformSubmit != null) {
+            freeformSubmit.setOnClickListener(this);
+        }
+        View freeformClose = findView("centralBrainFreeformCloseButton");
+        if (freeformClose != null) {
+            freeformClose.setOnClickListener(this);
+        }
+        if (freeformInput != null) {
+            freeformInput.setOnEditorActionListener((view, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    submitFreeformInput();
+                    return true;
+                }
+                return false;
+            });
+        }
         applyDisplayBounds();
         applyAccessibilityContract(panelView);
         applyAccessibilityContract(navigationTrigger);
+        applyAccessibilityContract(phoneTrigger);
         setEnabled(navigationTrigger, isDisplayReady());
+        setEnabled(phoneTrigger, isDisplayReady());
     }
 
     private View findView(String name) {
@@ -450,11 +496,29 @@ public final class CockpitControlCoordinator implements
             setPanelVisible(false);
             return;
         }
+        if (view == freeformInputOverlay) {
+            setTextInputVisible(false);
+            return;
+        }
         Object tag = view.getTag();
         String tagValue = tag == null ? "" : tag.toString();
         if (MENU_TAG.equals(tag)) {
             setPanelVisible(
                     state.getPanelVisibility() != CockpitHmiState.PanelVisibility.VISIBLE);
+            return;
+        }
+        if (FREEFORM_TOGGLE_TAG.equals(tagValue)) {
+            setTextInputVisible(
+                    state.getTextInputVisibility()
+                            != CockpitHmiState.TextInputVisibility.VISIBLE);
+            return;
+        }
+        if (FREEFORM_SUBMIT_TAG.equals(tagValue)) {
+            submitFreeformInput();
+            return;
+        }
+        if (FREEFORM_CLOSE_TAG.equals(tagValue)) {
+            setTextInputVisible(false);
             return;
         }
         if (PANEL_CLOSE_TAG.equals(tag)) {
@@ -575,9 +639,68 @@ public final class CockpitControlCoordinator implements
             return;
         }
         accept(CockpitHmiReducer.Event.panelVisibility(visible));
+        if (visible) {
+            hideKeyboard();
+        }
         if (!visible) {
             Log.i(TAG, markers()
                     + " client2_hmi_hidden_state_preserved=true");
+        }
+    }
+
+    private void setTextInputVisible(boolean visible) {
+        if (visible && !isDisplayReady()) {
+            accept(CockpitHmiReducer.Event.textInputVisibility(false));
+            return;
+        }
+        accept(CockpitHmiReducer.Event.textInputVisibility(visible));
+        if (visible && freeformInput != null) {
+            freeformInput.requestFocus();
+            InputMethodManager keyboard =
+                    (InputMethodManager) activity.getSystemService(
+                            Activity.INPUT_METHOD_SERVICE);
+            if (keyboard != null) {
+                keyboard.showSoftInput(
+                        freeformInput, InputMethodManager.SHOW_IMPLICIT);
+            }
+        } else {
+            hideKeyboard();
+        }
+    }
+
+    private void submitFreeformInput() {
+        if (freeformInput == null) {
+            return;
+        }
+        String text = freeformInput.getText() == null
+                ? "" : freeformInput.getText().toString().trim();
+        if (text.isEmpty()) {
+            freeformInput.setError("请输入座舱需求");
+            return;
+        }
+        if (text.length() > SessionContract.MAX_UTTERANCE_CHARS) {
+            freeformInput.setError("输入内容过长");
+            return;
+        }
+        freeformInput.setError(null);
+        startScenario("agent.freeform", text);
+        freeformInput.setText("");
+        hideKeyboard();
+    }
+
+    private void hideKeyboard() {
+        View focused = activity.getCurrentFocus();
+        if (focused == null) {
+            focused = freeformInput;
+        }
+        InputMethodManager keyboard =
+                (InputMethodManager) activity.getSystemService(
+                        Activity.INPUT_METHOD_SERVICE);
+        if (keyboard != null && focused != null) {
+            keyboard.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+        }
+        if (freeformInput != null) {
+            freeformInput.clearFocus();
         }
     }
 
@@ -588,6 +711,8 @@ public final class CockpitControlCoordinator implements
         resetLiveTrace(scenarioId, userText);
         resetActuatorFeedback();
         clearPendingMultimodalInput();
+        pendingFreeformInput = "agent.freeform".equals(scenarioId)
+                ? (userText == null ? "" : userText.trim()) : null;
         if (modelInputBitmap != null) {
             modelInputBitmap.recycle();
             modelInputBitmap = null;
@@ -601,6 +726,7 @@ public final class CockpitControlCoordinator implements
         admittedModelActions.clear();
         multimodalConsumptionProved = false;
         setVisible(modelInputSurface, false);
+        setVisible(modelInputThumbnail, false);
         hideImagePreview();
         if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(scenarioId)) {
             try {
@@ -617,6 +743,7 @@ public final class CockpitControlCoordinator implements
                         "模型输入 · “处理一下” + 座舱图像 · "
                                 + pendingMultimodalInput.getImageByteCount() + " bytes");
                 setVisible(modelInputSurface, true);
+                setVisible(modelInputThumbnail, true);
                 appendLiveTrace(
                         "MODEL INPUT",
                         "STAGING",
@@ -628,6 +755,15 @@ public final class CockpitControlCoordinator implements
                         "Controlled frame integrity or decode rejected");
                 return;
             }
+        } else if ("agent.freeform".equals(scenarioId)) {
+            setText(
+                    modelInputTextView,
+                    "模型输入 · 文字 · " + pendingFreeformInput.length() + " chars");
+            setVisible(modelInputSurface, true);
+            appendLiveTrace(
+                    "MODEL INPUT",
+                    "STAGING",
+                    pendingFreeformInput);
         }
         String simulatedDrivingProfile = "PARKED";
         accept(CockpitHmiReducer.Event.scenarioSubmitted(
@@ -972,20 +1108,27 @@ public final class CockpitControlCoordinator implements
     }
 
     @Override
-    public void onMultimodalInputAccepted(DevelopmentModelInputReceipt receipt) {
+    public void onModelInputAccepted(DevelopmentModelInputReceipt receipt) {
+        String activeScenario = state.getUiScenarioId();
         if (receipt == null
                 || !CockpitScenarioControlState.canonicalScenarioId(
-                        CockpitMultimodalInput.UI_SCENARIO_ID)
-                        .equals(receipt.scenarioId)) {
+                        activeScenario).equals(receipt.scenarioId)) {
             appendLiveTrace("MODEL INPUT", "REJECTED", "Receipt binding mismatch");
             return;
         }
-        appendLiveTrace(
-                "MODEL INPUT",
-                "BOUND",
-                receipt.inputText + " + image · "
-                        + receipt.imageByteCount + " bytes · "
-                        + receipt.imageSha256.substring(0, 12));
+        if (receipt.imageByteCount > 0L) {
+            appendLiveTrace(
+                    "MODEL INPUT",
+                    "BOUND",
+                    receipt.inputText + " + image · "
+                            + receipt.imageByteCount + " bytes · "
+                            + receipt.imageSha256.substring(0, 12));
+        } else {
+            appendLiveTrace(
+                    "MODEL INPUT",
+                    "BOUND",
+                    receipt.inputText);
+        }
     }
 
     @Override
@@ -1677,20 +1820,35 @@ public final class CockpitControlCoordinator implements
 
     @Override
     public void onSessionOpened(SessionHandle handle, String scenarioId) {
+        String activeUiScenario = state.getUiScenarioId();
+        if (!CockpitScenarioControlState.isSupported(activeUiScenario)) {
+            Log.w(TAG, markers()
+                    + " client2_hmi_unowned_session_open_rejected=true");
+            return;
+        }
+        String expectedScenario =
+                CockpitScenarioControlState.canonicalScenarioId(activeUiScenario);
+        if (handle == null || !expectedScenario.equals(scenarioId)) {
+            Log.w(TAG, markers()
+                    + " client2_hmi_stale_session_open_rejected=true");
+            return;
+        }
         accept(CockpitHmiReducer.Event.sessionOpened(handle, scenarioId));
-        if (handle != null
-                && CockpitSimulatedScenarioState.isSupported(
-                        state.getUiScenarioId())) {
+        if (CockpitSimulatedScenarioState.isSupported(activeUiScenario)) {
             CockpitMultimodalInput multimodal =
-                    CockpitMultimodalInput.UI_SCENARIO_ID.equals(state.getUiScenarioId())
+                    CockpitMultimodalInput.UI_SCENARIO_ID.equals(activeUiScenario)
                             ? pendingMultimodalInput : null;
+            String freeform = "agent.freeform".equals(activeUiScenario)
+                    ? pendingFreeformInput : null;
             pendingMultimodalInput = null;
+            pendingFreeformInput = null;
             orchestrationClient.openOrResume(
                     handle.sessionId,
-                    state.getUiScenarioId(),
+                    activeUiScenario,
                     state.getSeatState().getSafetyContext().getDrivingState(),
                     true,
-                    multimodal);
+                    multimodal,
+                    freeform);
         }
     }
 
@@ -1782,6 +1940,13 @@ public final class CockpitControlCoordinator implements
                         isDisplayReady()
                                 && current.getPanelVisibility()
                                 == CockpitHmiState.PanelVisibility.VISIBLE
+                                ? View.VISIBLE : View.GONE);
+            }
+            if (freeformInputOverlay != null) {
+                freeformInputOverlay.setVisibility(
+                        isDisplayReady()
+                                && current.getTextInputVisibility()
+                                == CockpitHmiState.TextInputVisibility.VISIBLE
                                 ? View.VISIBLE : View.GONE);
             }
             if (replyView != null) {
@@ -2422,6 +2587,9 @@ public final class CockpitControlCoordinator implements
     }
 
     private static String phraseForScenario(String scenarioId) {
+        if ("agent.freeform".equals(scenarioId)) {
+            return "自由文本座舱请求";
+        }
         if ("care.fatigue".equals(scenarioId)) {
             return "我有些疲惫";
         }
@@ -2447,6 +2615,12 @@ public final class CockpitControlCoordinator implements
     }
 
     private static String simulationPlanLabel(CockpitSimulatedScenarioState state) {
+        if ("agent.freeform".equals(state.getUiScenarioId())) {
+            return state.hasSnapshot()
+                    ? "REV " + state.getPlanRevision()
+                            + " · MODEL + ALLOWLIST PLAN"
+                    : "WAITING";
+        }
         return state.hasSnapshot()
                 ? "REV " + state.getPlanRevision() + " · FIXED DEBUG PLAN"
                 : "WAITING";
@@ -2583,6 +2757,7 @@ public final class CockpitControlCoordinator implements
             previous.close();
         }
         clearPendingMultimodalInput();
+        pendingFreeformInput = null;
         if (modelInputBitmap != null) {
             modelInputBitmap.recycle();
             modelInputBitmap = null;

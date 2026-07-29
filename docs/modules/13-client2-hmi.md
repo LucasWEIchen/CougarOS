@@ -1,6 +1,6 @@
 # Client2 座舱 HMI 模块详设
 
-版本：1.0
+版本：1.1
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -24,6 +24,7 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | `APP-001` | 场景任务入口和语音转写文本 |
 | `APP-002` | 文本与单帧座舱图像形成同一请求 |
 | `APP-005` | 显示模型输入、缩略图和居中预览 |
+| `APP-006` | 1..1024 字符任意文本输入、Session 绑定和一次消费 |
 | `S2-UX-001` | 第一层仅任务入口和实时链路 |
 | `S2-UX-002` | 输入到结果的增量显示 |
 | `S2-UX-003` | partial、retry、undo、compensation 可区分 |
@@ -31,6 +32,7 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | `S2-HMI-003`、`S2-HMI-004`、`S2-HMI-005` | 恢复状态、unavailable 和统一执行链路 |
 | `S2-HMI-006`、`S2-HMI-007` | 1920x1080 半透明布局和渐进执行反馈 |
 | `S2-HMI-008`、`S2-HMI-009` | 多模态输入输出、座位事实、购物与导航确认 |
+| `S2-HMI-010` | 导航/电话双入口、互斥浮层和外部点击关闭 |
 | `S2-OBS-002` | 顺序滚动 Runtime/Model/Graph/Effect/Readback 里程碑 |
 
 ## 3. 源码地图
@@ -52,6 +54,8 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | [CockpitDisplayPolicy.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java) | `resolve`、panel bounds | 1920x1080 和大字模式 |
 | [DrivingUxPolicy.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/DrivingUxPolicy.java) | `modeFor` | 驾驶状态显示限制 |
 | [CockpitMultimodalInput.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java) | `load`、`openParcelable`、`decodePreview` | 单帧图像输入 |
+| [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forFreeform`、`validateActions` | 任意文本座舱上下文与动作白名单 |
+| [freeform manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.aios.freeform.v1.json) | `scene.aios.freeform.v1` | 任意文本 response-only 场景图 |
 | [main_layout.central_brain_panel.xml](../../apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml) | overlay、buttons、trace、preview | HMI View 结构 |
 | [client2 project contract](../../apk-labs/client2-central-brain/client2-central-brain.project.json) | requirements、layout、bridge | 集成清单 |
 
@@ -71,16 +75,25 @@ Button / Binder callback / lifecycle
 View 不保存业务真相。`CockpitControlCoordinator` 的字段只可保存 View 引用、连接对象和渲染节流状态；
 Session、desired/reported、审批和执行状态必须来自 `CockpitHmiState`。
 
-### 4.2 场景入口
+### 4.2 双入口与场景映射
+
+底部导航热区使用 `central_brain_menu_toggle`，只切换固定任务面板；底部电话热区使用
+`central_brain_freeform_toggle`，只切换任意文本输入框。`CockpitHmiState.TextInputVisibility` 与
+任务面板可见状态互斥，所有显隐变化必须经 `CockpitHmiReducer`。输入卡提供独立关闭控件并支持浮层外
+点击关闭；输入框提交前执行 trim、空值拒绝和 1024 字符上限校验。
 
 主按钮的 tag 映射到 canonical scenario：
 
 - `care.fatigue`：疲劳关怀；
 - `care.cold`：温度关怀；
 - `cabin.multimodal`：文本“处理一下”与座舱图像。
+- `agent.freeform`：任意文本与 `scene.aios.freeform.v1`。
 
 `startScenario()` 重置 timeline，构造输入投影，打开或恢复 Session，再通过 Orchestration 获取计划状态。
 按钮不能直接调用 HVAC 或座椅方法。
+
+任意文本只在 `pendingFreeformInput` 中保留到 Session 打开并完成输入接收，随后立即清空。原文不得进入
+HMI checkpoint、SharedPreferences、Event、审计或错误消息；界面显示仅限当前运行。
 
 ### 4.3 实时链路
 
@@ -122,6 +135,7 @@ HMI 发出：
 - `ApprovalResponse`；
 - `UndoRequest`；
 - typed HVAC/Seat intent，经 Session 入口提交。
+- owner-scoped、Session-bound、一次消费的文字或文字/单图输入。
 
 ## 6. 关键流程
 
@@ -143,12 +157,36 @@ sequenceDiagram
     H-->>U: scrolling chain + actuator state
 ```
 
+任意文本流程：
+
+```mermaid
+sequenceDiagram
+    actor U as Driver
+    participant H as Client2 HMI
+    participant S as SDK Session
+    participant O as Orchestration
+    participant M as Model Runtime
+    participant R as Reducer
+    U->>H: 电话入口 + 自然语言目标
+    H->>R: textInputVisibility / scenarioSubmitted
+    H->>S: open Session(agent.freeform)
+    S-->>H: owner-scoped Session
+    H->>O: text-only input + start
+    O->>M: cockpit context + bounded text
+    M-->>O: reply + candidate actions
+    O-->>H: typed milestones
+    H->>R: input/model/plan events
+    R-->>U: 实际输入、回复、候选动作和零/多 Effect 投影
+```
+
 ## 7. 失败关闭与并发
 
 - Binder callback 在主线程投递后再调用 reducer。
 - Session handle 与 callback 使用 generation/connection 所有权，旧连接回调不得覆盖新状态。
 - overflow 后显示恢复状态并从 Runtime cursor 重放。
 - 图像加载、解码和 Parcelable 都执行字节上限与资源关闭。
+- 任意文本在 Session 接收后清空进程内暂存，不能进入 checkpoint 或日志。
+- 模型候选动作没有直接执行权；缺少 typed Plan 时 Effect 记录必须为零。
 - HMI 动画只能表示“请求中/执行投影”，不能把本地动画终点写成 reported success。
 - vehicle evidence unavailable 时状态保持 unavailable。
 - 行驶模式隐藏长文本和高风险控件。
@@ -161,6 +199,10 @@ sequenceDiagram
 - [ ] timeline 阶段按 Runtime sequence 增量显示。
 - [ ] 模型输入文字与实际请求一致。
 - [ ] 图像等比缩略、可放大、点击图外退出。
+- [ ] 导航入口只切换固定任务面板，电话入口只切换任意文本输入。
+- [ ] 两个入口互斥，输入卡可通过关闭控件或浮层外点击关闭。
+- [ ] 输入 1..1024 字符且原文不持久化。
+- [ ] 任意文本回复和候选动作来自 Model/Runtime 事件，不由 HMI 合成。
 - [ ] HVAC desired/reported 分离，18.0..30.0、0.5 步进。
 - [ ] 座椅角度增大表示展开，并显示安全决定。
 - [ ] unknown/partial/retry/undo/compensation 有独立显示。
@@ -177,4 +219,5 @@ timeline 文案和 accessibility label。新增车辆控件必须复用 Session/
 - `apk-labs` 集成源仍需迁移到 OEM 可持续构建的正式 Client2 工程。
 - 部分 P4-R7 渲染和交互修订尚未进入主分支生产基线。
 - 真实语音、相机 authority、车辆 readback 和生产 Orchestration 后端尚未闭环。
+- 任意文本到动态 typed Plan、Tool 参数和 EffectIntent 的生产编译链尚未闭环。
 - `production_ready=false`，`target_hardware_validated=false`。

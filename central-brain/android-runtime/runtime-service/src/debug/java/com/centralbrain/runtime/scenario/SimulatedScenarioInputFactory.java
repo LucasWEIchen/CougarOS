@@ -32,9 +32,10 @@ import java.util.UUID;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-/** Creates fixed, build-owned debug inputs. It accepts no arbitrary text or vehicle scalar. */
+/** Creates build-owned debug context inputs. Raw model text remains in the model input store. */
 public final class SimulatedScenarioInputFactory {
     public enum ScenarioKind {
+        AIOS_FREEFORM("scene.aios.freeform.v1"),
         COLD("scene.comfort.cold.v1"),
         FATIGUE("scene.fatigue.assist.v1"),
         CABIN_MULTIMODAL("scene.cabin.multimodal.assist.v1");

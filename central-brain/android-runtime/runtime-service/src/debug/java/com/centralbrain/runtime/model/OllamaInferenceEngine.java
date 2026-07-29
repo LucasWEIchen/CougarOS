@@ -107,7 +107,13 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
 
     public synchronized void registerScenarioPrompt(String inputDigest, String scenarioId) {
         requireDigest(inputDigest);
-        CockpitModelPrompt prompt = CockpitModelPrompt.forScenario(inputDigest, scenarioId);
+        registerPrompt(CockpitModelPrompt.forScenario(inputDigest, scenarioId));
+    }
+
+    public synchronized void registerPrompt(CockpitModelPrompt prompt) {
+        Objects.requireNonNull(prompt, "prompt");
+        String inputDigest = prompt.getInputDigest();
+        requireDigest(inputDigest);
         CockpitModelPrompt existing = pending.get(inputDigest);
         if (existing != null) {
             if (!existing.matches(prompt)) {

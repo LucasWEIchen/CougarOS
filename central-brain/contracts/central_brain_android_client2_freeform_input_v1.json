@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-client2-freeform-aios-input-v1",
+  "maturity": "debug_application_integration_android13_arm64_verified",
+  "requirement_ids": [
+    "APP-001",
+    "APP-003",
+    "APP-004",
+    "APP-006",
+    "S2-HMI-006",
+    "S2-HMI-010",
+    "S2-MDL-004",
+    "S2-MDL-005",
+    "S2-OBS-001",
+    "S2-OBS-002",
+    "S2-SAF-004"
+  ],
+  "entry_mapping": {
+    "phone_icon_action": "OPEN_FREEFORM_TEXT_INPUT",
+    "navigation_icon_action": "TOGGLE_FIXED_TASK_PANEL",
+    "entry_surfaces_mutually_exclusive": true,
+    "outside_tap_dismisses_text_input": true,
+    "input_close_control_dismisses_text_input": true,
+    "phone_tap_dismisses_fixed_task_panel": true
+  },
+  "text_input": {
+    "ui_scenario_id": "agent.freeform",
+    "canonical_scenario_id": "scene.aios.freeform.v1",
+    "minimum_chars": 1,
+    "maximum_chars": 1024,
+    "trim_before_admission": true,
+    "empty_input_rejected": true,
+    "input_method": "ANDROID_EDIT_TEXT",
+    "raw_text_checkpointed": false,
+    "raw_text_logged": false,
+    "raw_text_persisted": false
+  },
+  "model_input": {
+    "schema_version": 2,
+    "input_mode": "TEXT_ONLY",
+    "owner_scoped": true,
+    "session_bound": true,
+    "consume_once": true,
+    "process_memory_only": true,
+    "aggregate_digest_required": true,
+    "cockpit_context_required": true
+  },
+  "governed_pipeline": [
+    "SESSION_ADMISSION",
+    "COCKPIT_CONTEXT",
+    "MODEL_INVOKE",
+    "STRUCTURED_OUTPUT_VALIDATION",
+    "ACTION_ALLOWLIST",
+    "PLAN_PROJECTION",
+    "HMI_RESULT"
+  ],
+  "model_authority": {
+    "model_may_reply": true,
+    "model_may_propose_allowlisted_actions": true,
+    "model_may_invoke_tool_directly": false,
+    "model_may_dispatch_effect_directly": false,
+    "vehicle_bus_dispatch_enabled": false
+  },
+  "display": {
+    "actual_input_text_visible_in_current_run": true,
+    "actual_model_reply_visible": true,
+    "admitted_action_summary_visible": true,
+    "live_pipeline_trace_visible": true
+  },
+  "development_evidence": {
+    "evidence_date": "2026-07-29",
+    "device_alias": "testboard",
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "display": "1920x1080",
+    "model_gateway_profile": "development_wsl_ollama",
+    "model": "qwen3.5:27b-optimized",
+    "input_chars": 42,
+    "model_latency_ms": 21228,
+    "phone_trigger_bounds": [760, 984, 840, 1080],
+    "navigation_trigger_bounds": [890, 984, 970, 1080],
+    "admitted_actions": [
+      "assistant.respond",
+      "hvac.warm_cabin",
+      "navigation.find_rest_area"
+    ],
+    "effect_record_count": 0,
+    "vehicle_bus_accessed": false,
+    "raw_text_logged": false,
+    "production_evidence": false
+  },
+  "claim_state": {
+    "requirement_defined": true,
+    "dual_entry_mapping_implemented": true,
+    "freeform_text_session_implemented": true,
+    "freeform_model_input_implemented": true,
+    "freeform_candidate_action_policy_implemented": true,
+    "android13_arm64_ui_verified": true,
+    "development_model_loop_verified": true,
+    "production_effect_dispatch_enabled": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}
