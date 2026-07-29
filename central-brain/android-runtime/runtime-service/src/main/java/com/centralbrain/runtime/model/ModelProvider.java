@@ -37,6 +37,7 @@ public interface ModelProvider extends AutoCloseable {
         DETERMINISTIC_STUB,
         ANDROID_LOCAL_DEVELOPMENT,
         OLLAMA_DEBUG,
+        DIRECT_MODEL_SERVICE,
         OPENCLAW_GATEWAY,
         VENDOR_NPU
     }

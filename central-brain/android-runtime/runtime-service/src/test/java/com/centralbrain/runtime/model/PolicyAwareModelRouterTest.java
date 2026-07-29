@@ -242,7 +242,7 @@ public final class PolicyAwareModelRouterTest {
     }
 
     @Test
-    public void targetIntegrationSelectsOpenClawWithoutGrantingProductionAuthority() {
+    public void targetIntegrationRemainsBlockedUntilDirectProviderIsWired() {
         ModelContractV2.ModelRequest request = request(
                 ModelContractV2.PrivacyClass.INTERNAL,
                 ModelContractV2.RequiredCapability.TEXT_GENERATION,
@@ -259,11 +259,12 @@ public final class PolicyAwareModelRouterTest {
                         512,
                         900,
                         1_500),
-                targetOpenClawRegistry(),
+                directModelServiceRegistry(),
                 1_000);
 
-        assertEquals(PolicyAwareModelRouter.DecisionCode.SELECTED, decision.getCode());
-        assertEquals(ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
+        assertEquals(PolicyAwareModelRouter.DecisionCode.NO_ELIGIBLE_PROVIDER,
+                decision.getCode());
+        assertEquals(PolicyAwareModelRouter.NO_PROVIDER_ID,
                 decision.getPrimaryProviderId());
         assertFalse(decision.isActionAuthorizationGranted());
         assertFalse(decision.isEffectDispatchRequested());
@@ -298,11 +299,11 @@ public final class PolicyAwareModelRouterTest {
         return registry;
     }
 
-    private static ModelProviderRegistry targetOpenClawRegistry() {
+    private static ModelProviderRegistry directModelServiceRegistry() {
         ModelProviderRegistry registry = ModelProviderRegistry.createForContractTest();
         registry.publishHealth(new ModelProviderRegistry.HealthReport(
-                ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
-                ModelProviderRegistry.HealthSource.TARGET_OPENCLAW_RUNTIME,
+                ModelProviderRegistry.DIRECT_MODEL_SERVICE_ID,
+                ModelProviderRegistry.HealthSource.DIRECT_MODEL_SERVICE_RUNTIME,
                 ModelProviderRegistry.HealthState.HEALTHY,
                 1,
                 900,

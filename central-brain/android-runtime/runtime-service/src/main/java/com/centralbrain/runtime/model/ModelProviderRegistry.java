@@ -28,6 +28,10 @@ public final class ModelProviderRegistry {
             ModelProviderProfiles.ANDROID_LOCAL_DEVELOPMENT_ID;
     public static final String VENDOR_NPU_PLACEHOLDER_ID =
             ModelProviderProfiles.VENDOR_NPU_EMPTY_ID;
+    public static final String DIRECT_MODEL_SERVICE_ID =
+            ModelProviderProfiles.DIRECT_MODEL_SERVICE_ID;
+    /** Legacy source compatibility only; this provider is absent from the fixed catalog. */
+    @Deprecated
     public static final String TARGET_OPENCLAW_TRANSITIONAL_ID =
             ModelProviderProfiles.TARGET_OPENCLAW_TRANSITIONAL_ID;
     public static final String CLOUD_PLACEHOLDER_ID = "cloud.placeholder";
@@ -40,7 +44,7 @@ public final class ModelProviderRegistry {
     public enum ProviderKind {
         DETERMINISTIC_ANDROID_TEST,
         ANDROID_LOCAL_DEVELOPMENT,
-        TARGET_OPENCLAW_TRANSITIONAL,
+        DIRECT_MODEL_SERVICE,
         VENDOR_NPU,
         CLOUD
     }
@@ -48,6 +52,7 @@ public final class ModelProviderRegistry {
     public enum HealthSource {
         CONTRACT_TEST,
         LOCAL_DEVELOPMENT_RUNTIME,
+        DIRECT_MODEL_SERVICE_RUNTIME,
         TARGET_OPENCLAW_RUNTIME,
         VENDOR_RUNTIME,
         CLOUD_CONTROL_PLANE
@@ -121,14 +126,14 @@ public final class ModelProviderRegistry {
             }
             if ((kind == ProviderKind.CLOUD
                     || kind == ProviderKind.ANDROID_LOCAL_DEVELOPMENT
-                    || kind == ProviderKind.TARGET_OPENCLAW_TRANSITIONAL)
+                    || kind == ProviderKind.DIRECT_MODEL_SERVICE)
                     && !networkRequired) {
                 throw new IllegalArgumentException(
                         "network model providers must declare their dependency");
             }
             if (kind != ProviderKind.CLOUD
                     && kind != ProviderKind.ANDROID_LOCAL_DEVELOPMENT
-                    && kind != ProviderKind.TARGET_OPENCLAW_TRANSITIONAL
+                    && kind != ProviderKind.DIRECT_MODEL_SERVICE
                     && networkRequired) {
                 throw new IllegalArgumentException(
                         "non-network provider cannot declare a network dependency");
@@ -379,7 +384,7 @@ public final class ModelProviderRegistry {
         }
 
         public boolean isTargetIntegrationAvailable() {
-            return descriptor.getKind() == ProviderKind.TARGET_OPENCLAW_TRANSITIONAL
+            return descriptor.getKind() == ProviderKind.DIRECT_MODEL_SERVICE
                     && descriptor.isProductionImplementationAvailable()
                     && !descriptor.isProductionEligible()
                     && healthFreshness == HealthFreshness.FRESH
@@ -597,15 +602,13 @@ public final class ModelProviderRegistry {
                 false,
                 true));
         catalog.add(new ProviderDescriptor(
-                TARGET_OPENCLAW_TRANSITIONAL_ID,
-                ProviderKind.TARGET_OPENCLAW_TRANSITIONAL,
-                HealthSource.TARGET_OPENCLAW_RUNTIME,
-                EnumSet.of(
-                        ModelContractV2.RequiredCapability.TEXT_GENERATION,
-                        ModelContractV2.RequiredCapability.SUMMARIZATION),
+                DIRECT_MODEL_SERVICE_ID,
+                ProviderKind.DIRECT_MODEL_SERVICE,
+                HealthSource.DIRECT_MODEL_SERVICE_RUNTIME,
+                EnumSet.allOf(ModelContractV2.RequiredCapability.class),
                 false,
                 false,
-                true,
+                false,
                 false,
                 true,
                 false));

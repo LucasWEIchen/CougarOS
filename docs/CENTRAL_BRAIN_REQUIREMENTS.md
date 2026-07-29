@@ -1,6 +1,6 @@
 # CougarOS Central Brain 生产软件需求文档
 
-版本：2.0
+版本：2.1
 状态：生产需求权威基线
 适用平台：Android 13 座舱域控制器
 更新日期：2026-07-27
@@ -114,10 +114,10 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | --- | --- |
 | `S2-MDL-001` | ModelProvider 必须支持描述、健康、预热、推理、流式输出、取消、指标和故障查询。 |
 | `S2-MDL-002` | PolicyAwareModelRouter 必须按场景、模态、资源、健康和 assurance 选择 Provider。 |
-| `S2-MDL-003` | 当前生产版本通过车载以太网访问外部 OpenClaw，后续可替换为 Ollama Provider。 |
+| `S2-MDL-003` | AIOS 必须通过 provider-neutral Direct Model Service 接口经车载以太网直接访问基座模型；会话、Prompt、工具编排、结构化输出、重试、取消和 deadline 由 Central Brain 持有，不依赖外部 Agent Gateway。 |
 | `S2-MDL-004` | 模型输出必须通过结构化 Schema、字段长度、枚举和能力白名单校验。 |
 | `S2-MDL-005` | Provider 不可用、输出非法、超时或取消失败时不得进入车辆执行阶段。 |
-| `S2-MDL-006` | 凭据不得写入日志、事件正文或 HMI；当前固定凭据属于待整改的发布风险。 |
+| `S2-MDL-006` | 模型服务认证材料不得写入日志、事件正文或 HMI；Endpoint、模型名和认证策略只能由受控构建及 Runtime owner 提供。 |
 
 ### 4.5 Tool、Skill 与 Memory
 
@@ -211,7 +211,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | 门槛 | 当前状态 | 关闭条件 |
 | --- | --- | --- |
 | Runtime 生产编排 | 未完成 | release backend 发布并接通 durable graph/effect |
-| Model Provider | 未完成 | OpenClaw Provider 达到 production assurance 并通过故障/恢复验收 |
+| Model Provider | 未完成 | Direct Model Service Provider 达到 production assurance 并通过文字、图片、流式、取消和故障恢复验收 |
 | Vehicle Adapter | 外部阻塞 | OEM/Vendor 提供 property/service/permission/safety 基线 |
 | NPU Provider | 外部阻塞 | 厂商提供 ABI、模型生命周期、buffer 和故障恢复合同 |
 | Driver Safety | 外部阻塞 | 可信车速、档位、DMS/身份和 OEM 联锁策略获批 |
@@ -271,7 +271,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P4-R5a` Controlled multimodal input binding | 软件必须交付“Controlled multimodal input binding”，满足 APP-004, S2-HMI-008, S2-PER-001, S2-OBS-001，把文字、单图 FD、摘要、Session 和场景绑定为一次消费输入。 | APP-004, S2-HMI-008, S2-PER-001, S2-OBS-001。 | Client2 多模态输入、SDK 生产 AIDL 与 Runtime input store。 | 生产合同和主源码已形成；量产适配、外部服务和目标验收状态以第 6 章为准。 | `已实现` |
 | `P4-R5b` Cabin observation projection | 软件必须交付“Cabin observation projection”，满足 S2-PER-001, S2-MDL-002, S2-SAF-001, S2-OBS-001，只投影座位区域占用和可见饮水容器事实。 | S2-PER-001, S2-MDL-002, S2-SAF-001, S2-OBS-001。 | Runtime model boundary 与 Client2 event projection。 | 调用链显示三个已占用区域和后排右侧饮水容器，并与当前 Run 绑定。 | `已实现` |
 | `P4-R5c` Controlled multi-seat Context | 软件必须交付“Controlled multi-seat Context”，满足 S2-CTX-001/002, S2-TWN-001, S2-SAF-001，使场景支持 CABIN 与四座位区域并投影当前夹具占用。 | S2-CTX-001/002, S2-TWN-001, S2-SAF-001。 | Scenario manifest、生产 decision composition 和 Client2 feedback。 | 场景 zones 包含四座位；UI 显示三个已占用区域并保持 受控 边界。 | `已实现` |
-| `P4-R5d` Shopping semantic model allowlist | 软件必须交付“Shopping semantic model allowlist”，满足 S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001，将多模态输出限制为购物与购买路线候选。 | S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001。 | Cockpit prompt、OpenClaw/Ollama provider 和 structured output validator。 | 必须包含 shopping.search_products 与 navigation.plan_purchase_route；不得要求 HVAC/Media。 | `已实现` |
+| `P4-R5d` Shopping semantic model allowlist | 软件必须交付“Shopping semantic model allowlist”，满足 S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001，将多模态输出限制为购物与购买路线候选。 | S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001。 | Cockpit prompt、Direct Model Service Provider 和 structured output validator。 | 必须包含 shopping.search_products 与 navigation.plan_purchase_route；不得要求 HVAC/Media。 | `已实现` |
 | `P4-R5e` Evidence-bound shopping intent | 软件必须交付“Evidence-bound shopping intent”，满足 S2-INT-001, S2-PER-001, S2-CTX-002, S2-SAF-001，把购物需求表达为必须确认的候选意图。 | S2-INT-001, S2-PER-001, S2-CTX-002, S2-SAF-001。 | Scenario policy node、model action validator 和 Orchestration projection。 | resolve_shopping_intent 只能进入购物同意中断；未确认不得运行 Tool。 | `已实现` |
 | `P4-R5f` Shopping and route-planning scenario DAG | 软件必须交付“Shopping and route-planning scenario DAG”，满足 S2-SCN-001, S2-GRF-001, S2-INT-001, S2-TOL-001，编排观察、购物意图、确认、搜索、预览、提交和总结。 | S2-SCN-001, S2-GRF-001, S2-INT-001, S2-TOL-001。 | Scenario manifest/schema/catalog、compiler、Graph runtime 和 checksum。 | 交付 scene.cabin.multimodal.assist.v1 v2 的 13 节点 DAG、六 Tool、三确认和冻结摘要；目录门禁固定该资产为 v2，并保持其他三个内置资产为 v1。 | `已实现` |
 | `P4-R5g` Independent shopping purchase navigation confirmations | 软件必须交付“Independent shopping purchase navigation confirmations”，满足 S2-SAF-001, S2-HMI-003/009, S2-NAV-001, S2-COM-001，定义购物同意、订单提交和导航启动三个互不兼容的确认。 | S2-SAF-001, S2-HMI-003/009, S2-NAV-001, S2-COM-001。 | Scenario composition、Orchestration approval handling 与 Client2 controls。 | 三个不同 pending_node_id 依次中断；每个 approval digest 只允许对应 Tool 使用。 | `已实现` |
@@ -303,7 +303,6 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P7-W05` P7 Structured Model Output | P7 Structured Model Output | S2-MDL-001, S2-SAF-001, S2-OBS-001。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | exact JSON、scenario binding、action allowlist、raw log=false。 | `已实现` |
 | `P7-W06` P7 Scenario Evaluation | P7 Scenario Evaluation | S2-MDL-001, S2-SAF-001, S2-OBS-001。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | deterministic evaluation harness、bounded metrics。 | `已实现` |
 | `P7-W07` P7 Resource Admission | P7 Resource Admission | S2-MDL-001, NV-G-004。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | foreground priority、thermal degradation、fail-closed。 | `已实现` |
-| `P7-R3-OC2` OpenClaw target transitional gateway | OpenClaw target transitional gateway | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | 已实现 WebSocket v3、challenge/auth/send/history/abort、文字与图片附件及 Client2 projection；量产网络、凭据治理和发布资格仍须完成第 6 章门槛。 | `已实现/待量产集成` |
 | `P9-W01` P9 Performance Budget Contract | P9 Performance Budget Contract | S2-OBS-001。 | 质量、隐私、安全、发布与诊断合同/探针。 | 7 categories/10 metrics、strict report、受控 probe。 | `已实现/待量产集成` |
 | `P9-W02` P9 Stability Fault Matrix Contract | P9 Stability Fault Matrix Contract | S2-REL-001, S2-OBS-001。 | 质量、隐私、安全、发布与诊断合同/探针。 | 3 workloads x 6 faults = 18 cases、strict report。 | `已实现/待量产集成` |
 | `P9-W03a` P9 Parser Security Corpus | P9 Parser Security Corpus | S2-SAF-001, S2-TOL-001, S2-SES-001, S2-MDL-001。 | 质量、隐私、安全、发布与诊断合同/探针。 | 3 parser surfaces/18 hostile cases、deterministic regression。 | `已实现` |
@@ -328,7 +327,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P4-ACT-01` 中控 AIOS 真实车辆闭环 | 中控 AIOS 真实车辆闭环 | S2-HMI-001..006, S2-EFF-001, S2-ADP-002。 | 对应 Runtime 模块与目标平台集成 owner。 | 完成条件：取得并审查“vehicle service、approval/undo authority、target validation；ISSUE-019/023/030/033”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
 | `P5-ACT-01` Tool/Skill/Memory production publication | Tool/Skill/Memory production publication | S2-TOL-001, S2-MEM-001。 | 对应 Runtime 模块与目标平台集成 owner。 | 完成条件：取得并审查“signer、storage、identity、privacy owner；ISSUE-040..045”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
 | `P6-ACT-01` Durable production Event/Trigger/Consent | Durable production Event/Trigger/Consent | S2-EVT-001, S2-SAF-001。 | 对应 Runtime 模块与目标平台集成 owner。 | 完成条件：取得并审查“publisher/middleware/source/identity/receipt owner；ISSUE-031/046”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
-| `P7-ACT-01` Production Model Provider | Production Model Provider | S2-MDL-001/002, S2-OBS-001/002。 | 对应 Runtime 模块与目标平台集成 owner。 | 完成条件：取得并审查“TLS、credential owner、health/version、artifact、resource producer、NPU evidence；ISSUE-024/044/054”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
+| `P7-ACT-01` Production Direct Model Provider | Production Direct Model Provider | S2-MDL-001/002/003, S2-OBS-001/002。 | Runtime Model 模块、算力基座协议 owner 与目标平台集成 owner。 | 完成条件：实现 release Direct Model Provider，取得并审查“TLS、模型服务 health/version、模型 artifact、resource producer、NPU evidence；ISSUE-024/044/054”，随后通过文字、图片、流式、取消、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
 | `P8-W01` P8 Target Capability Discovery | P8 Target Capability Discovery | S2-ADP-002。 | 目标平台集成 owner、Vehicle/Vendor/NPU adapter。 | 完成条件：取得并审查“14-column software contract/collector 已完成；缺 OEM property/service/permission/owner/version evidence；ISSUE-047”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
 | `P8-W02` VSS to AAOS mapping | VSS to AAOS mapping | S2-ADP-002。 | 目标平台集成 owner、Vehicle/Vendor/NPU adapter。 | 完成条件：取得并审查“缺公开 CarProperty/service schema、area/type/read-write/permission”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
 | `P8-W03` AaosCarPropertyEffectAdapter | AaosCarPropertyEffectAdapter | S2-ADP-002。 | 目标平台集成 owner、Vehicle/Vendor/NPU adapter。 | 生产合同和主源码已形成；量产适配、外部服务和目标验收状态以第 6 章为准。 | `外部阻塞` |
@@ -367,6 +366,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P6-P7-R1` | `已退出生产基线` |
 | `P7-W04` | `已退出生产基线` |
 | `P7-R2` | `已退出生产基线` |
+| `P7-R3-OC2` | `已退出生产基线` |
 | `P7-R4-OCDEV` | `已退出生产基线` |
 | `P7-R5-MMDEV` | `已退出生产基线` |
 | `SCOPE-01` | `已退出生产基线` |

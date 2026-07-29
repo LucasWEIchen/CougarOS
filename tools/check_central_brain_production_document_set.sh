@@ -21,8 +21,8 @@ expected_docs=(
   "modules/08-tool-skill-runtime.md"
   "modules/09-memory-lifecycle.md"
   "modules/10-event-trigger-suggestion.md"
-  "modules/11-model-scheduler-openclaw.md"
-  "modules/11a-openclaw-production-ethernet-api.md"
+  "modules/11-model-scheduler-direct-service.md"
+  "modules/11a-direct-model-service-api.md"
   "modules/12-effect-vehicle-adapter.md"
   "modules/13-client2-hmi.md"
   "modules/14-renderservice-unity.md"
@@ -167,7 +167,7 @@ for marker in (
     "## 8. Session 与 Persistence",
     "## 11. Agent Graph Runtime",
     "## 12. Governance 与 Approval",
-    "## 15. Model Runtime 与 OpenClaw",
+    "## 15. Model Runtime 与 Direct Model Service",
     "## 16. Effect 与 Adapter",
     "## 17. Client2 HMI 详设",
     "## 18. Native Runtime",

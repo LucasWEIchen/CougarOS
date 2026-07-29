@@ -588,7 +588,7 @@ public final class PolicyAwareModelRouter {
                 }
                 return 100 + kind.ordinal();
             case TARGET_INTEGRATION:
-                return kind == ModelProviderRegistry.ProviderKind.TARGET_OPENCLAW_TRANSITIONAL
+                return kind == ModelProviderRegistry.ProviderKind.DIRECT_MODEL_SERVICE
                         ? 0 : 100 + kind.ordinal();
             case PRODUCTION:
                 if (kind == ModelProviderRegistry.ProviderKind.VENDOR_NPU) {
@@ -646,7 +646,7 @@ public final class PolicyAwareModelRouter {
                 ModelContractV2.PrivacyClass.RESTRICTED,
                 true));
         addProfile(profiles, new RouteProfile(
-                ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
+                ModelProviderRegistry.DIRECT_MODEL_SERVICE_ID,
                 100,
                 ModelContractV2.PrivacyClass.INTERNAL,
                 true));

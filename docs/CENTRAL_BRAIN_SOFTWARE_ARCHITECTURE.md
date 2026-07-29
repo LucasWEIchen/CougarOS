@@ -1,6 +1,6 @@
 # CougarOS Central Brain 生产软件架构文档
 
-版本：2.0
+版本：2.1
 状态：生产架构权威基线
 适用平台：Android 13 座舱域控制器
 更新日期：2026-07-27
@@ -37,7 +37,7 @@ flowchart LR
     Driver["驾驶员 / 乘员"]
     Cabin["座舱传感输入<br/>语音、图像、车辆状态"]
     Brain["Central Brain<br/>Android 13"]
-    AI["外部 AI 算力基座<br/>OpenClaw 过渡 Provider"]
+    AI["外部 AI 算力基座<br/>语言/视觉语言模型服务"]
     Vehicle["车辆能力域<br/>HVAC、座椅、导航、媒体、购物"]
     HMI["Client2 座舱 HMI"]
     OEM["OEM / Vendor 平台接口"]
@@ -282,7 +282,8 @@ Event Broker 传递 Observation、Action、Runtime 和 Message 事件。生产�
 ### 5.11 Model Runtime
 
 Model Runtime 由 `ModelProviderRegistry`、`PolicyAwareModelRouter`、`InferenceResourceScheduler` 和
-Provider 构成。当前生产目标使用 OpenClaw 过渡 Provider；Ollama 是后续可替换 Provider。
+Provider 构成。当前生产目标是 `DIRECT_MODEL_SERVICE`：Central Brain 自己持有会话上下文、Prompt、
+工具编排、结构化输出、重试、取消和 deadline，并通过协议 Adapter 直接访问基座模型服务。
 
 ```mermaid
 flowchart LR
@@ -290,24 +291,29 @@ flowchart LR
     Admission["Resource Admission"]
     Registry["Provider Registry"]
     Router["Policy-aware Router"]
-    OpenClaw["OpenClaw Provider"]
-    Ollama["Ollama Provider"]
+    Direct["Direct Model Service Provider"]
+    Session["AIOS Session / Context / Prompt"]
+    Protocol["Model Protocol Adapter<br/>Ollama / OpenAI-compatible / Vendor"]
+    Base["Base Model Service"]
     Vendor["Vendor NPU Provider"]
     Stream["Stream Observer"]
     Validate["Structured Output Validator"]
+    Tools["Tool Resolver / Governance"]
 
     Request --> Admission --> Router
     Registry --> Router
-    Router --> OpenClaw
-    Router -. "后续替换" .-> Ollama
+    Router --> Direct
     Router -. "厂商接口就绪后" .-> Vendor
-    OpenClaw --> Stream --> Validate
-    Ollama --> Stream
+    Session --> Direct --> Protocol --> Base
+    Base --> Protocol --> Stream --> Validate
+    Validate --> Tools
     Vendor --> Stream
 ```
 
-Router 依据 assurance、健康、模态、并发、热状态和场景策略选择 Provider。过渡 Provider 未达到
-production assurance 前，全局 `production_ready` 保持 false。
+直接模型服务只负责受控推理，不拥有 Tool 或 Effect 权限。模型输出必须返回 Central Brain 定义的
+provider-neutral Schema，再由 Scenario、Governance 和 Tool Runtime 决定后续动作。Router 依据 assurance、
+健康、文字/图像模态、并发、热状态和场景策略选择 Provider。Direct Model Provider 未达到 production
+assurance 前，全局 `production_ready` 保持 false。
 
 ### 5.12 Effect 与 Vehicle Adapter
 
@@ -531,7 +537,8 @@ readback 和最终投影分别测量。任何目标值只有在量产硬件和�
 | --- | --- |
 | 真实 Vehicle property/service 未确认 | 保留 canonical Adapter；运行时返回 unavailable |
 | NPU ABI 未确认 | 保留 `ModelProvider` 与 C ABI；Vendor Provider 不注册 |
-| OpenClaw assurance 未达量产 | 作为过渡 Provider，限制权限并保持全局未就绪 |
+| Direct Model Provider 尚未进入 release | 固定 catalog 已切换但路由失败关闭，直到协议、流式、取消和目标资格完成 |
+| 历史 OpenClaw 代码仍在迁移期 | 不登记到新 Provider catalog，不允许 Router 选择，分阶段删除执行器和构建 profile |
 | 可信车速/档位/DMS 未接入 | 高风险动作失败关闭 |
 | 生产签名/OTA/回滚未确认 | Release Admission 拒绝发布 |
 | 隐私 owner 策略未批准 | Profile/Episodic 写入和导出关闭 |

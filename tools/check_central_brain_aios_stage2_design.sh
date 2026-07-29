@@ -44,7 +44,7 @@ for section in \
   '## 12. Governance 与 Approval' \
   '## 13. Tool、Skill 与 Memory' \
   '## 14. Event Broker' \
-  '## 15. Model Runtime 与 OpenClaw' \
+  '## 15. Model Runtime 与 Direct Model Service' \
   '## 16. Effect 与 Adapter' \
   '## 17. Client2 HMI 详设' \
   '## 18. Native Runtime'; do
