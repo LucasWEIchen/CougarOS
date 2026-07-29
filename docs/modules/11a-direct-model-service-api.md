@@ -93,6 +93,8 @@ Native 模型服务时，上层 Binder、Session、Graph、Tool 和 Effect 合�
 | [ModelContractV2.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelContractV2.java) | model request/result | 路由元数据 |
 | [DirectModelServiceContract.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/DirectModelServiceContract.java) | endpoint/modality/request | 直连合同 |
 | [OllamaEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaEndpointConfig.java) | fixed production URI | Ollama Adapter 配置 |
+| [OllamaChatProtocolAdapter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaChatProtocolAdapter.java) | request/NDJSON/cancel | 已实现协议 Adapter |
+| [DirectModelServiceProvider.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/DirectModelServiceProvider.java) | lifecycle/input/terminal | 已实现 Provider 核心 |
 | [ModelProviderRegistry.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderRegistry.java) | direct provider catalog | 目录与 health |
 | [PolicyAwareModelRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/PolicyAwareModelRouter.java) | direct route preference | 路由 |
 | [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | cockpit instruction | Prompt |
@@ -108,10 +110,8 @@ Native 模型服务时，上层 Binder、Session、Graph、Tool 和 Effect 合�
 | `central-brain-sdk/src/main/aidl/.../AgentTaskRequestV2.aidl` | `AgentTaskRequestV2` | text + optional image FD |
 | `central-brain-sdk/src/main/aidl/.../ModelImageAttachment.aidl` | image metadata | MIME/size/digest/FD |
 | `runtime-service/src/main/java/.../ProductionModelInputStore.java` | input owner | bounded consume-once |
-| `runtime-service/src/main/java/.../DirectModelProtocolAdapter.java` | protocol SPI | request/stream/cancel |
-| `runtime-service/src/main/java/.../OllamaChatProtocolAdapter.java` | Ollama mapping | HTTP/JSON lines |
+| `runtime-service/src/main/java/.../DirectModelProtocolAdapter.java` | 可选 protocol SPI | 多后端扩展时抽取 |
 | `runtime-service/src/main/java/.../EthernetModelNetwork.java` | Network owner | Ethernet socket factory |
-| `runtime-service/src/release/java/.../DirectModelServiceProvider.java` | Provider | lifecycle/stream/fault |
 | `runtime-service/src/release/java/.../ModelProviderFactory.java` | composition | release registration |
 
 ## 4. 核心设计
@@ -586,10 +586,10 @@ authentication material, vehicle payload, personal identity data
 
 ### 9.2 Provider 阶段
 
-- 抽取 `DirectModelProtocolAdapter`。
-- 将已有 Ollama request/parser 能力重构为生产 Adapter。
-- 实现 NDJSON stream、connection cancel、health 和 metrics。
-- 实现文字、图片和统一 Schema。
+- `OllamaChatProtocolAdapter` 已实现 NDJSON stream、connection cancel、文字、图片和统一 Schema。
+- 多后端达到两个以上时再抽取 `DirectModelProtocolAdapter` SPI。
+- `DirectModelServiceProvider` 已实现 health owner SPI、metrics、fault 和 Provider lifecycle。
+- 补齐 production health owner 和 input owner 后，由 release factory 注册。
 
 ### 9.3 组合阶段
 
@@ -616,9 +616,11 @@ authentication material, vehicle payload, personal identity data
 - provider-neutral `DirectModelServiceContract` 已进入主源码。
 - `DIRECT_MODEL_SERVICE` 已进入 fixed catalog 和 Router preference。
 - `VISION_LANGUAGE_INFERENCE` 已进入 required capability。
-- release `DirectModelServiceProvider` 尚未实现，因此路由保持失败关闭。
-- 当前 Ollama 执行器尚未迁移到生产源集，也未实现生产流式多模态。
+- `OllamaChatProtocolAdapter` 已进入生产源集并完成文字流、图片摘要绑定和 connection cancel 单元验证。
+- `DirectModelServiceProvider` 核心已进入生产源集并完成
+  lifecycle/stream/output admission/terminal/cancel 单元验证。
+- production input owner、health owner 和 release composition 尚未实现，因此 Provider 未注册且路由保持失败关闭。
 - Binder V2 图片入口和 production input store 尚未实现。
-- 历史 OpenClaw 代码和工具仍处迁移期，但已退出新 catalog。
+- 历史 OpenClaw 代码和工具仍处迁移期；build profile 已不可选择，并已退出新 catalog。
 - 目标模型、TLS/认证、health/version、NPU 和资源 owner 尚未闭环。
 - `production_ready=false`，`target_hardware_validated=false`。

@@ -538,7 +538,7 @@ readback 和最终投影分别测量。任何目标值只有在量产硬件和�
 | 真实 Vehicle property/service 未确认 | 保留 canonical Adapter；运行时返回 unavailable |
 | NPU ABI 未确认 | 保留 `ModelProvider` 与 C ABI；Vendor Provider 不注册 |
 | Direct Model Provider 尚未进入 release | 固定 catalog 已切换但路由失败关闭，直到协议、流式、取消和目标资格完成 |
-| 历史 OpenClaw 代码仍在迁移期 | 不登记到新 Provider catalog，不允许 Router 选择，分阶段删除执行器和构建 profile |
+| 历史 OpenClaw 代码仍在迁移期 | build profile 已不可选择；不登记到新 Provider catalog，不允许 Router 选择，分阶段删除历史执行器 |
 | 可信车速/档位/DMS 未接入 | 高风险动作失败关闭 |
 | 生产签名/OTA/回滚未确认 | Release Admission 拒绝发布 |
 | 隐私 owner 策略未批准 | Profile/Episodic 写入和导出关闭 |

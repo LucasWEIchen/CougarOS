@@ -602,9 +602,10 @@ Provider ID: external.model-service.direct
 - 最大一张图片 6 MiB，累计响应最大 65536 bytes。
 - 禁止任意 endpoint override、redirect 和模型返回的 Tool 直执行。
 
-`DirectModelServiceContract`、fixed catalog 和 Router preference 已建立；release
-`DirectModelServiceProvider` 尚未实现。因此 target integration 仍返回 `NO_ELIGIBLE_PROVIDER`，直到
-HTTP/流式/多模态执行器进入生产源集，并完成身份认证、故障恢复、资源、隐私和目标验收。
+`DirectModelServiceContract`、`OllamaChatProtocolAdapter`、`DirectModelServiceProvider` 核心、fixed
+catalog 和 Router preference 已建立。production input owner、health owner 和 release composition
+尚未实现，因此 target integration 仍返回 `NO_ELIGIBLE_PROVIDER`，直到完成 Binder/输入存储组合、
+身份认证、故障恢复、资源、隐私和目标验收。
 
 ### 15.5 `StructuredModelOutput`
 
@@ -892,7 +893,7 @@ Session 结束后清理 Working Memory 和临时媒体。Profile/Episodic 数据
 | Governance/Approval | 已实现 | OEM driver-safety 和 consent owner 未批准 |
 | Tool/Skill/Memory | 已实现 | production registry/authority 未发布 |
 | Model Contract/Router | Direct Model Service 合同、能力和路由目标已实现 | production Provider 未合格 |
-| Direct Model Service | 固定端点、模态、摘要和失败关闭合同已实现 | HTTP/流式/图片执行器、Binder 图片入口和目标资格待实现 |
+| Direct Model Service | 固定端点、HTTP/NDJSON、Provider lifecycle、文字/图片摘要绑定和连接取消已实现 | production input/health owner、release 注册、Binder 图片入口和目标资格待实现 |
 | Effect Coordinator | 已实现 | 真实 Vehicle Adapter 未注册 |
 | Native C ABI | 已实现 | Vendor NPU Provider 未实现 |
 | Client2 HMI | 已实现主要闭环 | P4-R7 实现仍在 Draft，正式工程迁移未完成 |

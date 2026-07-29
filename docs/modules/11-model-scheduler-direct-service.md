@@ -49,6 +49,8 @@ Central Brain 必须自行持有：
 | [ModelProvider.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProvider.java) | lifecycle、infer、cancel、stream | Provider SPI |
 | [DirectModelServiceContract.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/DirectModelServiceContract.java) | Endpoint、Modality、Request | 直连模型合同 |
 | [OllamaEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaEndpointConfig.java) | `productionLinkLocal` | 当前协议 Adapter 端点 |
+| [OllamaChatProtocolAdapter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaChatProtocolAdapter.java) | HTTP、NDJSON、图片、cancel | 生产源码协议 Adapter |
+| [DirectModelServiceProvider.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/DirectModelServiceProvider.java) | lifecycle、input、stream、terminal | Provider 核心 |
 | [ModelProviderProfiles.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderProfiles.java) | `directModelService` | Provider profile |
 | [ModelProviderRegistry.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderRegistry.java) | fixed catalog、health | Provider 目录 |
 | [PolicyAwareModelRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/PolicyAwareModelRouter.java) | route decision | 策略路由 |
@@ -295,9 +297,9 @@ sequenceDiagram
 ## 9. 增量开发规则
 
 1. 先冻结 `DirectModelServiceContract` 与 machine-readable contract。
-2. 再把现有 Ollama HTTP 能力重构为生产 `DirectModelServiceProvider`。
-3. 增加 text、text-image、stream、cancel、timeout 和 parser corpus。
-4. 将 Provider 接入 release Registry、Router、Scheduler 和 Graph。
+2. 以 `OllamaChatProtocolAdapter` 实现 text、text-image、stream、cancel 和 parser 边界。
+3. 以 `DirectModelServiceProvider` 组合 input、health、Adapter、stream、terminal 和 metrics。
+4. 将 Provider 接入 production input owner、release Registry、Router、Scheduler 和 Graph。
 5. 删除历史 OpenClaw build profile、执行器、探针和合同。
 6. 完成目标 Ethernet、模型服务、NPU、性能、隐私和故障资格。
 7. 最后才允许提升 assurance 和 production readiness。
@@ -309,9 +311,11 @@ Schema，不能在 Graph 中增加后端分支。
 
 - `DirectModelServiceContract` 和 fixed catalog 已形成。
 - `VISION_LANGUAGE_INFERENCE` capability 已登记。
-- release `DirectModelServiceProvider` 尚未实现。
-- 当前 Ollama HTTP 执行器尚未重构到生产源集。
+- `OllamaChatProtocolAdapter` 已进入生产源集，文字流、图片绑定、模型身份、终态和连接取消已有单元验证。
+- `DirectModelServiceProvider` 核心已实现并完成 lifecycle、stream、output admission、terminal、metrics
+  与取消单元验证。
+- production input owner、health owner 和 release composition 尚未实现，Provider 未注册且路由保持关闭。
 - V2 Binder 图片入口、生产输入 store 和流式投影尚未完成。
-- 历史 OpenClaw 源码、构建 profile 和工具仍待分阶段删除，但已退出新 catalog 和 Router。
+- 历史 OpenClaw 源码和工具仍待分阶段删除；其 build profile 已不可选择，并已退出新 catalog 和 Router。
 - 目标模型名称、health/version、TLS、artifact 和资源 owner 尚未确认。
 - `production_ready=false`，`target_hardware_validated=false`。

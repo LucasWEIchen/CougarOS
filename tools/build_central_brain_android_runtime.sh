@@ -16,23 +16,19 @@ fi
 export ANDROID_HOME
 export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
+export PATH="$JAVA_HOME/bin:$PATH"
 
 GRADLE_PROFILE_ARGS=()
 if [[ -n "${CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE:-}" ]]; then
   MODEL_GATEWAY_PROFILE="$CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE"
-elif [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
-  MODEL_GATEWAY_PROFILE="target_openclaw_transitional"
 else
-  MODEL_GATEWAY_PROFILE="development_wsl_openclaw"
+  MODEL_GATEWAY_PROFILE="direct_model_service"
 fi
 case "$MODEL_GATEWAY_PROFILE" in
-  development_wsl_openclaw)
+  direct_model_service)
     ;;
   development_wsl_ollama)
     GRADLE_PROFILE_ARGS+=("-PcentralBrainDevelopmentOllama=true")
-    ;;
-  target_openclaw_transitional)
-    GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetOpenClaw=true")
     ;;
   *)
     echo "unsupported model gateway profile: $MODEL_GATEWAY_PROFILE" >&2

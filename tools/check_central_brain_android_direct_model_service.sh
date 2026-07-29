@@ -4,14 +4,21 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_CONTRACT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/DirectModelServiceContract.java"
 ENDPOINT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaEndpointConfig.java"
+ADAPTER="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaChatProtocolAdapter.java"
+PROVIDER="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/DirectModelServiceProvider.java"
 PROFILES="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderProfiles.java"
 REGISTRY="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderRegistry.java"
 ROUTER="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/PolicyAwareModelRouter.java"
 TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/model/DirectModelServiceContractTest.java"
+ADAPTER_TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/model/OllamaChatProtocolAdapterTest.java"
+PROVIDER_TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/model/DirectModelServiceProviderTest.java"
 MACHINE_CONTRACT="central-brain/contracts/central_brain_android_direct_model_service_v1.json"
+GRADLE_CONFIG="central-brain/android-runtime/runtime-service/build.gradle.kts"
+BUILD_SCRIPT="tools/build_central_brain_android_runtime.sh"
 
-for path in "$JAVA_CONTRACT" "$ENDPOINT" "$PROFILES" "$REGISTRY" "$ROUTER" \
-    "$TEST" "$MACHINE_CONTRACT"; do
+for path in "$JAVA_CONTRACT" "$ENDPOINT" "$ADAPTER" "$PROVIDER" "$PROFILES" \
+    "$REGISTRY" "$ROUTER" "$TEST" "$ADAPTER_TEST" "$PROVIDER_TEST" \
+    "$MACHINE_CONTRACT" "$GRADLE_CONFIG" "$BUILD_SCRIPT"; do
   [[ -s "$ROOT_DIR/$path" ]] \
     || { echo "direct model service artifact missing: $path" >&2; exit 1; }
 done
@@ -57,9 +64,50 @@ require_text "$ROUTER" 'DIRECT_MODEL_SERVICE_ID'
 
 require_text "$ENDPOINT" 'PRODUCTION_HOST = "169.254.208.110"'
 require_text "$ENDPOINT" 'CHAT_PATH = "/api/chat"'
+for marker in \
+  'class OllamaChatProtocolAdapter' \
+  'MAX_HTTP_REQUEST_BYTES = 8_500_000' \
+  'setInstanceFollowRedirects(false)' \
+  'application/x-ndjson' \
+  'DirectModelServiceContract.Stage.STREAMING' \
+  'REQUEST_BINDING_REJECTED' \
+  'MODEL_IDENTITY_REJECTED' \
+  'NON_TERMINAL_RESPONSE' \
+  'grantsToolAuthority()' \
+  'grantsEffectAuthority()'; do
+  require_text "$ADAPTER" "$marker"
+done
 require_text "$TEST" 'productionOllamaEndpointIsFixedAndAgentGatewayFree'
 require_text "$TEST" 'textAndImageRequestBindsAllDigestsWithoutGrantingAuthority'
 require_text "$TEST" 'modalityMimeAndSizeViolationsFailClosed'
+require_text "$ADAPTER_TEST" 'textStreamBuildsBoundedRequestAndReturnsStructuredContent'
+require_text "$ADAPTER_TEST" 'imagePayloadIsBoundToDescriptorAndEncodedInUserMessage'
+require_text "$ADAPTER_TEST" 'activeRequestCanCancelItsUnderlyingConnection'
+for marker in \
+  'class DirectModelServiceProvider implements ModelProvider' \
+  'interface InputResolver' \
+  'interface ModelAvailabilityProbe' \
+  'interface OutputValidator' \
+  'ModelProviderProfiles.directModelService()' \
+  'adapter.execute(' \
+  'DIRECT_MODEL_COMPLETED' \
+  'DIRECT_MODEL_INPUT_REJECTED' \
+  'DIRECT_MODEL_OUTPUT_REJECTED'; do
+  require_text "$PROVIDER" "$marker"
+done
+require_text "$PROVIDER_TEST" 'providerOwnsLifecycleStreamingMetricsAndTerminalBinding'
+require_text "$PROVIDER_TEST" 'availabilityAndResolvedInputFailuresRemainClosed'
+require_text "$PROVIDER_TEST" 'cancellationBeforeExecutionDoesNotOpenNetwork'
+require_text "$PROVIDER_TEST" 'structuredOutputMustBeAdmittedBeforeCompletion'
+require_text "$GRADLE_CONFIG" 'direct_model_service'
+require_text "$GRADLE_CONFIG" '"DIRECT_MODEL_SERVICE_ROUTING_ENABLED"'
+require_text "$BUILD_SCRIPT" 'MODEL_GATEWAY_PROFILE="direct_model_service"'
+if grep -Eq \
+    'centralBrainTargetOpenClaw|development_wsl_openclaw|target_openclaw_transitional' \
+    "$ROOT_DIR/$GRADLE_CONFIG" "$ROOT_DIR/$BUILD_SCRIPT"; then
+  echo "retired OpenClaw build profile remains selectable" >&2
+  exit 1
+fi
 
 python3 - "$ROOT_DIR/$REGISTRY" "$ROOT_DIR/$MACHINE_CONTRACT" <<'PY'
 import json
@@ -98,9 +146,19 @@ assert modalities["text_image_supported"] is True
 assert modalities["maximum_images_per_request"] == 1
 assert migration["openclaw_in_new_provider_catalog"] is False
 assert migration["openclaw_selected_by_new_router"] is False
+assert migration["openclaw_build_profile_selectable"] is False
 assert migration["direct_model_contract_implemented"] is True
-assert migration["direct_model_provider_implemented"] is False
-assert claims["release_provider_implemented"] is False
+assert migration["direct_model_protocol_adapter_implemented"] is True
+assert migration["direct_model_provider_core_implemented"] is True
+assert migration["direct_model_release_composition_implemented"] is False
+assert claims["ollama_chat_protocol_adapter_implemented"] is True
+assert claims["text_stream_parser_unit_verified"] is True
+assert claims["text_image_binding_unit_verified"] is True
+assert claims["connection_cancel_unit_verified"] is True
+assert claims["provider_lifecycle_unit_verified"] is True
+assert claims["provider_cancel_terminal_unit_verified"] is True
+assert claims["provider_output_admission_unit_verified"] is True
+assert claims["release_provider_registered"] is False
 assert claims["production_ready"] is False
 assert claims["target_hardware_validated"] is False
 PY
@@ -110,9 +168,16 @@ printf '%s\n' \
   'aios_owns_model_session=true' \
   'aios_owns_prompt_and_tool_orchestration=true' \
   'direct_model_service_contract_implemented=true' \
+  'direct_model_protocol_adapter_implemented=true' \
+  'direct_model_provider_core_implemented=true' \
+  'direct_model_provider_lifecycle_unit_verified=true' \
+  'direct_model_provider_output_admission_unit_verified=true' \
+  'direct_model_text_image_binding_unit_verified=true' \
+  'direct_model_connection_cancel_unit_verified=true' \
   'direct_model_service_registered=true' \
   'openclaw_in_new_provider_catalog=false' \
   'openclaw_selected_by_new_router=false' \
-  'direct_model_release_provider_implemented=false' \
+  'openclaw_build_profile_selectable=false' \
+  'direct_model_release_provider_registered=false' \
   'production_ready=false' \
   'target_hardware_validated=false'
