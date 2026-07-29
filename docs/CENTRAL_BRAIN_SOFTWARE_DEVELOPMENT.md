@@ -1,6 +1,6 @@
 # CougarOS Central Brain 生产软件开发文档
 
-版本：2.2
+版本：2.3
 状态：生产软件详设与接口权威基线
 适用平台：Android 13 座舱域控制器
 更新日期：2026-07-29
@@ -57,8 +57,8 @@
 | Tool 与 Skill Runtime | [08-tool-skill-runtime.md](modules/08-tool-skill-runtime.md) | Manifest、Registry、Resolver、Executor、Skill 校验 |
 | Memory Lifecycle | [09-memory-lifecycle.md](modules/09-memory-lifecycle.md) | Working/Profile/Episodic、Consent、Context Budget |
 | Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
-| Model、Scheduler 与 OpenClaw | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、Prompt、输出校验 |
-| OpenClaw 生产以太网 API | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 上层文字/图片接口、Binder V2、ETH、WebSocket、流式回复 |
+| Model、Scheduler 与直连模型服务 | [11-model-scheduler-direct-service.md](modules/11-model-scheduler-direct-service.md) | Provider、Router、Scheduler、AIOS Prompt/Tool 编排、输出校验 |
+| 生产直连模型服务 API | [11a-direct-model-service-api.md](modules/11a-direct-model-service-api.md) | 上层文字/图片接口、Binder V2、ETH、HTTP 流式回复 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
 | Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态 |
 | RenderService Unity | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | Unity bundle、TextMeshPro、温度状态、触摸链 |
@@ -518,7 +518,7 @@ Tool 输出必须有最大字节数和稳定 failure code。Tool 不得返回可
 
 事件正文只包含 HMI 所需的有界投影；大型图像通过受控媒体句柄传递，不能嵌入事件日志。
 
-## 15. Model Runtime 与 OpenClaw
+## 15. Model Runtime 与 Direct Model Service
 
 ### 15.1 `ModelContractV2`
 
@@ -569,43 +569,43 @@ Provider assurance 为 `EMPTY / TEST_ONLY / DEBUG_ONLY / TARGET_INTEGRATION / PR
 
 选择结果必须记录 provider ID 和决策摘要。`NO_FALLBACK` 不得路由到第二 Provider。
 
-### 15.4 OpenClaw 过渡 Provider
+### 15.4 AIOS 直连模型服务
 
-上层应用、Binder V2、图片 FD、车载以太网、WebSocket frame、流式回复和错误映射的字段级设计见
-2.1 节索引的“OpenClaw 生产以太网 API”模块详设。
+上层应用、Binder V2、图片 FD、车载以太网、协议 Adapter、流式回复和错误映射的字段级设计见
+2.1 节索引的“生产直连模型服务 API”模块详设。
 
-生产目标连接：
+生产基线连接：
 
 ```text
-WebSocket: ws://169.254.208.110:18789/
-Control UI: http://169.254.208.110:18789/chat
-Protocol: 3
+Base URI: http://169.254.208.110:11434
+Chat URI: http://169.254.208.110:11434/api/chat
+Wire protocol: OLLAMA_CHAT_V1
+Provider ID: external.model-service.direct
 ```
 
-凭据由受控发布配置持有，不在本文展示。当前源码中的固定凭据可从 APK 提取，是必须在量产准入前整改的
-风险，且不得记录到日志、事件或 HMI。
+该 URI 只属于协议 Adapter，不进入 SDK/Binder 公共接口。AIOS 必须拥有以下原 OpenClaw 编排职责：
 
-协议流程：
+1. Session/Memory 维护会话、历史摘要、恢复和 Context Budget。
+2. Prompt Builder 组装座舱角色、用户输入、车辆 Context、Tool catalog 和输出 Schema。
+3. Graph Runtime 维护意图、规划、Tool 调用、重规划和终态。
+4. Provider/Scheduler 维护 deadline、retry、cancel、stream backpressure 和资源准入。
+5. Schema Validator 将模型响应约束为 `StructuredModelOutput`。
+6. Tool Runtime 只执行白名单 Tool；Governance 是动作准入的唯一 owner。
 
-1. 建立 RFC 6455 WebSocket。
-2. 接收 `connect.challenge` 和 nonce。
-3. 发送 `connect` 认证请求。
-4. 使用 `chat.send` 发送 session/run/idempotency/text。
-5. 多模态请求在同一个 `chat.send` 中附带一张 PNG/JPEG。
-6. 接收流式事件并绑定当前 run ID。
-7. 必要时用 `chat.history` 查询当前请求的终态。
-8. 取消时发送 `chat.abort`。
+第一版协议 Adapter 使用 HTTP `POST /api/chat`：
 
-限制：
+- 文字请求发送 `system` 和 `user` message。
+- 文字加图片请求仅在 `user` message 中增加一张 base64 PNG/JPEG。
+- `stream=true` 时按有界 JSON line 解析增量。
+- `format` 绑定 AIOS 维护的结构化输出 Schema。
+- 取消通过关闭当前 HTTP connection 实现，并拒绝迟到回调。
+- 最大一张图片 6 MiB，累计响应最大 65536 bytes。
+- 禁止任意 endpoint override、redirect 和模型返回的 Tool 直执行。
 
-- 最大一张图片，6 MiB。
-- 最大已认证多模态帧 8,500,000 bytes。
-- 连接超时 3000 ms，读取超时 120000 ms。
-- 任意 endpoint override 禁止。
-- 模型结果必须通过 `StructuredModelOutput`。
-
-当前过渡 Provider 尚未达到 `PRODUCTION` assurance，因此 release 路由必须保持关闭，直到实现进入生产
-源集并完成凭据、故障恢复、资源、隐私和目标验收。
+`DirectModelServiceContract`、`OllamaChatProtocolAdapter`、`DirectModelServiceProvider` 核心、fixed
+catalog 和 Router preference 已建立。production input owner、health owner 和 release composition
+尚未实现，因此 target integration 仍返回 `NO_ELIGIBLE_PROVIDER`，直到完成 Binder/输入存储组合、
+身份认证、故障恢复、资源、隐私和目标验收。
 
 ### 15.5 `StructuredModelOutput`
 
@@ -892,8 +892,8 @@ Session 结束后清理 Working Memory 和临时媒体。Profile/Episodic 数据
 | Scenario/Graph | 已实现 | release backend 尚未激活 |
 | Governance/Approval | 已实现 | OEM driver-safety 和 consent owner 未批准 |
 | Tool/Skill/Memory | 已实现 | production registry/authority 未发布 |
-| Model Contract/Router | 已实现 | production Provider 未合格 |
-| OpenClaw | 过渡接口已实现 | production assurance、凭据和发布路由未关闭 |
+| Model Contract/Router | Direct Model Service 合同、能力和路由目标已实现 | production Provider 未合格 |
+| Direct Model Service | 固定端点、HTTP/NDJSON、Provider lifecycle、文字/图片摘要绑定和连接取消已实现 | production input/health owner、release 注册、Binder 图片入口和目标资格待实现 |
 | Effect Coordinator | 已实现 | 真实 Vehicle Adapter 未注册 |
 | Native C ABI | 已实现 | Vendor NPU Provider 未实现 |
 | Client2 HMI | 已实现主要闭环 | P4-R7 实现仍在 Draft，正式工程迁移未完成 |

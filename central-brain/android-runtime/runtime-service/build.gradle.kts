@@ -2,16 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-val targetOpenClaw = providers.gradleProperty("centralBrainTargetOpenClaw")
-    .map { it.equals("true", ignoreCase = true) }
-    .getOrElse(false)
 val developmentOllama = providers.gradleProperty("centralBrainDevelopmentOllama")
     .map { it.equals("true", ignoreCase = true) }
     .getOrElse(false)
-
-check(!(targetOpenClaw && developmentOllama)) {
-    "target OpenClaw and development Ollama profiles are mutually exclusive"
-}
 
 android {
     namespace = "com.centralbrain.runtime"
@@ -39,9 +32,8 @@ android {
             buildConfigField(
                 "String",
                 "MODEL_GATEWAY_PROFILE",
-                if (targetOpenClaw) "\"target_openclaw_transitional\""
-                else if (developmentOllama) "\"development_wsl_ollama\""
-                else "\"development_wsl_openclaw\""
+                if (developmentOllama) "\"development_wsl_ollama\""
+                else "\"direct_model_service\""
             )
             buildConfigField(
                 "boolean",
@@ -50,47 +42,72 @@ android {
             )
             buildConfigField("String", "OLLAMA_BASE_URL", "\"http://127.0.0.1:11434\"")
             buildConfigField("String", "OLLAMA_MODEL", "\"qwen3.5:27b-optimized\"")
-            buildConfigField("boolean", "OPENCLAW_TARGET_ENDPOINT_CONFIGURED", "true")
+            buildConfigField(
+                "boolean",
+                "DIRECT_MODEL_SERVICE_ENDPOINT_CONFIGURED",
+                (!developmentOllama).toString()
+            )
+            buildConfigField(
+                "boolean",
+                "DIRECT_MODEL_SERVICE_ROUTING_ENABLED",
+                "false"
+            )
+            buildConfigField(
+                "String",
+                "DIRECT_MODEL_SERVICE_BASE_URL",
+                "\"http://169.254.208.110:11434\""
+            )
+            buildConfigField("boolean", "OPENCLAW_TARGET_ENDPOINT_CONFIGURED", "false")
             buildConfigField(
                 "boolean",
                 "OPENCLAW_TARGET_ROUTING_ENABLED",
-                targetOpenClaw.toString()
+                "false"
             )
             buildConfigField(
                 "boolean",
                 "OPENCLAW_DEVELOPMENT_ROUTING_ENABLED",
-                (!targetOpenClaw && !developmentOllama).toString()
+                "false"
             )
             buildConfigField(
                 "String",
                 "OPENCLAW_BASE_URL",
-                if (targetOpenClaw) "\"ws://169.254.208.110:18789\""
-                else "\"ws://127.0.0.1:18789\""
+                "\"\""
             )
             buildConfigField(
                 "int",
                 "OPENCLAW_PROTOCOL_VERSION",
-                if (targetOpenClaw || developmentOllama) "3" else "4"
+                "0"
             )
         }
         getByName("release") {
             buildConfigField(
                 "String",
                 "MODEL_GATEWAY_PROFILE",
-                "\"target_openclaw_transitional\""
+                "\"direct_model_service\""
             )
             buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "false")
             buildConfigField("String", "OLLAMA_BASE_URL", "\"http://169.254.208.110:11434\"")
             buildConfigField("String", "OLLAMA_MODEL", "\"UNCONFIGURED\"")
-            buildConfigField("boolean", "OPENCLAW_TARGET_ENDPOINT_CONFIGURED", "true")
-            buildConfigField("boolean", "OPENCLAW_TARGET_ROUTING_ENABLED", "false")
-            buildConfigField("boolean", "OPENCLAW_DEVELOPMENT_ROUTING_ENABLED", "false")
+            buildConfigField(
+                "boolean",
+                "DIRECT_MODEL_SERVICE_ENDPOINT_CONFIGURED",
+                "true"
+            )
+            buildConfigField(
+                "boolean",
+                "DIRECT_MODEL_SERVICE_ROUTING_ENABLED",
+                "false"
+            )
             buildConfigField(
                 "String",
-                "OPENCLAW_BASE_URL",
-                "\"ws://169.254.208.110:18789\""
+                "DIRECT_MODEL_SERVICE_BASE_URL",
+                "\"http://169.254.208.110:11434\""
             )
-            buildConfigField("int", "OPENCLAW_PROTOCOL_VERSION", "3")
+            buildConfigField("boolean", "OPENCLAW_TARGET_ENDPOINT_CONFIGURED", "false")
+            buildConfigField("boolean", "OPENCLAW_TARGET_ROUTING_ENABLED", "false")
+            buildConfigField("boolean", "OPENCLAW_DEVELOPMENT_ROUTING_ENABLED", "false")
+            buildConfigField("String", "OPENCLAW_BASE_URL", "\"\"")
+            buildConfigField("int", "OPENCLAW_PROTOCOL_VERSION", "0")
         }
     }
 

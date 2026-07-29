@@ -76,12 +76,12 @@ public final class ModelProviderContractTest {
     }
 
     @Test
-    public void targetOpenClawProfileIsTransitionalAndCannotClaimProductionOrHardware() {
-        ModelProviderProfiles.Profile profile =
-                ModelProviderProfiles.targetOpenClawTransitional();
+    public void directModelServiceProfileIsBlockedUntilItsImplementationIsWired() {
+        ModelProviderProfiles.Profile profile = ModelProviderProfiles.directModelService();
         ModelProvider.Descriptor descriptor = profile.getDescriptor();
 
-        assertTrue(descriptor.getBackendKind() == ModelProvider.BackendKind.OPENCLAW_GATEWAY);
+        assertTrue(descriptor.getBackendKind()
+                == ModelProvider.BackendKind.DIRECT_MODEL_SERVICE);
         assertTrue(descriptor.getAssurance() == ModelProvider.Assurance.TARGET_INTEGRATION);
         assertTrue(descriptor.isSupportsInference());
         assertTrue(descriptor.isSupportsCancellation());
@@ -90,6 +90,8 @@ public final class ModelProviderContractTest {
         assertFalse(profile.isImplementationConfigured());
         assertFalse(profile.isRoutingEnabled());
         assertFalse(profile.getSnapshot().isHardwareAccessed());
+        assertTrue(profile.getSnapshot().getHealthState()
+                == ModelProvider.HealthState.UNAVAILABLE);
     }
 
     @Test

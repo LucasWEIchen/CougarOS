@@ -41,6 +41,7 @@ public final class ModelContractV2 {
 
     public enum RequiredCapability {
         TEXT_GENERATION,
+        VISION_LANGUAGE_INFERENCE,
         STRUCTURED_SCENARIO_CANDIDATE,
         SUMMARIZATION,
         CLASSIFICATION

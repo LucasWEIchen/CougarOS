@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-direct-model-service-v1",
+  "implementation_stage": "V2-DMS-01",
+  "requirement_ids": [
+    "APP-002",
+    "APP-004",
+    "S2-MDL-001",
+    "S2-MDL-002",
+    "S2-MDL-003",
+    "S2-MDL-004",
+    "S2-MDL-005",
+    "S2-MDL-006",
+    "S2-OBS-001",
+    "S2-OBS-002",
+    "S2-SAF-001"
+  ],
+  "architecture": {
+    "provider_id": "external.model-service.direct",
+    "backend_kind": "DIRECT_MODEL_SERVICE",
+    "agent_gateway_required": false,
+    "aios_owns_session_context": true,
+    "aios_owns_prompt_composition": true,
+    "aios_owns_tool_orchestration": true,
+    "aios_owns_structured_output_validation": true,
+    "aios_owns_retry_cancel_and_deadline": true,
+    "model_output_authorizes_tools": false,
+    "model_output_authorizes_effects": false
+  },
+  "production_endpoint": {
+    "transport": "HTTP",
+    "wire_protocol": "OLLAMA_CHAT_V1",
+    "base_uri": "http://169.254.208.110:11434",
+    "chat_path": "/api/chat",
+    "arbitrary_endpoint_override_allowed": false,
+    "redirects_allowed": false,
+    "model_name_build_owned": true,
+    "connect_timeout_ms": 3000,
+    "read_timeout_ms": 120000
+  },
+  "modalities": {
+    "text_supported": true,
+    "text_image_supported": true,
+    "maximum_images_per_request": 1,
+    "allowlisted_image_mime_types": [
+      "image/png",
+      "image/jpeg"
+    ],
+    "maximum_image_bytes": 6291456,
+    "maximum_request_text_bytes": 16384,
+    "maximum_response_bytes": 65536,
+    "structured_json_required": true,
+    "streaming_required": true
+  },
+  "migration": {
+    "openclaw_in_new_provider_catalog": false,
+    "openclaw_selected_by_new_router": false,
+    "openclaw_build_profile_selectable": false,
+    "legacy_openclaw_source_compatibility_present": true,
+    "legacy_openclaw_runtime_removal_pending": true,
+    "direct_model_contract_implemented": true,
+    "direct_model_protocol_adapter_implemented": true,
+    "direct_model_provider_core_implemented": true,
+    "direct_model_release_composition_implemented": false,
+    "direct_model_release_routing_enabled": false
+  },
+  "claim_state": {
+    "provider_neutral_contract_available": true,
+    "direct_model_profile_registered": true,
+    "vision_language_capability_registered": true,
+    "ollama_chat_protocol_adapter_implemented": true,
+    "text_stream_parser_unit_verified": true,
+    "text_image_binding_unit_verified": true,
+    "connection_cancel_unit_verified": true,
+    "provider_lifecycle_unit_verified": true,
+    "provider_cancel_terminal_unit_verified": true,
+    "provider_output_admission_unit_verified": true,
+    "release_provider_registered": false,
+    "production_model_invoked": false,
+    "target_npu_accessed": false,
+    "vehicle_effect_hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

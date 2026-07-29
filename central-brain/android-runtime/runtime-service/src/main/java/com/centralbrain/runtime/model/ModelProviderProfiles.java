@@ -8,6 +8,8 @@ public final class ModelProviderProfiles {
     public static final String ANDROID_LOCAL_DEVELOPMENT_ID =
             "android.local.development";
     public static final String VENDOR_NPU_EMPTY_ID = "vendor.npu.empty";
+    public static final String DIRECT_MODEL_SERVICE_ID =
+            "external.model-service.direct";
     public static final String TARGET_OPENCLAW_TRANSITIONAL_ID =
             "external.openclaw.transitional";
 
@@ -15,6 +17,8 @@ public final class ModelProviderProfiles {
     private static final Profile ANDROID_LOCAL_DEVELOPMENT =
             createAndroidLocalDevelopment();
     private static final Profile VENDOR_NPU_EMPTY = createVendorNpuEmpty();
+    private static final Profile DIRECT_MODEL_SERVICE =
+            createDirectModelService();
     private static final Profile TARGET_OPENCLAW_TRANSITIONAL =
             createTargetOpenClawTransitional();
 
@@ -33,6 +37,12 @@ public final class ModelProviderProfiles {
         return VENDOR_NPU_EMPTY;
     }
 
+    public static Profile directModelService() {
+        return DIRECT_MODEL_SERVICE;
+    }
+
+    /** Legacy compatibility profile; it is not registered by the new production catalog. */
+    @Deprecated
     public static Profile targetOpenClawTransitional() {
         return TARGET_OPENCLAW_TRANSITIONAL;
     }
@@ -115,6 +125,33 @@ public final class ModelProviderProfiles {
                 0,
                 false,
                 "LOCAL_DEVELOPMENT_IMPLEMENTATION_NOT_CONFIGURED");
+        return new Profile(descriptor, snapshot, false, false);
+    }
+
+    private static Profile createDirectModelService() {
+        ModelProvider.Descriptor descriptor = new ModelProvider.Descriptor(
+                DIRECT_MODEL_SERVICE_ID,
+                ModelProvider.BackendKind.DIRECT_MODEL_SERVICE,
+                ModelProvider.Assurance.TARGET_INTEGRATION,
+                ModelProvider.FallbackClass.NEVER,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                1);
+        ModelProvider.Snapshot snapshot = new ModelProvider.Snapshot(
+                descriptor,
+                ModelProvider.LifecycleState.COLD,
+                ModelProvider.HealthState.UNAVAILABLE,
+                0,
+                0,
+                0,
+                false,
+                "DIRECT_MODEL_SERVICE_IMPLEMENTATION_NOT_WIRED");
         return new Profile(descriptor, snapshot, false, false);
     }
 
