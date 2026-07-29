@@ -42,6 +42,29 @@ public final class DirectModelServiceContractTest {
     }
 
     @Test
+    public void developmentOllamaEndpointIsFixedForAdbReverseAndNotProduction() {
+        DirectModelServiceContract.Endpoint endpoint =
+                DirectModelServiceContract.developmentOllama("qwen3.5:27b-optimized");
+
+        assertEquals(
+                DirectModelServiceContract.DEVELOPMENT_PROFILE_ID,
+                endpoint.getProfileId());
+        assertEquals(
+                DirectModelServiceContract.WireProtocol.OLLAMA_CHAT_V1,
+                endpoint.getWireProtocol());
+        assertEquals(
+                "http://127.0.0.1:11434/api/chat",
+                endpoint.getChatUri().toString());
+        assertEquals("qwen3.5:27b-optimized", endpoint.getModelName());
+        assertTrue(endpoint.isTextSupported());
+        assertTrue(endpoint.isImageSupported());
+        assertTrue(endpoint.isStreamingSupported());
+        assertTrue(endpoint.isStructuredJsonSupported());
+        assertFalse(endpoint.isAgentGatewayRequired());
+        assertFalse(endpoint.isArbitraryEndpointOverrideAllowed());
+    }
+
+    @Test
     public void textAndImageRequestBindsAllDigestsWithoutGrantingAuthority() {
         DirectModelServiceContract.Endpoint endpoint =
                 DirectModelServiceContract.productionOllama("qwen3.6:27b");

@@ -21,6 +21,8 @@ public final class DirectModelServiceContract {
     public static final int SCHEMA_VERSION = 1;
     public static final String PRODUCTION_PROFILE_ID =
             "production.direct-model-service.ollama-chat-v1";
+    public static final String DEVELOPMENT_PROFILE_ID =
+            "development.direct-model-service.ollama-chat-v1";
     public static final int MAX_TEXT_BYTES = 16_384;
     public static final int MAX_IMAGE_COUNT = 1;
     public static final long MAX_IMAGE_BYTES = 6L * 1024L * 1024L;
@@ -315,6 +317,28 @@ public final class DirectModelServiceContract {
         OllamaEndpointConfig config = OllamaEndpointConfig.productionLinkLocal(modelName);
         return new Endpoint(
                 PRODUCTION_PROFILE_ID,
+                WireProtocol.OLLAMA_CHAT_V1,
+                config.getChatUri(),
+                config.getModelName(),
+                config.getConnectTimeoutMs(),
+                config.getReadTimeoutMs(),
+                true,
+                true,
+                true,
+                true);
+    }
+
+    /**
+     * Fixed debug endpoint reached from an Android test device through ADB reverse.
+     *
+     * <p>This profile is constructed only by debug composition. It does not make the provider
+     * production eligible and it cannot redirect to an arbitrary host.</p>
+     */
+    public static Endpoint developmentOllama(String modelName) {
+        OllamaEndpointConfig config =
+                OllamaEndpointConfig.developmentWslAdbReverse(modelName);
+        return new Endpoint(
+                DEVELOPMENT_PROFILE_ID,
                 WireProtocol.OLLAMA_CHAT_V1,
                 config.getChatUri(),
                 config.getModelName(),
