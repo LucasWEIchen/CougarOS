@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件架构文档
 
-版本：2.0
+版本：2.1
 状态：生产架构权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-07-27
+更新日期：2026-07-29
 
 `production_document_scope=true`
 `production_architecture_document=true`
@@ -66,7 +66,7 @@ flowchart LR
 flowchart TB
     subgraph Android["Android 13 座舱域控制器"]
         subgraph HmiProcess["Client2 进程"]
-            UI["Voice-first HMI"]
+            UI["Intent-first HMI<br/>场景入口与任意文本"]
             Media["图像采集与缩略图"]
             Timeline["执行链路与审批 UI"]
             Client["Central Brain SDK Client"]
@@ -144,7 +144,9 @@ flowchart TB
 
 HMI 由任务入口、输入/输出流、执行链路、审批条和执行器反馈组成。生产交互遵循：
 
-- 首屏只保留场景任务入口，例如“我累了”“处理一下”。
+- 底部导航入口切换固定场景任务面板，例如“我累了”“处理一下”。
+- 底部电话入口切换任意文本输入框；两个浮层互斥，输入卡关闭控件或点击浮层外可关闭输入。
+- 任意文本只是 Session 绑定的用户目标，不能绕过 Scenario、Model、Governance 或 Effect。
 - 输入和模型输出按到达顺序滚动显示。
 - 图片以缩略图显示，点击后居中预览，点击外部区域退出。
 - Plan 节点、Effect、审批和 readback 形成一条连续链路。
@@ -407,7 +409,34 @@ sequenceDiagram
 
 模型识别到乘员和饮水意图后，系统只能准备购物与路径候选；购买提交和导航启动是两个独立确认点。
 
-### 6.3 审批与撤销
+### 6.3 任意文本座舱任务
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant H as Client2 HMI
+    participant S as Session Runtime
+    participant C as Cockpit Context
+    participant M as Model Runtime
+    participant V as Structured Validator
+    participant P as Plan Compiler
+    participant G as Governance
+
+    User->>H: 电话入口 + 任意座舱目标
+    H->>S: bounded owner-scoped text
+    S->>C: capture trusted cockpit context
+    C-->>M: role + safety + capability + user goal
+    M-->>V: assistant reply + candidate actions
+    V-->>S: accepted allowlisted candidates
+    S-->>H: reply + ordered execution trace
+    V->>P: candidate actions
+    P->>G: typed nodes and Effect intents
+```
+
+当前任意文本链路可输出模型回复和白名单候选动作。只有候选动作成功转换为构建时可审查的 typed Plan，
+并经过 Governance 后，才可进入 Tool 或 Effect；无法编译、未知参数或缺少能力时必须停止在结果投影阶段。
+
+### 6.4 审批与撤销
 
 ```mermaid
 stateDiagram-v2
@@ -427,7 +456,7 @@ stateDiagram-v2
 
 审批必须绑定 owner、Session、Plan revision、Effect digest 和 deadline，旧审批不能作用于新计划。
 
-### 6.4 故障与恢复
+### 6.5 故障与恢复
 
 ```mermaid
 flowchart TB

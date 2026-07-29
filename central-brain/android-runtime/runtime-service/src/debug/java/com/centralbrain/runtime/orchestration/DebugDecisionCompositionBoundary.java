@@ -404,9 +404,11 @@ final class DebugDecisionCompositionBoundary {
         TriggerRule.Metric metric = metricForScenario(scenarioId);
         double value = "scene.fatigue.assist.v1".equals(scenarioId)
                 ? 0.8
-                : "scene.cabin.multimodal.assist.v1".equals(scenarioId)
-                        ? 1_500.0
-                        : 17.0;
+                : "scene.aios.freeform.v1".equals(scenarioId)
+                        ? 0.9
+                        : "scene.cabin.multimodal.assist.v1".equals(scenarioId)
+                                ? 1_500.0
+                                : 17.0;
         TriggerEngine.Evaluation terminal = null;
         for (int index = 0; index < 3; index++) {
             long observedAt = now - 100L + index * 50L;
@@ -432,7 +434,10 @@ final class DebugDecisionCompositionBoundary {
                 || terminal.getSuggestion().isEffectDispatchRequested()
                 || !manifest.getArtifactDigest().equals(
                         terminal.getSuggestion().getScenarioManifestDigest())) {
-            throw violation("trigger suggestion boundary failed closed");
+            throw violation(
+                    "trigger suggestion boundary failed closed: "
+                            + (terminal == null
+                                    ? "NONE" : terminal.getCode().name()));
         }
         return terminal.getSuggestion();
     }
@@ -478,18 +483,22 @@ final class DebugDecisionCompositionBoundary {
         }
         DevelopmentModelInputReceipt stagedInput = null;
         byte[] stagedImage = null;
-        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+        boolean stagedImagePresent = false;
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)
+                || "scene.aios.freeform.v1".equals(scenarioId)) {
             DevelopmentModelInputStore.ConsumedInput consumed =
                     DevelopmentModelInputStore.getInstance().consumeOwn(
                             session.getOwnerFingerprint(),
                             session.getSessionId(),
                             scenarioId);
             if (consumed == null) {
-                throw violation("multimodal input is unavailable");
+                throw violation("staged model input is unavailable");
             }
             try {
                 stagedInput = consumed.getReceipt();
-                stagedImage = consumed.copyImageBytes();
+                stagedImagePresent = consumed.hasImage();
+                stagedImage = stagedImagePresent
+                        ? consumed.copyImageBytes() : new byte[0];
             } finally {
                 consumed.close();
             }
@@ -500,10 +509,16 @@ final class DebugDecisionCompositionBoundary {
         String inputDigest = digest(
                 "model-input", requestDigest, String.join("|", contextDigests),
                 suggestion.getSuggestionDigest(), inputAggregateDigest);
-        CockpitModelPrompt prompt = stagedInput == null
-                ? CockpitModelPrompt.forScenario(inputDigest, scenarioId)
-                : CockpitModelPrompt.forMultimodal(
-                        inputDigest, stagedInput.inputText);
+        CockpitModelPrompt prompt;
+        if ("scene.aios.freeform.v1".equals(scenarioId)) {
+            prompt = CockpitModelPrompt.forFreeform(
+                    inputDigest, stagedInput.inputText);
+        } else if (stagedInput != null) {
+            prompt = CockpitModelPrompt.forMultimodal(
+                    inputDigest, stagedInput.inputText);
+        } else {
+            prompt = CockpitModelPrompt.forScenario(inputDigest, scenarioId);
+        }
         ModelContractV2.ModelRequest modelRequest = new ModelContractV2.ModelRequest(
                 "decision." + requestDigest.substring(0, 24),
                 ModelContractV2.Purpose.SCENARIO_REASONING,
@@ -544,7 +559,7 @@ final class DebugDecisionCompositionBoundary {
         if (networkModel) {
             if (isOpenClawMode(networkModelMode)) {
                 openClawEngine.registerPrompt(prompt);
-                if (stagedInput != null) {
+                if (stagedImagePresent) {
                     try {
                         openClawEngine.registerScenarioImageAttachment(
                                 inputDigest,
@@ -556,11 +571,11 @@ final class DebugDecisionCompositionBoundary {
                     }
                 }
             } else {
-                if (stagedInput != null) {
+                if (stagedImagePresent) {
                     Arrays.fill(stagedImage, (byte) 0);
                     throw violation("multimodal input requires OpenClaw routing");
                 }
-                ollamaEngine.registerScenarioPrompt(inputDigest, scenarioId);
+                ollamaEngine.registerPrompt(prompt);
             }
             ModelProvider.InferenceHandle handle = modelProvider.infer(
                     new ModelProvider.InferenceRequest(
@@ -618,7 +633,7 @@ final class DebugDecisionCompositionBoundary {
                     providerId,
                     projection.latencyMs,
                     inputAggregateDigest,
-                    stagedInput != null,
+                    stagedImagePresent,
                     projection.admittedActions);
         }
         return new ModelEvidence(
@@ -759,6 +774,17 @@ final class DebugDecisionCompositionBoundary {
         } catch (IllegalArgumentException ignored) {
             // Older focused contract fixtures intentionally load only legacy scenarios.
         }
+        try {
+            rules.add(rule(
+                    "trigger.aios.freeform.driver.v1",
+                    "scene.aios.freeform.v1",
+                    catalog.require("scene.aios.freeform.v1").getArtifactDigest(),
+                    TriggerRule.Metric.DRIVER_ATTENTION_SCORE,
+                    TriggerRule.ThresholdOperator.GREATER_THAN_OR_EQUAL,
+                    0.5));
+        } catch (IllegalArgumentException ignored) {
+            // Older focused contract fixtures intentionally load only legacy scenarios.
+        }
         return new TriggerRule.Manifest("trigger-manifest.debug-decision.v1", 1, rules);
     }
 
@@ -795,6 +821,9 @@ final class DebugDecisionCompositionBoundary {
         if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
             return TriggerRule.Metric.CABIN_CO2_PPM;
         }
+        if ("scene.aios.freeform.v1".equals(scenarioId)) {
+            return TriggerRule.Metric.DRIVER_ATTENTION_SCORE;
+        }
         throw violation("scenario Trigger metric is unavailable");
     }
 
@@ -807,6 +836,9 @@ final class DebugDecisionCompositionBoundary {
         }
         if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
             return VehicleCapability.CapabilityId.NAVIGATION_POI;
+        }
+        if ("scene.aios.freeform.v1".equals(scenarioId)) {
+            return VehicleCapability.CapabilityId.HVAC_TARGET_TEMPERATURE;
         }
         throw violation("scenario consent capability is unavailable");
     }

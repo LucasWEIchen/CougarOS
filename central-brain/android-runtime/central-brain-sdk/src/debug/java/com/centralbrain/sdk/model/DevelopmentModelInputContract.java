@@ -7,10 +7,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Bounds, validation, and digest rules for debug-only multimodal model input. */
+/** Bounds, validation, and digest rules for debug-only text and multimodal model input. */
 public final class DevelopmentModelInputContract {
-    public static final int SCHEMA_VERSION = 1;
-    public static final int MAX_TEXT_CHARS = 64;
+    public static final int SCHEMA_VERSION = 2;
+    public static final int INPUT_TEXT_ONLY = 1;
+    public static final int INPUT_TEXT_AND_IMAGE = 2;
+    public static final int MAX_TEXT_CHARS = 1_024;
     public static final long MAX_IMAGE_BYTES = 6L * 1024L * 1024L;
 
     private DevelopmentModelInputContract() {}
@@ -20,17 +22,26 @@ public final class DevelopmentModelInputContract {
         if (input.schemaVersion != SCHEMA_VERSION) {
             throw violation("unsupported schema version");
         }
+        requireMode(input.inputMode);
         requireUuid(input.sessionId);
         requireIdentifier(input.scenarioId, 96, "scenarioId");
         requireText(input.inputText);
-        requireMimeType(input.imageMimeType);
-        requireFileName(input.imageFileName);
-        if (input.imageByteCount < 1L || input.imageByteCount > MAX_IMAGE_BYTES) {
-            throw violation("imageByteCount is outside the bound");
-        }
-        requireDigest(input.imageSha256, "imageSha256");
-        if (input.imageFd == null) {
-            throw violation("imageFd is required");
+        if (input.inputMode == INPUT_TEXT_AND_IMAGE) {
+            requireMimeType(input.imageMimeType);
+            requireFileName(input.imageFileName);
+            if (input.imageByteCount < 1L || input.imageByteCount > MAX_IMAGE_BYTES) {
+                throw violation("imageByteCount is outside the bound");
+            }
+            requireDigest(input.imageSha256, "imageSha256");
+            if (input.imageFd == null) {
+                throw violation("imageFd is required");
+            }
+        } else if (!empty(input.imageMimeType)
+                || !empty(input.imageFileName)
+                || input.imageByteCount != 0L
+                || !empty(input.imageSha256)
+                || input.imageFd != null) {
+            throw violation("text-only input carries image metadata");
         }
     }
 
@@ -39,15 +50,24 @@ public final class DevelopmentModelInputContract {
         if (receipt.schemaVersion != SCHEMA_VERSION) {
             throw violation("unsupported receipt schema version");
         }
+        requireMode(receipt.inputMode);
         requireUuid(receipt.sessionId);
         requireIdentifier(receipt.scenarioId, 96, "scenarioId");
         requireText(receipt.inputText);
-        requireMimeType(receipt.imageMimeType);
-        requireFileName(receipt.imageFileName);
-        if (receipt.imageByteCount < 1L || receipt.imageByteCount > MAX_IMAGE_BYTES) {
-            throw violation("receipt imageByteCount is outside the bound");
+        if (receipt.inputMode == INPUT_TEXT_AND_IMAGE) {
+            requireMimeType(receipt.imageMimeType);
+            requireFileName(receipt.imageFileName);
+            if (receipt.imageByteCount < 1L
+                    || receipt.imageByteCount > MAX_IMAGE_BYTES) {
+                throw violation("receipt imageByteCount is outside the bound");
+            }
+            requireDigest(receipt.imageSha256, "imageSha256");
+        } else if (!empty(receipt.imageMimeType)
+                || !empty(receipt.imageFileName)
+                || receipt.imageByteCount != 0L
+                || !empty(receipt.imageSha256)) {
+            throw violation("text-only receipt carries image metadata");
         }
-        requireDigest(receipt.imageSha256, "imageSha256");
         requireDigest(receipt.inputAggregateDigest, "inputAggregateDigest");
         if (receipt.acceptedAtEpochMs <= 0L) {
             throw violation("acceptedAtEpochMs must be positive");
@@ -63,7 +83,8 @@ public final class DevelopmentModelInputContract {
 
     public static String calculateInputAggregateDigest(DevelopmentModelInputReceipt receipt) {
         MessageDigest digest = sha256();
-        update(digest, "central-brain-development-model-input-v1");
+        update(digest, "central-brain-development-model-input-v2");
+        update(digest, Integer.toString(receipt.inputMode));
         update(digest, receipt.sessionId);
         update(digest, receipt.scenarioId);
         update(digest, receipt.inputText);
@@ -76,7 +97,7 @@ public final class DevelopmentModelInputContract {
 
     public static String calculateReceiptDigest(DevelopmentModelInputReceipt receipt) {
         MessageDigest digest = sha256();
-        update(digest, "central-brain-development-model-input-receipt-v1");
+        update(digest, "central-brain-development-model-input-receipt-v2");
         update(digest, receipt.inputAggregateDigest);
         update(digest, Long.toString(receipt.acceptedAtEpochMs));
         return hex(digest.digest());
@@ -89,6 +110,12 @@ public final class DevelopmentModelInputContract {
             }
         } catch (RuntimeException failure) {
             throw violation("sessionId must be a canonical UUID");
+        }
+    }
+
+    private static void requireMode(int value) {
+        if (value != INPUT_TEXT_ONLY && value != INPUT_TEXT_AND_IMAGE) {
+            throw violation("inputMode is invalid");
         }
     }
 
@@ -130,6 +157,10 @@ public final class DevelopmentModelInputContract {
         if (value == null || !value.matches("[0-9a-f]{64}")) {
             throw violation(field + " must be a lowercase SHA-256");
         }
+    }
+
+    private static boolean empty(String value) {
+        return value == null || value.isEmpty();
     }
 
     private static MessageDigest sha256() {

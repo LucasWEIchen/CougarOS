@@ -21,7 +21,20 @@ public final class CockpitHmiReducer {
                 next.panelVisibility = event.flag
                         ? CockpitHmiState.PanelVisibility.VISIBLE
                         : CockpitHmiState.PanelVisibility.HIDDEN;
+                if (event.flag) {
+                    next.textInputVisibility =
+                            CockpitHmiState.TextInputVisibility.HIDDEN;
+                }
                 if (!event.flag) {
+                    next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
+                }
+                return next.buildNext();
+            case TEXT_INPUT_VISIBILITY:
+                next.textInputVisibility = event.flag
+                        ? CockpitHmiState.TextInputVisibility.VISIBLE
+                        : CockpitHmiState.TextInputVisibility.HIDDEN;
+                if (event.flag) {
+                    next.panelVisibility = CockpitHmiState.PanelVisibility.HIDDEN;
                     next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
                 }
                 return next.buildNext();
@@ -170,6 +183,8 @@ public final class CockpitHmiReducer {
                         current.getEngineerState().failed(event.errorCode),
                         false);
             case SCENARIO_SUBMITTED:
+                next.textInputVisibility = CockpitHmiState.TextInputVisibility.HIDDEN;
+                next.panelVisibility = CockpitHmiState.PanelVisibility.VISIBLE;
                 next.scenarioControlState = current.getScenarioControlState()
                         .scenarioRequested(event.uiScenarioId);
                 next.executionTimeline = current.getExecutionTimeline()
@@ -451,6 +466,7 @@ public final class CockpitHmiReducer {
     public static final class Event {
         private enum Type {
             PANEL_VISIBILITY,
+            TEXT_INPUT_VISIBILITY,
             SURFACE_SELECTED,
             DRAWER_SELECTED,
             HVAC_DESIRED_CHANGED,
@@ -522,6 +538,12 @@ public final class CockpitHmiReducer {
 
         public static Event panelVisibility(boolean visible) {
             Event event = new Event(Type.PANEL_VISIBILITY);
+            event.flag = visible;
+            return event;
+        }
+
+        public static Event textInputVisibility(boolean visible) {
+            Event event = new Event(Type.TEXT_INPUT_VISIBILITY);
             event.flag = visible;
             return event;
         }

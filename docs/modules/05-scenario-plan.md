@@ -1,6 +1,6 @@
 # Scenario 解析与 Plan 编译模块详设
 
-版本：1.0
+版本：1.1
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -20,6 +20,7 @@
 
 | Req ID | 本模块责任 |
 | --- | --- |
+| `APP-006` | 任意文本映射到固定、可审查的自由任务场景 |
 | `S2-GRF-001` | 编译不可变、有向无环、版本化 Plan |
 | `S2-SCN-001` | 只选择登记且摘要匹配的 Scenario |
 | `S2-SCN-002` | 校验节点、依赖、并发、审批、截止和补偿 |
@@ -46,6 +47,7 @@
 | [scenario schema](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/schema/scenario-manifest-v1.schema.json) | JSON Schema | manifest 文件格式 |
 | [multimodal manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.multimodal.assist.v1.json) | 座舱多模态节点图 | 购物与导航候选场景 |
 | [fatigue manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.fatigue.assist.v1.json) | 疲劳关怀节点图 | HVAC、座椅、媒体组合 |
+| [freeform manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.aios.freeform.v1.json) | `scene.aios.freeform.v1` | 任意文本的 Context、Model、Policy 与结果节点 |
 
 ## 4. 核心设计
 
@@ -84,6 +86,13 @@ Resolver 不调用模型，也不做车辆动作。匹配规则必须可审查�
 6. 调用 `PlanGraphValidator`。
 
 required node 缺失时 Plan 不可执行；optional node 缺失时必须按 fallback 规则排除并保留原因。
+
+### 4.4 任意文本场景
+
+`scene.aios.freeform.v1` 是任意文本的固定准入图，只包含
+`context.capture -> model.invoke -> policy.evaluate -> summary.render`。该图允许模型回复和白名单候选动作，
+不包含动态 Tool 或 Effect 节点。候选动作只有在后续编译为已登记节点、完成参数 Schema 校验并通过
+Governance 后才具备执行资格；否则终止为仅回复结果。
 
 ## 5. 接口与数据
 
@@ -138,6 +147,7 @@ flowchart LR
 - Effect 节点必须存在可达的 Verification 节点。
 - 同一资源并发节点必须由 dependency 或 resource key 串行化。
 - 订单提交和导航启动不能共享一次审批。
+- 任意文本候选不能直接改写 Manifest、插入未知节点或获得 Effect 权限。
 
 ## 8. 代码校对清单
 
@@ -149,6 +159,7 @@ flowchart LR
 - [ ] 每个高风险节点有独立审批前驱。
 - [ ] 每个 Effect 有 Verification 或明确不可核验终态。
 - [ ] 购物、订单、路线和导航启动节点互相独立。
+- [ ] 任意文本场景在动态 Plan 编译不可用时保持 response-only。
 
 ## 9. 增量开发规则
 
@@ -159,4 +170,5 @@ Plan 编译验证和 HMI 元数据。模型 prompt 不能替代 Manifest 评审�
 
 - 多模态场景的生产感知 authority、购物服务、支付 owner 和地图 owner 尚未接入。
 - Manifest 已表达流程，但生产执行后端尚未激活。
+- 任意文本的动态 typed Plan 编译、Tool 参数化和 Effect 映射尚未激活。
 - `production_ready=false`，`target_hardware_validated=false`。

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Patch the RenderService launcher bundle with Unity-native HVAC states."""
+"""Patch the RenderService launcher bundle for dynamic HVAC and orbit input."""
 
 from __future__ import annotations
 
@@ -16,12 +16,10 @@ import UnityPy
 DRIVER_BASE_GO = "27"
 PASSENGER_BASE_GO = "27 (1)"
 TMP_SOURCE_GO = "Degrees"
-DRIVER_DECREASE_BUTTON_GO = "polygon 1"
-DRIVER_INCREASE_BUTTON_GO = "polygon 2"
-PASSENGER_DECREASE_BUTTON_GO = "polygon 1 (1)"
-PASSENGER_INCREASE_BUTTON_GO = "polygon 2 (1)"
+INPUT_RECOGNIZERS_GO = "LauncherInputRecognizers"
+PAN_RECOGNIZER_CLASS = "DevKit.InputManager.Gestures.InputSystemPanRecognizer"
 
-WARM_STATE_IDS = {
+DYNAMIC_STATE_IDS = {
     "driver": {
         "go": 9000000000000011001,
         "rect": 9000000000000011002,
@@ -34,6 +32,11 @@ WARM_STATE_IDS = {
         "canvas": 9000000000000011013,
         "text": 9000000000000011014,
     },
+}
+THIN_MATERIAL_ID = 9000000000000011021
+TEMPERATURE_OBJECT_NAMES = {
+    "driver": "CentralBrainDriverTemperature",
+    "passenger": "CentralBrainPassengerTemperature",
 }
 
 
@@ -115,39 +118,6 @@ def components(ctx: BundleContext, game_object_tree: dict) -> dict[str, tuple[in
     return result
 
 
-def active_call(target_go_id: int, active: bool) -> dict:
-    return {
-        "m_Target": pptr(target_go_id),
-        "m_TargetAssemblyTypeName": "UnityEngine.GameObject, UnityEngine.CoreModule",
-        "m_MethodName": "SetActive",
-        "m_Mode": 6,
-        "m_Arguments": {
-            "m_ObjectArgument": pptr(0),
-            "m_ObjectArgumentAssemblyTypeName": "UnityEngine.Object, UnityEngine",
-            "m_IntArgument": 0,
-            "m_FloatArgument": 0.0,
-            "m_StringArgument": "",
-            "m_BoolArgument": 1 if active else 0,
-        },
-        "m_CallState": 2,
-    }
-
-
-def set_button_state_calls(
-    button_tree: dict,
-    visible_go_id: int,
-    hidden_go_id: int,
-) -> None:
-    button_tree["m_OnClick"] = {
-        "m_PersistentCalls": {
-            "m_Calls": [
-                active_call(visible_go_id, True),
-                active_call(hidden_go_id, False),
-            ]
-        }
-    }
-
-
 def ensure_child(
     ctx: BundleContext,
     parent_rect_id: int,
@@ -170,56 +140,79 @@ def ensure_child(
     ctx.save(parent_rect_id, parent_tree)
 
 
-def create_warm_state(
+def create_thin_temperature_material(
+    ctx: BundleContext,
+    source_text_tree: dict,
+) -> int:
+    source_material_id = path_id(source_text_tree["m_sharedMaterial"])
+    material_tree = copy.deepcopy(ctx.tree(source_material_id))
+    material_tree["m_Name"] = "CentralBrain Temperature Thin Material"
+    floats = material_tree["m_SavedProperties"]["m_Floats"]
+    material_tree["m_SavedProperties"]["m_Floats"] = [
+        (key, -0.18 if key == "_FaceDilate" else value)
+        for key, value in floats
+    ]
+    ctx.clone_or_update(
+        source_material_id,
+        THIN_MATERIAL_ID,
+        material_tree,
+    )
+    return THIN_MATERIAL_ID
+
+
+def create_dynamic_temperature(
     ctx: BundleContext,
     zone: str,
     base_go_id: int,
     base_go_tree: dict,
     tmp_source_id: int,
     tmp_source_tree: dict,
+    thin_material_id: int,
 ) -> int:
-    ids = WARM_STATE_IDS[zone]
+    ids = DYNAMIC_STATE_IDS[zone]
     base_components = components(ctx, base_go_tree)
     base_rect_id, base_rect_tree = base_components["RectTransform"]
     base_canvas_id, base_canvas_tree = base_components["CanvasRenderer"]
 
-    warm_go_tree = copy.deepcopy(base_go_tree)
-    warm_go_tree["m_Name"] = f"CentralBrain_{zone}_temperature_28_0"
-    warm_go_tree["m_IsActive"] = False
-    warm_go_tree["m_Component"] = [
+    dynamic_go_tree = copy.deepcopy(base_go_tree)
+    dynamic_go_tree["m_Name"] = TEMPERATURE_OBJECT_NAMES[zone]
+    dynamic_go_tree["m_IsActive"] = True
+    dynamic_go_tree["m_Component"] = [
         {"component": pptr(ids["rect"])},
         {"component": pptr(ids["canvas"])},
         {"component": pptr(ids["text"])},
     ]
 
-    warm_rect_tree = copy.deepcopy(base_rect_tree)
-    warm_rect_tree["m_GameObject"] = pptr(ids["go"])
-    warm_rect_tree["m_Children"] = []
-    warm_rect_tree["m_SizeDelta"] = {"x": 118.0, "y": 34.0}
+    dynamic_rect_tree = copy.deepcopy(base_rect_tree)
+    dynamic_rect_tree["m_GameObject"] = pptr(ids["go"])
+    dynamic_rect_tree["m_Children"] = []
+    dynamic_rect_tree["m_SizeDelta"] = {"x": 118.0, "y": 34.0}
 
-    warm_canvas_tree = copy.deepcopy(base_canvas_tree)
-    warm_canvas_tree["m_GameObject"] = pptr(ids["go"])
+    dynamic_canvas_tree = copy.deepcopy(base_canvas_tree)
+    dynamic_canvas_tree["m_GameObject"] = pptr(ids["go"])
 
-    warm_text_tree = copy.deepcopy(tmp_source_tree)
-    warm_text_tree["m_GameObject"] = pptr(ids["go"])
-    warm_text_tree["m_text"] = "28.0°C"
-    warm_text_tree["m_fontSize"] = 28.0
-    warm_text_tree["m_fontSizeBase"] = 28.0
-    warm_text_tree["m_enableAutoSizing"] = 0
-    warm_text_tree["m_raycastTarget"] = 0
-    warm_text_tree["m_HorizontalAlignment"] = 2
-    warm_text_tree["m_VerticalAlignment"] = 512
-    warm_text_tree["m_Color"] = {
+    dynamic_text_tree = copy.deepcopy(tmp_source_tree)
+    dynamic_text_tree["m_GameObject"] = pptr(ids["go"])
+    dynamic_text_tree["m_text"] = "26.5°C"
+    dynamic_text_tree["m_fontSize"] = 28.0
+    dynamic_text_tree["m_fontSizeBase"] = 28.0
+    dynamic_text_tree["m_fontWeight"] = 300
+    dynamic_text_tree["m_enableAutoSizing"] = 0
+    dynamic_text_tree["m_raycastTarget"] = 0
+    dynamic_text_tree["m_HorizontalAlignment"] = 2
+    dynamic_text_tree["m_VerticalAlignment"] = 512
+    dynamic_text_tree["m_sharedMaterial"] = pptr(thin_material_id)
+    dynamic_text_tree["m_Color"] = {
         "r": 1.0,
         "g": 1.0,
         "b": 1.0,
         "a": 1.0,
     }
 
-    ctx.clone_or_update(base_go_id, ids["go"], warm_go_tree)
-    ctx.clone_or_update(base_rect_id, ids["rect"], warm_rect_tree)
-    ctx.clone_or_update(base_canvas_id, ids["canvas"], warm_canvas_tree)
-    ctx.clone_or_update(tmp_source_id, ids["text"], warm_text_tree)
+    ctx.clone_or_update(base_go_id, ids["go"], dynamic_go_tree)
+    ctx.clone_or_update(base_rect_id, ids["rect"], dynamic_rect_tree)
+    ctx.clone_or_update(base_canvas_id, ids["canvas"], dynamic_canvas_tree)
+    ctx.clone_or_update(tmp_source_id, ids["text"], dynamic_text_tree)
     ensure_child(
         ctx,
         path_id(base_rect_tree["m_Father"]),
@@ -227,6 +220,32 @@ def create_warm_state(
         ids["rect"],
     )
     return ids["go"]
+
+
+def verify_vendor_pan_recognizer(ctx: BundleContext) -> dict:
+    _, recognizers_go_tree = find_game_object(ctx, INPUT_RECOGNIZERS_GO)
+    component_id, component_tree = components(ctx, recognizers_go_tree)[
+        PAN_RECOGNIZER_CLASS
+    ]
+    expected = {
+        "_targetInputDisplay": 2,
+        "_eventSystemRaycastCheck": 1,
+        "useFingerPolling": 0,
+    }
+    actual = {key: component_tree[key] for key in expected}
+    if actual != expected:
+        raise RuntimeError(
+            f"Unexpected vendor Pan recognizer contract: {actual}"
+        )
+    return {
+        "componentPathId": component_id,
+        "targetInputDisplay": component_tree["_targetInputDisplay"],
+        "eventSystemRaycastCheck": bool(
+            component_tree["_eventSystemRaycastCheck"]
+        ),
+        "useFingerPolling": bool(component_tree["useFingerPolling"]),
+        "vendorConfigurationPreserved": True,
+    }
 
 
 def patch_bundle(input_path: Path, output_path: Path) -> dict:
@@ -242,48 +261,32 @@ def patch_bundle(input_path: Path, output_path: Path) -> dict:
     tmp_source_id, tmp_source_tree = components(ctx, tmp_source_go_tree)[
         "TMPro.TextMeshProUGUI"
     ]
+    thin_material_id = create_thin_temperature_material(ctx, tmp_source_tree)
 
-    driver_warm_id = create_warm_state(
+    create_dynamic_temperature(
         ctx,
         "driver",
         driver_base_id,
         driver_base_tree,
         tmp_source_id,
         tmp_source_tree,
+        thin_material_id,
     )
-    passenger_warm_id = create_warm_state(
+    create_dynamic_temperature(
         ctx,
         "passenger",
         passenger_base_id,
         passenger_base_tree,
         tmp_source_id,
         tmp_source_tree,
+        thin_material_id,
     )
 
-    button_specs = [
-        (DRIVER_DECREASE_BUTTON_GO, driver_base_id, driver_warm_id),
-        (DRIVER_INCREASE_BUTTON_GO, driver_warm_id, driver_base_id),
-        (PASSENGER_DECREASE_BUTTON_GO, passenger_base_id, passenger_warm_id),
-        (PASSENGER_INCREASE_BUTTON_GO, passenger_warm_id, passenger_base_id),
-    ]
-    button_results = {}
-    for name, visible_id, hidden_id in button_specs:
-        _, button_go_tree = find_game_object(ctx, name)
-        button_id, button_tree = components(ctx, button_go_tree)[
-            "UnityEngine.UI.Button"
-        ]
-        set_button_state_calls(button_tree, visible_id, hidden_id)
-        ctx.save(button_id, button_tree)
-        button_results[name] = {
-            "buttonPathId": button_id,
-            "visiblePathId": visible_id,
-            "hiddenPathId": hidden_id,
-        }
-
-    driver_base_tree["m_IsActive"] = True
-    passenger_base_tree["m_IsActive"] = True
+    driver_base_tree["m_IsActive"] = False
+    passenger_base_tree["m_IsActive"] = False
     ctx.save(driver_base_id, driver_base_tree)
     ctx.save(passenger_base_id, passenger_base_tree)
+    pan_result = verify_vendor_pan_recognizer(ctx)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="central-brain-unity-hvac-") as tmp:
@@ -296,19 +299,38 @@ def patch_bundle(input_path: Path, output_path: Path) -> dict:
     verified_env = UnityPy.load(str(output_path))
     verified_ctx = BundleContext(verified_env)
     verified = {}
-    for zone, ids in WARM_STATE_IDS.items():
-        warm_tree = verified_ctx.tree(ids["go"])
+    for zone, ids in DYNAMIC_STATE_IDS.items():
+        dynamic_tree = verified_ctx.tree(ids["go"])
         text_tree = verified_ctx.tree(ids["text"])
         verified[zone] = {
-            "gameObject": warm_tree.get("m_Name"),
-            "active": bool(warm_tree.get("m_IsActive")),
+            "gameObject": dynamic_tree.get("m_Name"),
+            "active": bool(dynamic_tree.get("m_IsActive")),
             "text": text_tree.get("m_text"),
+            "fontSize": text_tree.get("m_fontSize"),
+            "fontWeight": text_tree.get("m_fontWeight"),
         }
+    _, verified_recognizer_go = find_game_object(
+        verified_ctx,
+        INPUT_RECOGNIZERS_GO,
+    )
+    _, verified_pan_tree = components(
+        verified_ctx,
+        verified_recognizer_go,
+    )[PAN_RECOGNIZER_CLASS]
     return {
         "input": str(input_path),
         "output": str(output_path),
         "states": verified,
-        "buttons": button_results,
+        "panRecognizer": {
+            **pan_result,
+            "targetInputDisplay": verified_pan_tree["_targetInputDisplay"],
+            "eventSystemRaycastCheck": bool(
+                verified_pan_tree["_eventSystemRaycastCheck"]
+            ),
+            "useFingerPolling": bool(
+                verified_pan_tree["useFingerPolling"]
+            ),
+        },
     }
 
 

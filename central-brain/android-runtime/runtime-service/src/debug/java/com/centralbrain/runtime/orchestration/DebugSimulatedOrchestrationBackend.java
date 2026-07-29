@@ -503,6 +503,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
     }
 
     private static ScenarioKind scenario(String scenarioId) {
+        if ("scene.aios.freeform.v1".equals(scenarioId)) {
+            return ScenarioKind.AIOS_FREEFORM;
+        }
         if ("scene.comfort.cold.v1".equals(scenarioId)) {
             return ScenarioKind.COLD;
         }
@@ -546,6 +549,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         try {
             Map<String, byte[]> assets = new LinkedHashMap<>();
             for (String name : new String[] {
+                    "scene.aios.freeform.v1.json",
                     "scene.comfort.cold.v1.json",
                     "scene.fatigue.assist.v1.json",
                     "scene.cabin.multimodal.assist.v1.json",

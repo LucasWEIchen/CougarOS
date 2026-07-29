@@ -1,5 +1,5 @@
 {
-  "project": "Central Brain RenderService Unity-native HVAC patch",
+  "project": "Central Brain RenderService dynamic HVAC, vendor orbit verification and fidelity patch",
   "package": "com.tuanjie.renderservice",
   "requirements": [
     "S2-HMI-001",
@@ -12,15 +12,26 @@
   "patched_entry": "assets/aa/HMIAndroid/launcher_assets_all_c93fe44a4d61e1b9545c50b3baddfbd7.bundle",
   "implementation": {
     "unity_asset": "UI_Launcher.prefab",
-    "native_temperature_states": [
-      "26.5\u00b0C",
-      "28.0\u00b0C"
-    ],
+    "native_temperature_range_c": {
+      "minimum": 18.0,
+      "maximum": 30.0,
+      "step": 0.5,
+      "default": 26.5
+    },
     "zones": [
       "driver",
       "passenger"
     ],
-    "control": "UnityEngine.UI.Button persistent SetActive calls"
+    "control": "Client2 c2sSendMessage to Unity TextMeshPro set_text(String)",
+    "render_scale_request": 1.5,
+    "orbit_input": {
+      "mode": "vendor_configuration_preserved",
+      "target_input_display": 2,
+      "render_service_display_index": 1,
+      "android_motion_event_display_id": 0,
+      "event_system_raycast_check": true,
+      "use_finger_polling": false
+    }
   },
   "hardware_dependencies": {
     "vehicle_hvac_bus": "reserved interface only",
@@ -29,6 +40,7 @@
   "non_goals": [
     "libtuanjie.so engine binary replacement",
     "vehicle HVAC actuation",
-    "vendor Android system image modification"
+    "vendor Android system image modification",
+    "production graphics quality qualification"
   ]
 }

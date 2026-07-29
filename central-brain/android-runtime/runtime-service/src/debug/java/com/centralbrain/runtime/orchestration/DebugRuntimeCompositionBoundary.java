@@ -357,6 +357,9 @@ final class DebugRuntimeCompositionBoundary {
     }
 
     private static String skillForScenario(String scenarioId) {
+        if ("scene.aios.freeform.v1".equals(scenarioId)) {
+            return BoundedBuiltInSkillRuntime.SKILL_CABIN_PRECONDITION;
+        }
         if ("scene.comfort.cold.v1".equals(scenarioId)) {
             return BoundedBuiltInSkillRuntime.SKILL_CABIN_PRECONDITION;
         }

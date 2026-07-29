@@ -21,6 +21,12 @@ else
   exit 2
 fi
 
+if [[ -n "${ADB_SERVER_PORT:-}" ]]; then
+  [[ "$ADB_SERVER_PORT" =~ ^[0-9]+$ ]] \
+    || { echo "wsl_openclaw_bridge_ready=false reason=INVALID_ADB_SERVER_PORT" >&2; exit 3; }
+  adb_base+=( -P "$ADB_SERVER_PORT" )
+fi
+
 adb=("${adb_base[@]}")
 if [[ -n "${ANDROID_TRANSPORT_ID:-}" ]]; then
   [[ "$ANDROID_TRANSPORT_ID" =~ ^[0-9]+$ ]] \

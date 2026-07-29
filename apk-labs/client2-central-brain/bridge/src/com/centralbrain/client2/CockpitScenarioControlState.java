@@ -270,6 +270,8 @@ public final class CockpitScenarioControlState {
 
     private static Map<String, Definition> definitions() {
         Map<String, Definition> definitions = new LinkedHashMap<>();
+        add(definitions, "agent.freeform", "scene.aios.freeform.v1", Origin.NATURAL,
+                DeviceRole.NOT_INVOLVED, DeviceRole.NOT_INVOLVED);
         add(definitions, "care.cold", "scene.comfort.cold.v1", Origin.NATURAL,
                 DeviceRole.CATALOG_REQUIRED, DeviceRole.CATALOG_OPTIONAL);
         add(definitions, "care.fatigue", "scene.fatigue.assist.v1", Origin.NATURAL,

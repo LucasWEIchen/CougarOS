@@ -12,17 +12,25 @@ fi
 
 bash -n "$PROJECT_DIR/scripts/build_debug_apk.sh"
 bash -n "$PROJECT_DIR/scripts/verify_project.sh"
-python -m py_compile \
+python3 -m py_compile \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py" \
   "$PROJECT_DIR/scripts/build_unaligned_apk.py"
 rm -rf "$PROJECT_DIR/scripts/__pycache__"
-python -m json.tool "$PROJECT_DIR/renderservice-central-brain.project.json" \
+python3 -m json.tool "$PROJECT_DIR/renderservice-central-brain.project.json" \
   >/dev/null
-rg -q 'CentralBrain_.*_temperature_28_0' \
+rg -q 'CentralBrainDriverTemperature' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
-rg -q 'UnityEngine.GameObject, UnityEngine.CoreModule' \
+rg -q 'CentralBrainPassengerTemperature' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
-rg -q 'm_MethodName.*SetActive' \
+rg -q '"_targetInputDisplay": 2' \
+  "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
+rg -q '"_eventSystemRaycastCheck": 1' \
+  "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
+rg -q '"useFingerPolling": 0' \
+  "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
+rg -q '"vendorConfigurationPreserved": True' \
+  "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
+rg -q -- '-0.18.*_FaceDilate' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
 rg -q 'launcher_assets_all_c93fe44a4d61e1b9545c50b3baddfbd7.bundle' \
   "$PROJECT_DIR/scripts/build_unaligned_apk.py"
@@ -31,7 +39,7 @@ if [[ -f "$SIGNED_APK" ]]; then
   apksigner verify --verbose --print-certs "$SIGNED_APK" >/dev/null
   aapt dump badging "$SIGNED_APK" \
     | rg -q "package: name='com.tuanjie.renderservice'"
-  python - "$SIGNED_APK" <<'PY'
+  python3 - "$SIGNED_APK" <<'PY'
 import sys
 import zipfile
 
@@ -45,4 +53,4 @@ with zipfile.ZipFile(sys.argv[1]) as apk:
 PY
 fi
 
-echo "RenderService Unity-native HVAC patch project verified"
+echo "RenderService dynamic Unity HVAC and vendor orbit-input contract verified"

@@ -7,6 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_APK="$ROOT/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
 CLIENT2_APK="$ROOT/builds/client2-central-brain/signed/client2-central-brain.debug.apk"
+RUNTIME_PACKAGE="com.centralbrain.runtime"
 CLIENT2_PACKAGE="com.tuanjie.urasclient2"
 CLIENT2_ACTIVITY="$CLIENT2_PACKAGE/.MainActivity"
 TIMEOUT_SECONDS="${CENTRAL_BRAIN_CLIENT2_OPENCLAW_TIMEOUT_SECONDS:-180}"
@@ -57,6 +58,12 @@ else
   exit 3
 fi
 
+if [[ -n "${ADB_SERVER_PORT:-}" ]]; then
+  [[ "$ADB_SERVER_PORT" =~ ^[0-9]+$ ]] \
+    || { echo "client2_openclaw_development_test_complete=false reason=INVALID_ADB_SERVER_PORT" >&2; exit 4; }
+  adb_base+=( -P "$ADB_SERVER_PORT" )
+fi
+
 adb=("${adb_base[@]}")
 if [[ -n "${ANDROID_TRANSPORT_ID:-}" ]]; then
   [[ "$ANDROID_TRANSPORT_ID" =~ ^[0-9]+$ ]] \
@@ -97,8 +104,38 @@ apk_argument() {
   fi
 }
 
-"${adb[@]}" install -r -d -t "$(apk_argument "$RUNTIME_APK")" >/dev/null
-"${adb[@]}" install -r -d -t "$(apk_argument "$CLIENT2_APK")" >/dev/null
+verify_preinstalled_apk() {
+  local package_name="$1"
+  local apk_path="$2"
+  local installed_path local_hash device_hash
+  installed_path="$("${adb[@]}" shell pm path "$package_name" \
+    | tr -d '\r' | sed -n 's/^package://p' | head -n 1)"
+  [[ -n "$installed_path" ]] \
+    || { echo "client2_openclaw_development_test_complete=false reason=PREINSTALLED_PACKAGE_MISSING" >&2; return 1; }
+  local_hash="$(sha256sum "$apk_path" | awk '{print $1}')"
+  device_hash="$("${adb[@]}" shell sha256sum "$installed_path" \
+    | tr -d '\r' | awk '{print $1}')"
+  if [[ -z "$device_hash" || "$device_hash" != "$local_hash" ]]; then
+    echo "client2_openclaw_development_test_complete=false reason=PREINSTALLED_APK_HASH_MISMATCH" >&2
+    return 1
+  fi
+  echo "preinstalled_apk_verified=true package=$package_name sha256=$local_hash"
+}
+
+case "${CENTRAL_BRAIN_SKIP_ANDROID_INSTALL:-false}" in
+  false)
+    "${adb[@]}" install -r -d -t "$(apk_argument "$RUNTIME_APK")" >/dev/null
+    "${adb[@]}" install -r -d -t "$(apk_argument "$CLIENT2_APK")" >/dev/null
+    ;;
+  true)
+    verify_preinstalled_apk "$RUNTIME_PACKAGE" "$RUNTIME_APK"
+    verify_preinstalled_apk "$CLIENT2_PACKAGE" "$CLIENT2_APK"
+    ;;
+  *)
+    echo "client2_openclaw_development_test_complete=false reason=INVALID_SKIP_ANDROID_INSTALL" >&2
+    exit 20
+    ;;
+esac
 
 if [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
   bridge_env=()
@@ -107,6 +144,8 @@ if [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
   [[ -n "${ANDROID_SERIAL:-}" ]] \
     && bridge_env+=("ANDROID_SERIAL=$ANDROID_SERIAL")
   [[ -n "${ADB_BIN:-}" ]] && bridge_env+=("ADB_BIN=$ADB_BIN")
+  [[ -n "${ADB_SERVER_PORT:-}" ]] \
+    && bridge_env+=("ADB_SERVER_PORT=$ADB_SERVER_PORT")
   env "${bridge_env[@]}" "$ROOT/tools/start_central_brain_wsl_openclaw_bridge.sh" >/dev/null
 else
   "${adb[@]}" reverse --remove tcp:18789 >/dev/null 2>&1 || true

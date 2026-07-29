@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/** Bounded, process-local, consume-once storage for debug multimodal inputs. */
+/** Bounded, process-local, consume-once storage for debug model inputs. */
 public final class DevelopmentModelInputStore {
     private static final int MAX_ENTRIES = 4;
     private static final long MAX_TOTAL_BYTES = 12L * 1024L * 1024L;
@@ -96,6 +96,7 @@ public final class DevelopmentModelInputStore {
             DevelopmentModelInput input, long acceptedAtEpochMs) {
         DevelopmentModelInputReceipt result = new DevelopmentModelInputReceipt();
         result.schemaVersion = DevelopmentModelInputContract.SCHEMA_VERSION;
+        result.inputMode = input.inputMode;
         result.sessionId = input.sessionId;
         result.scenarioId = input.scenarioId;
         result.inputText = input.inputText.trim();
@@ -115,6 +116,7 @@ public final class DevelopmentModelInputStore {
     private static DevelopmentModelInputReceipt copy(DevelopmentModelInputReceipt source) {
         DevelopmentModelInputReceipt copy = new DevelopmentModelInputReceipt();
         copy.schemaVersion = source.schemaVersion;
+        copy.inputMode = source.inputMode;
         copy.sessionId = source.sessionId;
         copy.scenarioId = source.scenarioId;
         copy.inputText = source.inputText;
@@ -172,6 +174,11 @@ public final class DevelopmentModelInputStore {
                 throw violation("consumed input is closed");
             }
             return imageBytes.clone();
+        }
+
+        public boolean hasImage() {
+            return receipt.inputMode
+                    == DevelopmentModelInputContract.INPUT_TEXT_AND_IMAGE;
         }
 
         @Override

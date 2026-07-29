@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "scene.aios.freeform.v1",
+  "version": 1,
+  "supportedSources": ["HMI_BUTTON", "VOICE", "API"],
+  "supportedZones": ["ROW1_DRIVER"],
+  "contextPolicyId": "context.seat-comfort.v1",
+  "requiredContext": [
+    "Vehicle.Speed",
+    "Vehicle.Powertrain.Transmission.CurrentGear",
+    "Vehicle.Chassis.ParkingBrake.IsEngaged",
+    "Vehicle.Cabin.Seat.IsOccupied"
+  ],
+  "optionalContext": [
+    "Vehicle.Cabin.HVAC.IsAirConditioningActive",
+    "Vehicle.Cabin.HVAC.AmbientAirTemperature",
+    "Vehicle.Cabin.Seat.Position.Recline"
+  ],
+  "requiredCapabilities": ["vehicle.hvac.power"],
+  "optionalCapabilities": [],
+  "riskClass": "MEDIUM",
+  "planTemplate": {
+    "nodes": [
+      {
+        "nodeId": "capture_cockpit_context",
+        "nodeType": "context.capture",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {
+          "policyId": "policy.context.capture.v1",
+          "policyVersion": 1,
+          "riskClass": "LOW",
+          "drivingPolicy": "ANY",
+          "approvalRequired": false,
+          "failureMode": "FAIL_SCENARIO"
+        }
+      },
+      {
+        "nodeId": "interpret_freeform_intent",
+        "nodeType": "model.invoke",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {
+          "policyId": "policy.model.freeform-intent.v1",
+          "policyVersion": 1,
+          "riskClass": "LOW",
+          "drivingPolicy": "ANY",
+          "approvalRequired": false,
+          "failureMode": "FAIL_SCENARIO"
+        }
+      },
+      {
+        "nodeId": "validate_candidate_actions",
+        "nodeType": "policy.evaluate",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {
+          "policyId": "policy.aios.freeform-allowlist.v1",
+          "policyVersion": 1,
+          "riskClass": "MEDIUM",
+          "drivingPolicy": "ANY",
+          "approvalRequired": false,
+          "failureMode": "FAIL_SCENARIO"
+        }
+      },
+      {
+        "nodeId": "render_freeform_result",
+        "nodeType": "summary.render",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {
+          "policyId": "policy.summary.render.v1",
+          "policyVersion": 1,
+          "riskClass": "LOW",
+          "drivingPolicy": "ANY",
+          "approvalRequired": false,
+          "failureMode": "FAIL_SCENARIO"
+        }
+      }
+    ],
+    "dependencies": [
+      {
+        "prerequisiteNodeId": "capture_cockpit_context",
+        "dependentNodeId": "interpret_freeform_intent",
+        "condition": "ON_SUCCESS"
+      },
+      {
+        "prerequisiteNodeId": "interpret_freeform_intent",
+        "dependentNodeId": "validate_candidate_actions",
+        "condition": "ON_SUCCESS"
+      },
+      {
+        "prerequisiteNodeId": "validate_candidate_actions",
+        "dependentNodeId": "render_freeform_result",
+        "condition": "ON_SUCCESS"
+      }
+    ]
+  },
+  "fallback": {
+    "mode": "FAIL_CLOSED",
+    "messageKey": "scenario.aios.freeform.failed",
+    "optionalNodeIds": []
+  },
+  "ui": {
+    "displayKey": "scenario.aios.freeform.title",
+    "descriptionKey": "scenario.aios.freeform.description",
+    "iconKey": "scenario.icon.aios",
+    "sortOrder": 5
+  }
+}

@@ -92,6 +92,7 @@ for marker in \
   'centralBrainNavigationTrigger' 'centralBrainColdButton' \
   'client2_orchestration_snapshot_projected=true' \
   'model_projection_available=true' 'centralBrainActuatorOverlay' \
+  'CENTRAL_BRAIN_SKIP_ANDROID_INSTALL' 'PREINSTALLED_APK_HASH_MISMATCH' \
   'real_wsl_openclaw_ollama_accessed=true' \
   'vehicle_effect_hardware_accessed=false'; do
   require_text "$CLIENT2_RUNNER" "$marker"

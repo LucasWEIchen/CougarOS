@@ -111,7 +111,7 @@ for marker in \
   grep -Fq "$marker" "$LAYOUT" \
     || { echo "P4-R4 UI marker missing: $marker" >&2; exit 1; }
 done
-grep -Fq 'onMultimodalInputAccepted' "$CLIENT"
+grep -Fq 'onModelInputAccepted' "$CLIENT"
 grep -Fq 'MODEL OUTPUT' "$CLIENT"
 grep -Fq 'PREVIEW_BLOCKED' "$CLIENT"
 grep -Fq 'tap' "$CONTRACT"

@@ -207,7 +207,8 @@ assert dev["structured_output_required"] is True
 assert dev["action_allowlist_required"] is True
 assert dev["ephemeral_reply_projection_wired"] is True
 assert dev["projection_interface"] == "com.centralbrain.sdk.model.ICentralBrainDevelopmentModelProjection"
-assert dev["projection_interface_hash"] == "c966fbbac6fe3eb48b72d27c09cbc305dece035a55efa5ff0c9e3c6ea0524486"
+assert dev["projection_interface_version"] == 3
+assert dev["projection_interface_hash"] == "734be8320485292ef97a649a329b0253005563a6d4e7e6ed4638bc04cb23ac1d"
 assert dev["projection_debug_source_set_only"] is True
 assert dev["orchestration_v1_unchanged"] is True
 assert dev["model_text_persisted"] is False
@@ -225,13 +226,13 @@ assert evidence["abi"] == "arm64-v8a"
 assert evidence["device_endpoint_reached"] is True
 assert evidence["model_invoked"] is True
 assert evidence["terminal_response_validated"] is True
-assert evidence["current_projection_interface_android13_arm64_verified"] is False
-assert evidence["current_projection_retest_blocker"] == "adb_device_count_0"
+assert evidence["current_projection_interface_android13_arm64_verified"] is True
+assert evidence["current_projection_retest_blocker"] == ""
 state = contract["claim_state"]
 assert state["development_wsl_gateway_implemented"] is True
 assert state["development_android13_arm64_verified"] is True
 assert state["development_projection_host_verified"] is True
-assert state["development_projection_android13_arm64_verified"] is False
+assert state["development_projection_android13_arm64_verified"] is True
 assert state["production_endpoint_contract_defined"] is True
 assert state["production_provider_implemented"] is False
 assert state["production_npu_validated"] is False
@@ -259,7 +260,7 @@ printf '%s\n' \
   'development_wsl_gateway_implemented=true' \
   'development_android13_arm64_verified=true' \
   'development_projection_host_verified=true' \
-  'development_projection_android13_arm64_verified=false' \
+  'development_projection_android13_arm64_verified=true' \
   'production_endpoint_contract_defined=true' \
   'production_provider_implemented=false' \
   'production_npu_validated=false' \

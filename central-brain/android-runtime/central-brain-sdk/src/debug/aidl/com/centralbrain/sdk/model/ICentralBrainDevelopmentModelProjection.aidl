@@ -6,11 +6,11 @@ import com.centralbrain.sdk.model.DevelopmentModelInputReceipt;
 
 // Debug-only side channel for bounded model UX evidence. Release does not publish this Service.
 interface ICentralBrainDevelopmentModelProjection {
-    const int INTERFACE_VERSION = 2;
-    const String INTERFACE_HASH = "c966fbbac6fe3eb48b72d27c09cbc305dece035a55efa5ff0c9e3c6ea0524486";
+    const int INTERFACE_VERSION = 3;
+    const String INTERFACE_HASH = "734be8320485292ef97a649a329b0253005563a6d4e7e6ed4638bc04cb23ac1d";
 
     int getProtocolVersion();
     String getProtocolHash();
-    DevelopmentModelInputReceipt stageOwnMultimodalInput(in DevelopmentModelInput input);
+    DevelopmentModelInputReceipt stageOwnModelInput(in DevelopmentModelInput input);
     DevelopmentModelProjection getOwnProjection(String sessionId);
 }

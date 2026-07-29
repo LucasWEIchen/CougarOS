@@ -140,15 +140,16 @@ public final class DevelopmentModelProjectionClient implements AutoCloseable {
         return projection;
     }
 
-    public DevelopmentModelInputReceipt stageOwnMultimodalInput(
+    public DevelopmentModelInputReceipt stageOwnModelInput(
             DevelopmentModelInput input) throws RemoteException {
         DevelopmentModelInputContract.validateMetadata(input);
         DevelopmentModelInputReceipt receipt =
-                requireService().stageOwnMultimodalInput(input);
+                requireService().stageOwnModelInput(input);
         DevelopmentModelInputContract.validateReceipt(receipt);
         if (!input.sessionId.equals(receipt.sessionId)
                 || !input.scenarioId.equals(receipt.scenarioId)
-                || !input.imageSha256.equals(receipt.imageSha256)) {
+                || input.inputMode != receipt.inputMode
+                || !Objects.equals(input.imageSha256, receipt.imageSha256)) {
             throw new IllegalArgumentException(
                     "CB_DEVELOPMENT_MODEL_PROJECTION_CLIENT: input receipt mismatch");
         }

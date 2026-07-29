@@ -103,7 +103,7 @@ for marker in \
 done
 for marker in \
   'NetworkModelMode.OPENCLAW_TARGET' 'TARGET_OPENCLAW_TRANSITIONAL_ID' \
-  'RouteMode.TARGET_INTEGRATION' 'registerScenarioPrompt(inputDigest, scenarioId)'; do
+  'RouteMode.TARGET_INTEGRATION' 'openClawEngine.registerPrompt(prompt)'; do
   require_text "$BOUNDARY" "$marker"
 done
 for marker in \

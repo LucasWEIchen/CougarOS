@@ -1,6 +1,6 @@
 # Model、Scheduler 与 OpenClaw 过渡 Provider 模块详设
 
-版本：1.0
+版本：1.1
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -24,6 +24,7 @@ Effect gate。Provider 失败不能进入车辆执行。
 | --- | --- |
 | `APP-002` | 单帧图像与文本绑定同一多模态请求 |
 | `APP-004` | 注入座舱角色、驾驶服务目标、能力和安全边界 |
+| `APP-006` | 任意文本绑定座舱上下文并产生有界回复与候选动作 |
 | `S2-MDL-001` | Provider 描述、健康、预热、推理、流式、取消、指标和故障 |
 | `S2-MDL-002` | 按模态、资源、健康和 assurance 路由 |
 | `S2-MDL-003` | 当前 OpenClaw 过渡接口与后续 Provider 替换 |
@@ -41,7 +42,7 @@ Effect gate。Provider 失败不能进入车辆执行。
 | [PolicyAwareModelRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/PolicyAwareModelRouter.java) | policy snapshot、route decision | assurance/资源/网络路由 |
 | [InferenceResourceScheduler.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scheduler/InferenceResourceScheduler.java) | `admit`、`claimNext`、`cancelOwned`、`settle` | queue/slot/deadline |
 | [ModelResourceAdmission.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scheduler/ModelResourceAdmission.java) | `admit` | Router 与 Scheduler 准入组合 |
-| [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forScenario`、`forMultimodal` | 固定座舱 system/user instruction |
+| [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forScenario`、`forFreeform`、`forMultimodal` | 固定座舱 system/user instruction 与动作白名单 |
 | [StructuredModelOutput.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/StructuredModelOutput.java) | `validate`、`AcceptedOutput` | 严格 JSON 和能力参数 |
 | [OpenClawEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OpenClawEndpointConfig.java) | `targetProductionTransitional`、URI getters | 生产过渡端点配置 |
 | [OllamaEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaEndpointConfig.java) | `productionLinkLocal` | 后续 Ollama 端点合同 |
@@ -72,6 +73,10 @@ Provider 必须实现：
 `CockpitModelPrompt` 固定 system instruction，明确模型位于汽车座舱、目标是服务驾驶员和乘员、只可提出
 allowed actions、不能宣称已执行动作。多模态 prompt 同时绑定 utterance、seat-area Context、image digest、
 allowed/required actions。
+
+`forFreeform()` 接收 1..1024 字符的自然语言目标，至少要求 `assistant.respond`，并将候选动作限制为
+回复、座舱温控、座椅、媒体和休息区导航能力集合。`validateActions()` 拒绝未知动作、重复动作、
+超过四个动作或缺失必要动作。该校验只产生候选集合，不授予 Tool 或 Effect 权限。
 
 ### 4.3 调度与路由
 
@@ -112,6 +117,7 @@ scenario/catalog/capability digest 不匹配和超出 `TargetRange` 的参数。
 | privacy | classification 与允许的 transport |
 
 网络层只返回 Provider chunk/terminal；业务层必须再执行 `StructuredModelOutput.validate()`。
+文字单模态请求不携带伪造的图片字段；文字与图片请求必须显式区分 input mode。
 
 ## 6. 关键流程
 
@@ -151,6 +157,7 @@ sequenceDiagram
 - [ ] Router 顺序检查 privacy、network、thermal、health、capability。
 - [ ] Scheduler 限制 global/owner/provider 并发和 deadline。
 - [ ] prompt 含座舱角色、服务目标、白名单和禁止自证执行。
+- [ ] 任意文本只产生结构化回复和最多四个白名单候选动作。
 - [ ] 多模态 text/image/context 绑定同一 request fingerprint。
 - [ ] 输出严格拒绝 unknown field 和 capability/range 越界。
 - [ ] 凭据不进入日志、Event、HMI、异常和审计。
@@ -167,4 +174,5 @@ Provider，再由 Router policy 选择，不能复用 OpenClaw 响应 parser。
 - production OpenClaw `ModelProvider` 实现和 release 装配尚未完成。
 - 固定凭据需要迁移到受控 secret owner，当前属于发布风险。
 - Vendor NPU 和后续 Ollama Provider 尚未生产合格。
+- 任意文本候选动作到 typed Plan、Tool 参数和 EffectIntent 的生产编译器尚未激活。
 - `production_ready=false`，`target_hardware_validated=false`。

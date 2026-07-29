@@ -61,6 +61,7 @@ public final class CockpitMultimodalInput implements AutoCloseable {
         byte[] bytes = requireOpen();
         DevelopmentModelInput input = new DevelopmentModelInput();
         input.schemaVersion = DevelopmentModelInputContract.SCHEMA_VERSION;
+        input.inputMode = DevelopmentModelInputContract.INPUT_TEXT_AND_IMAGE;
         input.sessionId = sessionId;
         input.scenarioId = canonicalScenarioId;
         input.inputText = INPUT_TEXT;

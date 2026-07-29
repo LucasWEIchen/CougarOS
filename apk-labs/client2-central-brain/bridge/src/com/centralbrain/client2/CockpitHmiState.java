@@ -8,6 +8,8 @@ import com.centralbrain.sdk.session.SessionHandle;
 public final class CockpitHmiState {
     public enum PanelVisibility { HIDDEN, VISIBLE }
 
+    public enum TextInputVisibility { HIDDEN, VISIBLE }
+
     public enum ConnectionState {
         DISCONNECTED,
         CONNECTING,
@@ -23,6 +25,7 @@ public final class CockpitHmiState {
 
     private final long revision;
     private final PanelVisibility panelVisibility;
+    private final TextInputVisibility textInputVisibility;
     private final ConnectionState connectionState;
     private final SurfaceStage surfaceStage;
     private final DeviceDrawer deviceDrawer;
@@ -54,6 +57,7 @@ public final class CockpitHmiState {
     private CockpitHmiState(Builder builder) {
         revision = builder.revision;
         panelVisibility = builder.panelVisibility;
+        textInputVisibility = builder.textInputVisibility;
         connectionState = builder.connectionState;
         surfaceStage = builder.surfaceStage;
         deviceDrawer = builder.deviceDrawer;
@@ -93,6 +97,10 @@ public final class CockpitHmiState {
 
     public PanelVisibility getPanelVisibility() {
         return panelVisibility;
+    }
+
+    public TextInputVisibility getTextInputVisibility() {
+        return textInputVisibility;
     }
 
     public ConnectionState getConnectionState() {
@@ -283,6 +291,7 @@ public final class CockpitHmiState {
     static final class Builder {
         long revision;
         PanelVisibility panelVisibility = PanelVisibility.HIDDEN;
+        TextInputVisibility textInputVisibility = TextInputVisibility.HIDDEN;
         ConnectionState connectionState = ConnectionState.DISCONNECTED;
         SurfaceStage surfaceStage = SurfaceStage.INTENT;
         DeviceDrawer deviceDrawer = DeviceDrawer.CLOSED;
@@ -317,6 +326,7 @@ public final class CockpitHmiState {
         Builder(CockpitHmiState source) {
             revision = source.revision;
             panelVisibility = source.panelVisibility;
+            textInputVisibility = source.textInputVisibility;
             connectionState = source.connectionState;
             surfaceStage = source.surfaceStage;
             deviceDrawer = source.deviceDrawer;

@@ -53,7 +53,7 @@ public final class DevelopmentModelProjectionService extends Service {
                 }
 
                 @Override
-                public DevelopmentModelInputReceipt stageOwnMultimodalInput(
+                public DevelopmentModelInputReceipt stageOwnModelInput(
                         DevelopmentModelInput input) {
                     DevelopmentModelInputContract.validateMetadata(input);
                     String owner = authorize(Capability.ORCHESTRATION_START_OWN);
@@ -62,15 +62,20 @@ public final class DevelopmentModelProjectionService extends Service {
                         throw new IllegalArgumentException(
                                 "CB_DEVELOPMENT_MODEL_INPUT: Session not found for caller");
                     }
-                    byte[] imageBytes = readAndValidateImage(input);
+                    byte[] imageBytes =
+                            input.inputMode
+                                            == DevelopmentModelInputContract
+                                                    .INPUT_TEXT_AND_IMAGE
+                                    ? readAndValidateImage(input)
+                                    : new byte[0];
                     try {
                         DevelopmentModelInputReceipt receipt =
                                 DevelopmentModelInputStore.getInstance().stage(
                                         owner, input, imageBytes, System.currentTimeMillis());
                         Log.i(TAG, "development_model_input_staged=true"
                                 + " scenario_id=" + input.scenarioId
+                                + " input_mode=" + input.inputMode
                                 + " image_bytes=" + input.imageByteCount
-                                + " image_sha256=" + input.imageSha256
                                 + " raw_model_text_logged=false"
                                 + " image_persisted=false"
                                 + " hardware_accessed=false");

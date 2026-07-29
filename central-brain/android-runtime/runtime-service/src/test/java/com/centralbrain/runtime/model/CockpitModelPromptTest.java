@@ -63,4 +63,23 @@ public final class CockpitModelPromptTest {
         assertThrows(IllegalStateException.class, () ->
                 prompt.validateAdmittedActions(List.of("shopping.search_products")));
     }
+
+    @Test
+    public void freeformPromptCarriesRawIntentButOnlyAdmitsAllowlistedCandidates() {
+        String utterance = "请把座舱调暖一点，并找一个休息区";
+        CockpitModelPrompt prompt = CockpitModelPrompt.forFreeform(
+                "d".repeat(64), utterance);
+
+        assertEquals("scene.aios.freeform.v1", prompt.getScenarioId());
+        assertEquals(utterance, prompt.getUtterance());
+        assertTrue(prompt.getContext().contains("environment=AUTOMOTIVE_COCKPIT"));
+        assertTrue(prompt.getContext().contains("execution_policy=MODEL_PROPOSAL_ONLY"));
+        prompt.validateAdmittedActions(List.of(
+                "assistant.respond",
+                "hvac.warm_cabin",
+                "navigation.find_rest_area"));
+        assertThrows(IllegalStateException.class, () ->
+                prompt.validateAdmittedActions(List.of(
+                        "assistant.respond", "vehicle.unlock_doors")));
+    }
 }
