@@ -38,7 +38,8 @@ public final class SimulatedScenarioInputFactory {
         AIOS_FREEFORM("scene.aios.freeform.v1"),
         COLD("scene.comfort.cold.v1"),
         FATIGUE("scene.fatigue.assist.v1"),
-        CABIN_MULTIMODAL("scene.cabin.multimodal.assist.v1");
+        CABIN_MULTIMODAL("scene.cabin.multimodal.assist.v1"),
+        CABIN_SMOKING("scene.cabin.compliance.smoking.v1");
 
         private final String scenarioId;
 
@@ -175,9 +176,15 @@ public final class SimulatedScenarioInputFactory {
                 || deadlineEpochMs - nowEpochMs > PlanContract.MAX_PLAN_DEADLINE_MS) {
             throw violation("clock is invalid");
         }
-        ContextFieldPolicy policy = requiredScenario != ScenarioKind.FATIGUE
-                ? ContextFieldPolicy.seatComfort() : ContextFieldPolicy.seatRecline();
-        ContextSnapshot context = context(policy, requiredDriving, nowEpochMs, nowElapsedMs);
+        ContextFieldPolicy policy = requiredScenario == ScenarioKind.FATIGUE
+                ? ContextFieldPolicy.seatRecline()
+                : requiredScenario == ScenarioKind.CABIN_SMOKING
+                        ? ContextFieldPolicy.general()
+                        : ContextFieldPolicy.seatComfort();
+        SeatZone seatZone = requiredScenario == ScenarioKind.CABIN_SMOKING
+                ? SeatZone.CABIN : SeatZone.ROW1_DRIVER;
+        ContextSnapshot context = context(
+                policy, requiredDriving, seatZone, nowEpochMs, nowElapsedMs);
         CapabilitySnapshot capabilities = CapabilitySnapshot.capture(
                 CapabilityCatalog.stage2Defaults(),
                 CapabilityProfile.SOFTWARE_SIMULATION,
@@ -188,7 +195,8 @@ public final class SimulatedScenarioInputFactory {
                         requiredScenario.scenarioId,
                         "",
                         Source.HMI_BUTTON,
-                        Zone.ROW1_DRIVER),
+                        requiredScenario == ScenarioKind.CABIN_SMOKING
+                                ? Zone.CABIN : Zone.ROW1_DRIVER),
                 catalog,
                 context,
                 capabilities);
@@ -204,6 +212,7 @@ public final class SimulatedScenarioInputFactory {
     private static ContextSnapshot context(
             ContextFieldPolicy policy,
             DrivingProfile driving,
+            SeatZone seatZone,
             long nowEpochMs,
             long nowElapsedMs) {
         boolean moving = driving == DrivingProfile.MOVING;
@@ -275,7 +284,7 @@ public final class SimulatedScenarioInputFactory {
                 SourceAssurance.RUNTIME_OWNED_STUB,
                 false);
         return new ContextSnapshotBuilder().build(
-                twin, safety, policy, SeatZone.ROW1_DRIVER, false);
+                twin, safety, policy, seatZone, false);
     }
 
     private String nextUuid() {

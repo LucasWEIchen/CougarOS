@@ -15,13 +15,13 @@ import org.junit.Test;
 
 public final class CapabilityCatalogTest {
     @Test
-    public void definesEightImmutableStage2Capabilities() {
+    public void definesNineImmutableStage2Capabilities() {
         CapabilityCatalog catalog = CapabilityCatalog.stage2Defaults();
-        assertEquals(8, catalog.size());
+        assertEquals(9, catalog.size());
         assertEquals(VehicleCapability.CapabilityId.HVAC_TARGET_TEMPERATURE,
                 catalog.all().get(0).getId());
-        assertEquals(VehicleCapability.CapabilityId.NAVIGATION_POI,
-                catalog.all().get(7).getId());
+        assertEquals(VehicleCapability.CapabilityId.CABIN_SMOKING_DETECTION,
+                catalog.all().get(8).getId());
         assertThrows(UnsupportedOperationException.class, () -> catalog.all().clear());
         assertThrows(
                 UnsupportedOperationException.class,

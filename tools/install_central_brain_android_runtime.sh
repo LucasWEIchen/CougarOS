@@ -1592,7 +1592,7 @@ for _ in {1..40}; do
         <<<"$SCENARIO_MANIFEST_LOG" \
       && grep -Fq "scenario_manifest_schema_version_verified=true" \
         <<<"$SCENARIO_MANIFEST_LOG" \
-      && grep -Fq "scenario_catalog_count=5" <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_catalog_count=6" <<<"$SCENARIO_MANIFEST_LOG" \
       && grep -Fq "scenario_catalog_digest_verified=true" \
         <<<"$SCENARIO_MANIFEST_LOG" \
       && grep -Fq "scenario_manifest_artifact_digest_verified=true" \
@@ -4203,7 +4203,7 @@ printf '%s\n' \
   "active_suggestion_preference_repository_wired=false" \
   "active_suggestion_voice_engine_wired=false" \
   "scenario_manifest_schema_version=1" \
-  "scenario_catalog_count=5" \
+  "scenario_catalog_count=6" \
   "scenario_manifest_android13_arm64_verified=true" \
   "scenario_manifest_artifact_crypto_verified=false" \
   "scenario_catalog_production_trusted=false" \

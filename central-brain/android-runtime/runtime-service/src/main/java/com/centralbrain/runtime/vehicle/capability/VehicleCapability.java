@@ -19,7 +19,8 @@ public final class VehicleCapability {
         SEAT_VENTILATION_LEVEL("vehicle.seat.ventilation"),
         SEAT_RECLINE_ANGLE("vehicle.seat.recline"),
         MEDIA_PLAYBACK("media.playback"),
-        NAVIGATION_POI("navigation.poi");
+        NAVIGATION_POI("navigation.poi"),
+        CABIN_SMOKING_DETECTION("perception.cabin.smoking_detection");
 
         private final String canonicalId;
 

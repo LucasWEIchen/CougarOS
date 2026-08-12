@@ -118,6 +118,8 @@ public final class ScenarioManifestProbeActivity extends Activity {
                 "scenarios/scene.aios.freeform.v1.json"));
         result.put("scene.cabin.multimodal.assist.v1.json", readAsset(
                 "scenarios/scene.cabin.multimodal.assist.v1.json"));
+        result.put("scene.cabin.compliance.smoking.v1.json", readAsset(
+                "scenarios/scene.cabin.compliance.smoking.v1.json"));
         result.put("scene.comfort.cold.v1.json", readAsset(
                 "scenarios/scene.comfort.cold.v1.json"));
         result.put("scene.fatigue.assist.v1.json", readAsset(

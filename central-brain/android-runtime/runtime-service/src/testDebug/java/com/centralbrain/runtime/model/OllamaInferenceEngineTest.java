@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
@@ -116,6 +117,76 @@ public final class OllamaInferenceEngineTest {
     }
 
     @Test
+    public void smokingSpecialistBindsImageAndValidatesFiveFieldPayload() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicReference<OllamaInferenceEngine.Request> captured = new AtomicReference<>();
+        OllamaInferenceEngine engine = engine(clock, request -> {
+            captured.set(request);
+            return envelope(("{\"smoking_detected\":1,\"person_count\":1,"
+                    + "\"location\":\"IMAGE_ROW_1_RIGHT\",\"confidence\":0.88,"
+                    + "\"description\":\"可见烟支靠近嘴部。\"}")
+                    .getBytes(StandardCharsets.UTF_8));
+        });
+        engine.warmup(model());
+        engine.registerPrompt(CockpitModelPrompt.forSmokingDetection(
+                INPUT_DIGEST,
+                "检测吸烟",
+                "agent.cabin.smoking-detection.v1",
+                "只识别客观吸烟事实并输出五字段JSON。"));
+        byte[] png = new byte[] {
+                (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+        };
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", png);
+
+        LocalModelProvider.EngineOutput output = engine.infer(
+                model(), request(INPUT_DIGEST), neverCancelled());
+
+        String requestJson = new String(captured.get().body, StandardCharsets.UTF_8);
+        assertTrue(requestJson.contains("\"images\":[\"iVBORw0KGgo=\"]"));
+        assertTrue(requestJson.contains("\"smoking_detected\""));
+        assertTrue(requestJson.contains("agent.cabin.smoking-detection.v1"));
+        String canonical = new String(output.getChunks().get(0), StandardCharsets.UTF_8);
+        assertTrue(canonical.contains(
+                "\"scenario_id\":\"scene.cabin.compliance.smoking.v1\""));
+        assertTrue(canonical.contains("\\\"smoking_detected\\\":1"));
+        assertTrue(canonical.contains("\"actions\":[\"assistant.respond\"]"));
+    }
+
+    @Test
+    public void cancelledSmokingRequestConsumesImageWithoutCallingTransport() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger transportCalls = new AtomicInteger();
+        OllamaInferenceEngine engine = engine(clock, request -> {
+            transportCalls.incrementAndGet();
+            return envelope("{}".getBytes(StandardCharsets.UTF_8));
+        });
+        engine.warmup(model());
+        engine.registerPrompt(CockpitModelPrompt.forSmokingDetection(
+                INPUT_DIGEST,
+                "检测吸烟",
+                "agent.cabin.smoking-detection.v1",
+                "只识别客观吸烟事实并输出五字段JSON。"));
+        byte[] png = new byte[] {
+                (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+        };
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", png);
+
+        assertThrows(IllegalStateException.class, () -> engine.infer(
+                model(), request(INPUT_DIGEST), alwaysCancelled()));
+
+        assertEquals(0, transportCalls.get());
+        assertEquals(1, engine.snapshot().getFailureCount());
+        byte[] replacement = new byte[] {
+                (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01
+        };
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", replacement);
+        engine.close();
+    }
+
+    @Test
     public void unknownFieldsAndMalformedUtf8FailClosed() {
         AtomicLong clock = new AtomicLong(1_000L);
         OllamaInferenceEngine unknownField = engine(clock, request -> {
@@ -166,6 +237,20 @@ public final class OllamaInferenceEngineTest {
             @Override
             public boolean isCancellationRequested() {
                 return false;
+            }
+
+            @Override
+            public boolean isDeadlineExceeded() {
+                return false;
+            }
+        };
+    }
+
+    private static LocalModelProvider.CancellationSignal alwaysCancelled() {
+        return new LocalModelProvider.CancellationSignal() {
+            @Override
+            public boolean isCancellationRequested() {
+                return true;
             }
 
             @Override

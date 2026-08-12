@@ -25,6 +25,7 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | `APP-002` | 文本与单帧座舱图像形成同一请求 |
 | `APP-005` | 显示模型输入、缩略图和居中预览 |
 | `APP-006` | 1..1024 字符任意文本输入、Session 绑定和一次消费 |
+| `APP-007` | “检测吸烟”入口与同帧图像绑定 |
 | `S2-UX-001` | 第一层仅任务入口和实时链路 |
 | `S2-UX-002` | 输入到结果的增量显示 |
 | `S2-UX-003` | partial、retry、undo、compensation 可区分 |
@@ -33,6 +34,7 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | `S2-HMI-006`、`S2-HMI-007` | 1920x1080 半透明布局和渐进执行反馈 |
 | `S2-HMI-008`、`S2-HMI-009` | 多模态输入输出、座位事实、购物与导航确认 |
 | `S2-HMI-010` | 导航/电话双入口、互斥浮层和外部点击关闭 |
+| `S2-HMI-011` | 显示 Agent 路由、图文输入、五字段输出和合规状态 |
 | `S2-OBS-002` | 顺序滚动 Runtime/Model/Graph/Effect/Readback 里程碑 |
 
 ## 3. 源码地图
@@ -56,6 +58,8 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | [CockpitMultimodalInput.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java) | `load`、`openParcelable`、`decodePreview` | 单帧图像输入 |
 | [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forFreeform`、`validateActions` | 任意文本座舱上下文与动作白名单 |
 | [freeform manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.aios.freeform.v1.json) | `scene.aios.freeform.v1` | 任意文本 response-only 场景图 |
+| [smoking manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json) | `scene.cabin.compliance.smoking.v1` | 吸烟检测 response-only 场景图 |
+| [SmokingDetectionResult.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/SmokingDetectionResult.java) | 五字段检测输出 | HMI 接收内容的上游校验边界 |
 | [main_layout.central_brain_panel.xml](../../apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml) | overlay、buttons、trace、preview | HMI View 结构 |
 | [client2 project contract](../../apk-labs/client2-central-brain/client2-central-brain.project.json) | requirements、layout、bridge | 集成清单 |
 
@@ -87,6 +91,7 @@ Session、desired/reported、审批和执行状态必须来自 `CockpitHmiState`
 - `care.fatigue`：疲劳关怀；
 - `care.cold`：温度关怀；
 - `cabin.multimodal`：文本“处理一下”与座舱图像。
+- `cabin.smoking`：文本“检测吸烟”、座舱图像与 `scene.cabin.compliance.smoking.v1`。
 - `agent.freeform`：任意文本与 `scene.aios.freeform.v1`。
 
 `startScenario()` 重置 timeline，构造输入投影，打开或恢复 Session，再通过 Orchestration 获取计划状态。
@@ -116,6 +121,16 @@ belt 和 evidence 决定 ALLOW/DENY/APPROVAL；HMI 本地判断只负责禁用�
 
 主面板为 1920x1080 右侧半透明 overlay，由底部导航热区切换；点击面板外关闭。图像预览覆盖屏幕中心，
 点击图外退出。`CockpitDisplayPolicy.panelFitsDisplay()` 必须在渲染前通过。
+
+### 4.6 吸烟检测投影
+
+`CockpitMultimodalInput` 用场景白名单选择图像资源、触发文字、文件名、字节数和 SHA-256，不能由任意 UI tag
+拼接资源名。“检测吸烟”触发后，链路依次显示 `MODEL INPUT`、`AGENT ROUTER`、`MODEL OUTPUT` 和
+`COMPLIANCE RESULT`。最终状态只取 `DETECTED`、`NOT_DETECTED` 或 `UNCERTAIN`，详细内容显示经过 Runtime
+校验的五字段紧凑 JSON。
+
+该场景不显示执行器浮层，不合成车身动作，也不把检测阳性解释为业务处置完成。完整图像仍沿用受驾驶状态
+限制的居中预览规则。
 
 ## 5. 接口与数据
 
@@ -179,6 +194,25 @@ sequenceDiagram
     R-->>U: 实际输入、回复、候选动作和零/多 Effect 投影
 ```
 
+吸烟检测流程：
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant H as Client2 HMI
+    participant S as Session
+    participant O as Orchestration
+    participant A as SmokingDetectionAgent
+    U->>H: 检测吸烟
+    H->>S: scene + text + image FD
+    S-->>H: input receipt + digest
+    H->>O: start response-only plan
+    O->>A: specialist prompt + image
+    A-->>O: validated five-field JSON
+    O-->>H: model projection + graph completion
+    H-->>U: route + input + result status
+```
+
 ## 7. 失败关闭与并发
 
 - Binder callback 在主线程投递后再调用 reducer。
@@ -203,6 +237,8 @@ sequenceDiagram
 - [ ] 两个入口互斥，输入卡可通过关闭控件或浮层外点击关闭。
 - [ ] 输入 1..1024 字符且原文不持久化。
 - [ ] 任意文本回复和候选动作来自 Model/Runtime 事件，不由 HMI 合成。
+- [ ] “检测吸烟”绑定专用场景、受控图像和实际模型输出。
+- [ ] 合规状态来自五字段投影，且不显示 Tool/Effect 成功。
 - [ ] HVAC desired/reported 分离，18.0..30.0、0.5 步进。
 - [ ] 座椅角度增大表示展开，并显示安全决定。
 - [ ] unknown/partial/retry/undo/compensation 有独立显示。

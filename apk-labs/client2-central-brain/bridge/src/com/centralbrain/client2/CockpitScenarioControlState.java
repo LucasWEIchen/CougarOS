@@ -279,6 +279,9 @@ public final class CockpitScenarioControlState {
         add(definitions, "cabin.multimodal", "scene.cabin.multimodal.assist.v1",
                 Origin.NATURAL,
                 DeviceRole.NOT_INVOLVED, DeviceRole.NOT_INVOLVED);
+        add(definitions, "cabin.smoking", "scene.cabin.compliance.smoking.v1",
+                Origin.NATURAL,
+                DeviceRole.NOT_INVOLVED, DeviceRole.NOT_INVOLVED);
         add(definitions, "task.home", "scene.navigation.home.v1", Origin.NATURAL,
                 DeviceRole.NOT_INVOLVED, DeviceRole.NOT_INVOLVED);
         add(definitions, "skill.nap", "scene.rest.nap.v1", Origin.NATURAL,

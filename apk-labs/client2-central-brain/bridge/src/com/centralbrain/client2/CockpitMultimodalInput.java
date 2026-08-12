@@ -19,29 +19,82 @@ import java.util.Objects;
 /** Build-owned debug frame and text envelope for the Client2 multimodal demo. */
 public final class CockpitMultimodalInput implements AutoCloseable {
     public static final String UI_SCENARIO_ID = "cabin.multimodal";
+    public static final String SMOKING_UI_SCENARIO_ID = "cabin.smoking";
     public static final String INPUT_TEXT = "处理一下";
     public static final String MIME_TYPE = "image/png";
     public static final String FILE_NAME = "2025-SUV-OMS-cabin-photo.png";
     public static final long IMAGE_BYTE_COUNT = 2_244_206L;
     public static final String IMAGE_SHA256 =
             "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438";
+    public static final String SMOKING_INPUT_TEXT = "检测吸烟";
+    public static final String SMOKING_FILE_NAME = "cabin-smoking-fixture-01.png";
+    public static final long SMOKING_IMAGE_BYTE_COUNT = 206_611L;
+    public static final String SMOKING_IMAGE_SHA256 =
+            "fc561d2870d467da910353e6623ab39f056641bf4169083953b9d3c9c82f10a7";
 
+    private static final class Profile {
+        private final String uiScenarioId;
+        private final String resourceName;
+        private final String inputText;
+        private final String fileName;
+        private final long imageByteCount;
+        private final String imageSha256;
+
+        private Profile(
+                String uiScenarioId,
+                String resourceName,
+                String inputText,
+                String fileName,
+                long imageByteCount,
+                String imageSha256) {
+            this.uiScenarioId = uiScenarioId;
+            this.resourceName = resourceName;
+            this.inputText = inputText;
+            this.fileName = fileName;
+            this.imageByteCount = imageByteCount;
+            this.imageSha256 = imageSha256;
+        }
+    }
+
+    private static final Profile CABIN_ASSISTANCE = new Profile(
+            UI_SCENARIO_ID,
+            "central_brain_cabin_frame",
+            INPUT_TEXT,
+            FILE_NAME,
+            IMAGE_BYTE_COUNT,
+            IMAGE_SHA256);
+    private static final Profile SMOKING_DETECTION = new Profile(
+            SMOKING_UI_SCENARIO_ID,
+            "central_brain_smoking_detection_frame",
+            SMOKING_INPUT_TEXT,
+            SMOKING_FILE_NAME,
+            SMOKING_IMAGE_BYTE_COUNT,
+            SMOKING_IMAGE_SHA256);
+
+    private final Profile profile;
     private byte[] imageBytes;
 
-    private CockpitMultimodalInput(byte[] imageBytes) {
+    private CockpitMultimodalInput(Profile profile, byte[] imageBytes) {
+        this.profile = profile;
         this.imageBytes = imageBytes;
     }
 
     public static CockpitMultimodalInput load(Context context) {
+        return load(context, UI_SCENARIO_ID);
+    }
+
+    public static CockpitMultimodalInput load(Context context, String uiScenarioId) {
+        Profile profile = profile(uiScenarioId);
         Context appContext = Objects.requireNonNull(context, "context")
                 .getApplicationContext();
         int resourceId = appContext.getResources().getIdentifier(
-                "central_brain_cabin_frame", "raw", appContext.getPackageName());
+                profile.resourceName, "raw", appContext.getPackageName());
         if (resourceId == 0) {
             throw violation("controlled cabin frame resource is unavailable");
         }
-        byte[] bytes = readBounded(appContext, resourceId);
-        if (bytes.length != IMAGE_BYTE_COUNT || !IMAGE_SHA256.equals(sha256(bytes))) {
+        byte[] bytes = readBounded(appContext, resourceId, profile.imageByteCount);
+        if (bytes.length != profile.imageByteCount
+                || !profile.imageSha256.equals(sha256(bytes))) {
             Arrays.fill(bytes, (byte) 0);
             throw violation("controlled cabin frame integrity mismatch");
         }
@@ -53,7 +106,7 @@ public final class CockpitMultimodalInput implements AutoCloseable {
             Arrays.fill(bytes, (byte) 0);
             throw violation("controlled cabin frame is not PNG");
         }
-        return new CockpitMultimodalInput(bytes);
+        return new CockpitMultimodalInput(profile, bytes);
     }
 
     public DevelopmentModelInput openParcelable(
@@ -64,11 +117,11 @@ public final class CockpitMultimodalInput implements AutoCloseable {
         input.inputMode = DevelopmentModelInputContract.INPUT_TEXT_AND_IMAGE;
         input.sessionId = sessionId;
         input.scenarioId = canonicalScenarioId;
-        input.inputText = INPUT_TEXT;
+        input.inputText = profile.inputText;
         input.imageMimeType = MIME_TYPE;
-        input.imageFileName = FILE_NAME;
+        input.imageFileName = profile.fileName;
         input.imageByteCount = bytes.length;
-        input.imageSha256 = IMAGE_SHA256;
+        input.imageSha256 = profile.imageSha256;
         try {
             ParcelFileDescriptor[] pipe = ParcelFileDescriptor.createPipe();
             input.imageFd = pipe[0];
@@ -104,6 +157,16 @@ public final class CockpitMultimodalInput implements AutoCloseable {
         return requireOpen().length;
     }
 
+    public String getInputText() { return profile.inputText; }
+    public String getImageFileName() { return profile.fileName; }
+    public String getImageSha256() { return profile.imageSha256; }
+    public String getUiScenarioId() { return profile.uiScenarioId; }
+
+    public static boolean isMultimodalScenario(String uiScenarioId) {
+        return UI_SCENARIO_ID.equals(uiScenarioId)
+                || SMOKING_UI_SCENARIO_ID.equals(uiScenarioId);
+    }
+
     @Override
     public void close() {
         if (imageBytes != null) {
@@ -119,10 +182,13 @@ public final class CockpitMultimodalInput implements AutoCloseable {
         return imageBytes;
     }
 
-    private static byte[] readBounded(Context context, int resourceId) {
+    private static byte[] readBounded(
+            Context context,
+            int resourceId,
+            long expectedBytes) {
         try (InputStream input = context.getResources().openRawResource(resourceId);
              ByteArrayOutputStream output =
-                     new ByteArrayOutputStream((int) IMAGE_BYTE_COUNT)) {
+                     new ByteArrayOutputStream((int) expectedBytes)) {
             byte[] buffer = new byte[16 * 1024];
             int read;
             int total = 0;
@@ -138,6 +204,16 @@ public final class CockpitMultimodalInput implements AutoCloseable {
             throw new IllegalStateException(
                     "CB_CLIENT2_MULTIMODAL_INPUT: resource read failed", failure);
         }
+    }
+
+    private static Profile profile(String uiScenarioId) {
+        if (UI_SCENARIO_ID.equals(uiScenarioId)) {
+            return CABIN_ASSISTANCE;
+        }
+        if (SMOKING_UI_SCENARIO_ID.equals(uiScenarioId)) {
+            return SMOKING_DETECTION;
+        }
+        throw violation("multimodal scenario is not registered");
     }
 
     private static String sha256(byte[] bytes) {

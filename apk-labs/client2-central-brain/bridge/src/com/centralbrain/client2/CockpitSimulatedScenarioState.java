@@ -379,7 +379,8 @@ public final class CockpitSimulatedScenarioState {
         return "agent.freeform".equals(uiScenarioId)
                 || "care.cold".equals(uiScenarioId)
                 || "care.fatigue".equals(uiScenarioId)
-                || "cabin.multimodal".equals(uiScenarioId);
+                || "cabin.multimodal".equals(uiScenarioId)
+                || "cabin.smoking".equals(uiScenarioId);
     }
 
     private CockpitSimulatedScenarioState copy(
@@ -440,7 +441,9 @@ public final class CockpitSimulatedScenarioState {
                         ? "scene.comfort.cold.v1"
                         : "care.fatigue".equals(uiScenarioId)
                                 ? "scene.fatigue.assist.v1"
-                                : "scene.cabin.multimodal.assist.v1";
+                                : "cabin.multimodal".equals(uiScenarioId)
+                                        ? "scene.cabin.multimodal.assist.v1"
+                                        : "scene.cabin.compliance.smoking.v1";
         if (!expected.equals(value)) {
             throw new IllegalArgumentException("simulated scenario catalog mismatch");
         }

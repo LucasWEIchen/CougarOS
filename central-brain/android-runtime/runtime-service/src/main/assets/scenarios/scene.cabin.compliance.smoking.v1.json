@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "scene.cabin.compliance.smoking.v1",
+  "version": 1,
+  "supportedSources": ["HMI_BUTTON", "VOICE", "API"],
+  "supportedZones": ["CABIN"],
+  "contextPolicyId": "context.general.v1",
+  "requiredContext": [
+    "Vehicle.Speed",
+    "Vehicle.Powertrain.Transmission.CurrentGear",
+    "Vehicle.Chassis.ParkingBrake.IsEngaged"
+  ],
+  "optionalContext": [
+    "Vehicle.Cabin.HVAC.IsAirConditioningActive",
+    "Vehicle.Cabin.HVAC.AmbientAirTemperature"
+  ],
+  "requiredCapabilities": ["perception.cabin.smoking_detection"],
+  "optionalCapabilities": [],
+  "riskClass": "LOW",
+  "planTemplate": {
+    "nodes": [
+      {
+        "nodeId": "capture_compliance_context",
+        "nodeType": "context.capture",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.context.capture.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "route_smoking_specialist",
+        "nodeType": "policy.evaluate",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.agent-route.smoking.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "invoke_smoking_detection_agent",
+        "nodeType": "model.invoke",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.model.smoking-detection.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "validate_smoking_detection_result",
+        "nodeType": "policy.evaluate",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.model.smoking-result-schema.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "render_compliance_result",
+        "nodeType": "summary.render",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.summary.render.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      }
+    ],
+    "dependencies": [
+      {"prerequisiteNodeId": "capture_compliance_context", "dependentNodeId": "route_smoking_specialist", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "route_smoking_specialist", "dependentNodeId": "invoke_smoking_detection_agent", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "invoke_smoking_detection_agent", "dependentNodeId": "validate_smoking_detection_result", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "validate_smoking_detection_result", "dependentNodeId": "render_compliance_result", "condition": "ON_SUCCESS"}
+    ]
+  },
+  "fallback": {
+    "mode": "FAIL_CLOSED",
+    "messageKey": "scenario.cabin.compliance.smoking.failed",
+    "optionalNodeIds": []
+  },
+  "ui": {
+    "displayKey": "scenario.cabin.compliance.smoking.title",
+    "descriptionKey": "scenario.cabin.compliance.smoking.description",
+    "iconKey": "scenario.icon.compliance",
+    "sortOrder": 6
+  }
+}

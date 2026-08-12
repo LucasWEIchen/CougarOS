@@ -25,12 +25,15 @@ Effect gate。Provider 失败不能进入车辆执行。
 | `APP-002` | 单帧图像与文本绑定同一多模态请求 |
 | `APP-004` | 注入座舱角色、驾驶服务目标、能力和安全边界 |
 | `APP-006` | 任意文本绑定座舱上下文并产生有界回复与候选动作 |
+| `APP-007` | 吸烟场景文本与同帧图像进入专用 Agent |
 | `S2-MDL-001` | Provider 描述、健康、预热、推理、流式、取消、指标和故障 |
 | `S2-MDL-002` | 按模态、资源、健康和 assurance 路由 |
 | `S2-MDL-003` | 当前 OpenClaw 过渡接口与后续 Provider 替换 |
 | `S2-MDL-004` | 严格结构化输出和 capability 白名单 |
 | `S2-MDL-005` | 不可用、非法、超时和取消失败时阻止 Effect |
 | `S2-MDL-006` | 凭据不进入日志、Event 或 HMI |
+| `S2-MDL-007` | 吸烟检测五字段输出的严格解析和不确定结果规范化 |
+| `S2-SAF-006` | 专用检测 Agent 无 Tool、Effect 或业务处置权限 |
 
 ## 3. 源码地图
 
@@ -44,6 +47,10 @@ Effect gate。Provider 失败不能进入车辆执行。
 | [ModelResourceAdmission.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scheduler/ModelResourceAdmission.java) | `admit` | Router 与 Scheduler 准入组合 |
 | [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forScenario`、`forFreeform`、`forMultimodal` | 固定座舱 system/user instruction 与动作白名单 |
 | [StructuredModelOutput.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/StructuredModelOutput.java) | `validate`、`AcceptedOutput` | 严格 JSON 和能力参数 |
+| [SmokingDetectionResult.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/SmokingDetectionResult.java) | `parse`、`DecisionStatus`、`toCompactJson` | 吸烟检测专用五字段边界 |
+| [CabinComplianceAgentRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/agent/CabinComplianceAgentRouter.java) | `routeExplicit`、`routeCandidate` | 专用 Agent 准入 |
+| [smoking agent prompt](../../central-brain/android-runtime/runtime-service/src/main/assets/agents/smoking-detection-agent-v1.md) | 角色、摄像头坐标、判定和输出规则 | 版本化 Agent 指令 |
+| [smoking scenario manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json) | response-only DAG | 场景和策略绑定 |
 | [OpenClawEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OpenClawEndpointConfig.java) | `targetProductionTransitional`、URI getters | 生产过渡端点配置 |
 | [OllamaEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaEndpointConfig.java) | `productionLinkLocal` | 后续 Ollama 端点合同 |
 | [ModelProviderProfiles.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderProfiles.java) | `targetOpenClawTransitional`、`vendorNpuEmpty` | 固定 Provider profile |
@@ -103,6 +110,21 @@ production router。因此配置与合同已存在，但生产推理尚未激活
 scenario/catalog/capability digest 不匹配和超出 `TargetRange` 的参数。接受结果仍设置
 `actionAuthorizationGranted=false`、`effectDispatchRequested=false`。
 
+吸烟检测不复用车辆动作候选 Schema。`CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1` 选择版本化
+Agent 指令，Provider 返回的原始内容先由 `SmokingDetectionResult.parse()` 严格读取。只允许以下字段：
+
+| 字段 | 约束 |
+| --- | --- |
+| `smoking_detected` | 整数 0 或 1 |
+| `person_count` | 整数 0..2 |
+| `location` | 四个图片坐标常量或 `UNKNOWN` |
+| `confidence` | 有限浮点数 0..1 |
+| `description` | 1..120 字符且无控制字符 |
+
+低于 0.5 的结果必须使用 `smoking_detected=0`、`person_count=0`、`location=UNKNOWN`，并在描述中标明
+`uncertain`。阳性结果必须有非零人数和确定位置；阴性结果不得保留吸烟位置。通过校验后，Runtime 才把
+紧凑 JSON 放入现有 assistant projection，并固定候选动作为 `assistant.respond`。
+
 ## 5. 接口与数据
 
 多模态请求必须在同一 request ID 下绑定：
@@ -160,6 +182,8 @@ sequenceDiagram
 - [ ] 任意文本只产生结构化回复和最多四个白名单候选动作。
 - [ ] 多模态 text/image/context 绑定同一 request fingerprint。
 - [ ] 输出严格拒绝 unknown field 和 capability/range 越界。
+- [ ] 吸烟检测拒绝重复字段、未知位置、阳性低置信度和未规范化不确定结果。
+- [ ] 图文 Provider 对吸烟场景声明并满足 `VISION_CLASSIFICATION`。
 - [ ] 凭据不进入日志、Event、HMI、异常和审计。
 - [ ] Provider 失败时 Effect dispatch 保持 false。
 

@@ -84,6 +84,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `APP-004` | 输入进入模型前必须注入座舱角色、驾驶服务目标、车辆能力和安全边界上下文。 |
 | `APP-005` | HMI 必须展示实际发送给模型的文字；存在图像时显示缩略图并支持居中预览。 |
 | `APP-006` | HMI 必须接受 1 至 1024 字符的任意自然语言座舱目标；输入经裁剪、Session 绑定和一次消费后进入模型，空输入、超限输入和重复消费必须拒绝。 |
+| `APP-007` | HMI 必须提供“检测吸烟”场景入口，把触发文本与同一帧座舱图像绑定到 `scene.cabin.compliance.smoking.v1`，不得用按钮预置结果替代模型判断。 |
 | `S2-PER-001` | 座舱感知结果必须把观察与意图分离，只输出有界座位、物体、区域、置信度和证据摘要，不输出身份或年龄推断。 |
 
 ### 4.2 Session、Plan 与事件
@@ -105,6 +106,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `S2-SCN-003` | 购物与路径规划必须分离候选搜索、购买确认、目的地确认和导航启动。 |
 | `S2-SCN-004` | 多座位感知必须保留 seat-area 语义，不能将乘员状态错误映射到驾驶员。 |
 | `S2-SCN-005` | 无法从输入证据证明的购买、导航或车辆动作不得自动执行。 |
+| `S2-SCN-006` | 座舱合规事件必须经版本化 Triage Agent 和确定性 AgentRouter 选择专用 Agent；显式场景可跳过模型分类，但不能跳过代码路由和输出校验。 |
 | `S2-INT-001` | 从感知结果推导的用户意图只能作为有时限、可拒绝且需确认的候选假设，不能直接授权 Tool 或 Effect。 |
 | `S2-NAV-001` | 导航能力必须拆分 POI 搜索、路线预览和导航启动；导航启动必须绑定独立审批。 |
 | `S2-COM-001` | 购物能力必须拆分商品搜索、订单预览和订单提交；订单提交必须绑定独立审批，支付保持受控外部接口。 |
@@ -119,6 +121,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `S2-MDL-004` | 模型输出必须通过结构化 Schema、字段长度、枚举和能力白名单校验。 |
 | `S2-MDL-005` | Provider 不可用、输出非法、超时或取消失败时不得进入车辆执行阶段。 |
 | `S2-MDL-006` | 凭据不得写入日志、事件正文或 HMI；当前固定凭据属于待整改的发布风险。 |
+| `S2-MDL-007` | 吸烟检测 Agent 只能输出 `smoking_detected`、`person_count`、`location`、`confidence`、`description` 五个字段；未知字段、重复字段、越界值和未规范化的低置信度结果必须拒绝。 |
 
 ### 4.5 Tool、Skill 与 Memory
 
@@ -151,6 +154,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `S2-SAF-003` | 座椅大角度调节、购物提交和导航启动必须支持独立审批。 |
 | `S2-SAF-004` | 模型、Tool、Skill、HMI 和 Adapter 均不能绕过 Governance。 |
 | `S2-SAF-005` | 安全类真实执行在 OEM 策略未批准时保持失败关闭。 |
+| `S2-SAF-006` | 座舱合规检测 Agent 只报告客观事实，不得直接调用 Tool、Effect、车辆接口或业务处置；后处理策略是独立边界。 |
 
 ### 4.8 HMI 与执行反馈
 
@@ -169,6 +173,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `S2-HMI-008` | 实时链路必须显示模型输入与输出；图像等比缩略并与文字同显，允许时支持点击居中放大和点击图外退出。 |
 | `S2-HMI-009` | 乘员感知场景必须显示座位事实、购物候选、独立购物/购买/导航确认和真实事件驱动链路。 |
 | `S2-HMI-010` | 底部导航入口必须切换固定场景任务面板，电话入口必须切换任意文本输入框；两个入口互斥，固定面板支持重复导航或外部点击关闭，文本输入支持关闭控件或外部点击关闭。 |
+| `S2-HMI-011` | 吸烟检测链路必须增量显示图文输入、Agent 路由、模型消费状态、五字段检测 JSON 和 `DETECTED`/`NOT_DETECTED`/`UNCERTAIN` 结果，且不得显示伪造执行动作。 |
 
 ### 4.9 可观测性与发布
 
@@ -243,7 +248,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P2-W02` Vehicle Capability Catalog | Vehicle Capability Catalog | S2-TWN-001, S2-ADP-001。 | runtime-service 的 Context/Scenario/Digital Twin 与 生产 adapter。 | 8 capability、area/risk/adapter/authorization；production authorized=0。 | `已实现` |
 | `P2-W03` Vehicle Digital Twin Store | Vehicle Digital Twin Store | S2-TWN-001。 | runtime-service 的 Context/Scenario/Digital Twin 与 生产 adapter。 | desired/reported/quality/revision；process-local、非 production trust。 | `已实现` |
 | `P2-W04` Trusted Context Snapshot | Trusted Context Snapshot | S2-CTX-001, S2-SAF-001。 | runtime-service 的 Context/Scenario/Digital Twin 与 生产 adapter。 | freshness/trust/restricted report；production source 未接。 | `已实现` |
-| `P2-W05` Scenario Manifest | Scenario Manifest | S2-SCN-001, S2-SAF-001。 | runtime-service 的 Context/Scenario/Digital Twin 与生产 adapter。 | 5 个版本化 build-owned 场景、strict schema、catalog digest 和 checksum；production-signed artifact 未接。 | `已实现` |
+| `P2-W05` Scenario Manifest | Scenario Manifest | S2-SCN-001, S2-SAF-001。 | runtime-service 的 Context/Scenario/Digital Twin 与生产 adapter。 | 6 个版本化 build-owned 场景、strict schema、catalog digest 和 checksum；production-signed artifact 未接。 | `已实现` |
 | `P2-W06` Deterministic Scenario Resolver | Deterministic Scenario Resolver | S2-SCN-001, S2-SAF-001。 | runtime-service 的 Context/Scenario/Digital Twin 与 生产 adapter。 | fixed selection、availability fail-closed；model 未参与。 | `已实现` |
 | `P2-W07` Scenario Plan Compiler | Scenario Plan Compiler | S2-SCN-001, S2-GRF-001, S2-SAF-001。 | runtime-service 的 Context/Scenario/Digital Twin 与 生产 adapter。 | immutable DAG、moving seat branch removal；Runtime publication 未接。 | `已实现` |
 | `P3-W01` Agent Graph Runtime state machine | Agent Graph Runtime state machine | S2-GRF-001, NV-G-004/006/007。 | runtime-service 的 Agent Graph、Effect 与恢复模块。 | 10-state bounded control runtime、dependency-ready、failure closed。 | `已实现` |
@@ -348,6 +353,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `SCOPE-05` Unconfirmed protocol binding | 在未取得独立批准和明确接口基线前，项目不得实现或推断“Unconfirmed protocol binding”。 | 用户批准的范围约束。 | 项目治理；不分配实现模块。 | 通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 SUSPENDED。 | `挂起` |
 | `P4-R7` 双屏渲染、动态 HVAC 与车模触摸交互 | 生产 HMI 必须保持 1920x1080 清晰渲染、连续温度状态和原生车模触摸交互。 | S2-HMI-006, S2-HMI-007, S2-ADP-003 | Client2 座舱 HMI、RenderService 集成层 | 设计已进入主分支；实现仍在独立 Draft，合入前不得声明主分支已实现。 | `设计完成/实现待合并` |
 | `P4-R8` 双入口与任意文本 AIOS 任务 | 导航入口承载固定场景任务，电话入口承载任意自然语言输入；输入必须进入 Session、座舱上下文、模型、结构化校验和白名单候选动作链路。 | APP-001/003/004/006, S2-HMI-006/010, S2-MDL-004/005, S2-OBS-001/002, S2-SAF-004 | Client2 座舱 HMI、Central Brain SDK、Scenario 与 Model Runtime | Draft 实现必须证明双入口互斥、1..1024 字符边界、一次消费、实际模型回复和候选动作投影；动态 Tool/Effect 计划与车辆执行继续失败关闭。 | `设计完成/实现待合并` |
+| `P4-R9` 座舱吸烟合规多 Agent 场景 | 新增“检测吸烟”入口；图文输入经合规 Triage、确定性 Router、专用 SmokingDetectionAgent 和严格五字段校验后投影结果，场景不得包含 Tool 或 Effect 节点。 | APP-002/003/004/005/007, S2-PER-001, S2-SCN-001/002/004/006, S2-MDL-001/002/004/005/007, S2-SAF-004/005/006, S2-HMI-008/011, S2-OBS-001/002 | Client2 HMI、Scenario Catalog、Agent Router、Ollama/OpenClaw Provider、模型输出校验 | Draft 实现必须证明显式路由不由模型选择、单图与文本同请求、五字段严格校验、低置信度失败关闭、UI 实时显示且 `effect.execute` 数量为 0；目标摄像头和无文字水印样本仍需独立验收。 | `设计完成/实现待合并` |
 
 ## 8. 退出生产基线的历史 ID
 

@@ -98,7 +98,7 @@ assert contract["validation"]["android13_arm64_target_executed"] is False
 assert claims["client2_android13_x86_64_verified"] is True
 
 project = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
-assert project["version"] == "0.21.0"
+assert project["version"] == "0.22.0"
 assert any(item.startswith("DEV-119:") for item in project["tracked_deviations"])
 
 source = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")

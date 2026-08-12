@@ -18,7 +18,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,7 +33,10 @@ import java.util.Objects;
 public final class OllamaInferenceEngine implements LocalModelProvider.LocalInferenceEngine {
     private static final String TAG = "CentralBrainOllama";
     private static final int MAX_PENDING_PROMPTS = 16;
-    private static final int MAX_REQUEST_BYTES = 16_384;
+    private static final int MAX_TEXT_REQUEST_BYTES = 16_384;
+    private static final int MAX_MULTIMODAL_REQUEST_BYTES = 8_500_000;
+    static final int MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+    private static final int MAX_PENDING_IMAGE_BYTES = 12 * 1024 * 1024;
     private static final int MAX_REPLY_CHARS = 256;
     private static final int MAX_ACTIONS = 4;
 
@@ -72,10 +79,48 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         }
     }
 
+    private static final class ImageAttachment {
+        private final String mimeType;
+        private final String fileName;
+        private final byte[] content;
+        private final String sha256;
+
+        private ImageAttachment(String mimeType, String fileName, byte[] content) {
+            if (!"image/png".equals(mimeType) && !"image/jpeg".equals(mimeType)) {
+                throw new IllegalArgumentException("Ollama image MIME is not allowlisted");
+            }
+            if (fileName == null || !fileName.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,95}")) {
+                throw new IllegalArgumentException("Ollama image filename is invalid");
+            }
+            if (content == null || content.length == 0 || content.length > MAX_IMAGE_BYTES) {
+                throw new IllegalArgumentException("Ollama image size is invalid");
+            }
+            OpenClawInferenceEngine.requireImageSignature(mimeType, content);
+            this.mimeType = mimeType;
+            this.fileName = fileName;
+            this.content = content.clone();
+            this.sha256 = sha256(this.content);
+        }
+
+        private boolean matches(ImageAttachment other) {
+            return other != null
+                    && mimeType.equals(other.mimeType)
+                    && fileName.equals(other.fileName)
+                    && sha256.equals(other.sha256)
+                    && content.length == other.content.length;
+        }
+
+        private void clear() {
+            Arrays.fill(content, (byte) 0);
+        }
+    }
+
     private final OllamaEndpointConfig endpoint;
     private final Transport transport;
     private final ElapsedClock clock;
     private final Map<String, CockpitModelPrompt> pending = new LinkedHashMap<>();
+    private final Map<String, ImageAttachment> pendingImages = new LinkedHashMap<>();
+    private int pendingImageBytes;
     private ModelProvider.ModelSpec warmedModel;
     private boolean closed;
     private long invocationCount;
@@ -127,6 +172,32 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         pending.put(inputDigest, prompt);
     }
 
+    /** Registers one digest-bound image for Ollama's chat message images array. */
+    public synchronized void registerScenarioImageAttachment(
+            String inputDigest,
+            String mimeType,
+            String fileName,
+            byte[] content) {
+        requireOpen();
+        requireDigest(inputDigest);
+        ImageAttachment attachment = new ImageAttachment(mimeType, fileName, content);
+        ImageAttachment existing = pendingImages.get(inputDigest);
+        if (existing != null) {
+            if (!existing.matches(attachment)) {
+                throw new IllegalArgumentException("Ollama input digest image conflict");
+            }
+            attachment.clear();
+            return;
+        }
+        if (pendingImages.size() >= MAX_PENDING_PROMPTS
+                || pendingImageBytes + attachment.content.length > MAX_PENDING_IMAGE_BYTES) {
+            attachment.clear();
+            throw new IllegalStateException("Ollama image registry capacity exhausted");
+        }
+        pendingImages.put(inputDigest, attachment);
+        pendingImageBytes += attachment.content.length;
+    }
+
     @Override
     public synchronized void warmup(ModelProvider.ModelSpec modelSpec) {
         requireOpen();
@@ -139,6 +210,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
             ModelProvider.InferenceRequest request,
             LocalModelProvider.CancellationSignal cancellationSignal) {
         CockpitModelPrompt prompt;
+        ImageAttachment imageAttachment;
         synchronized (this) {
             requireOpen();
             if (warmedModel == null
@@ -148,20 +220,35 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
                 throw new IllegalStateException("Ollama model is not warmed");
             }
             prompt = pending.remove(request.getInputDigest());
+            imageAttachment = pendingImages.remove(request.getInputDigest());
+            if (imageAttachment != null) {
+                pendingImageBytes -= imageAttachment.content.length;
+            }
             if (prompt == null) {
+                if (imageAttachment != null) {
+                    imageAttachment.clear();
+                }
                 throw new IllegalArgumentException("Ollama prompt material is unavailable");
             }
             invocationCount++;
         }
-        if (cancellationSignal.isCancellationRequested()
-                || cancellationSignal.isDeadlineExceeded()) {
-            throw new IllegalStateException("Ollama request was cancelled before transport");
-        }
-
-        byte[] requestBody = buildRequest(prompt);
-        int remainingMs = remainingDeadlineMs(request);
         long startedAt = clock.nowMs();
+        boolean networkAccessed = false;
         try {
+            if (cancellationSignal.isCancellationRequested()
+                    || cancellationSignal.isDeadlineExceeded()) {
+                throw new IllegalStateException(
+                        "Ollama request was cancelled before transport");
+            }
+            if (prompt.getOutputContract()
+                            == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1
+                    && imageAttachment == null) {
+                throw new IllegalStateException(
+                        "Ollama smoking detection requires an image attachment");
+            }
+            byte[] requestBody = buildRequest(prompt, imageAttachment);
+            int remainingMs = remainingDeadlineMs(request);
+            networkAccessed = true;
             Response response = transport.execute(new Request(
                     endpoint.getChatUri(),
                     requestBody,
@@ -181,6 +268,11 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
             logInfo("ollama_inference_completed=true"
                     + " endpoint_profile=development_wsl_adb_reverse"
                     + " model=" + safeToken(endpoint.getModelName())
+                    + " image_present=" + (imageAttachment != null)
+                    + " image_bytes="
+                    + (imageAttachment == null ? 0 : imageAttachment.content.length)
+                    + " image_sha256="
+                    + (imageAttachment == null ? "none" : imageAttachment.sha256)
                     + " latency_ms=" + latencyMs
                     + " response_bytes=" + canonical.length
                     + " network_accessed=true"
@@ -197,10 +289,14 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
             logError("ollama_inference_completed=false"
                     + " endpoint_profile=development_wsl_adb_reverse"
                     + " failure_code=" + safeFailureCode(failure)
-                    + " network_accessed=true"
+                    + " network_accessed=" + networkAccessed
                     + " raw_prompt_logged=false"
                     + " raw_response_logged=false");
             throw failure;
+        } finally {
+            if (imageAttachment != null) {
+                imageAttachment.clear();
+            }
         }
     }
 
@@ -209,6 +305,11 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         closed = true;
         warmedModel = null;
         pending.clear();
+        for (ImageAttachment attachment : pendingImages.values()) {
+            attachment.clear();
+        }
+        pendingImages.clear();
+        pendingImageBytes = 0;
     }
 
     public synchronized Snapshot snapshot() {
@@ -228,7 +329,9 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         return (int) Math.min(Integer.MAX_VALUE, remaining);
     }
 
-    private byte[] buildRequest(CockpitModelPrompt prompt) {
+    private byte[] buildRequest(
+            CockpitModelPrompt prompt,
+            ImageAttachment imageAttachment) {
         JsonObject root = new JsonObject();
         root.addProperty("model", endpoint.getModelName());
         root.addProperty("stream", false);
@@ -236,21 +339,31 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         root.addProperty("keep_alive", "5m");
 
         JsonArray messages = new JsonArray();
-        String exactShape = "唯一合法输出形状：{\"scenario_id\":\""
-                + prompt.getScenarioId()
-                + "\",\"reply\":\"简短中文回复\",\"actions\":[\""
-                + String.join("\",\"", prompt.getRequiredActions())
-                + "\"]}。键名scenario_id、reply、actions必须完全一致；"
-                + "actions的每一项必须是可用动作中的字符串，禁止输出对象。";
-        messages.add(message(
-                "system",
-                prompt.systemInstruction() + exactShape));
-        messages.add(message(
-                "user",
-                prompt.userInstruction()
-                        + "\n可用动作：" + String.join(",", prompt.getAllowedActions())
-                        + "\n必要动作：" + String.join(",", prompt.getRequiredActions())
-                        + "\n" + exactShape));
+        if (prompt.getOutputContract()
+                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
+            messages.add(message("system", prompt.systemInstruction()));
+            JsonObject user = message("user", prompt.userInstruction());
+            JsonArray images = new JsonArray();
+            images.add(Base64.getEncoder().encodeToString(imageAttachment.content));
+            user.add("images", images);
+            messages.add(user);
+        } else {
+            String exactShape = "唯一合法输出形状：{\"scenario_id\":\""
+                    + prompt.getScenarioId()
+                    + "\",\"reply\":\"简短中文回复\",\"actions\":[\""
+                    + String.join("\",\"", prompt.getRequiredActions())
+                    + "\"]}。键名scenario_id、reply、actions必须完全一致；"
+                    + "actions的每一项必须是可用动作中的字符串，禁止输出对象。";
+            messages.add(message(
+                    "system",
+                    prompt.systemInstruction() + exactShape));
+            messages.add(message(
+                    "user",
+                    prompt.userInstruction()
+                            + "\n可用动作：" + String.join(",", prompt.getAllowedActions())
+                            + "\n必要动作：" + String.join(",", prompt.getRequiredActions())
+                            + "\n" + exactShape));
+        }
         root.add("messages", messages);
         root.add("format", responseSchema(prompt));
 
@@ -259,7 +372,9 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         options.addProperty("num_predict", 192);
         root.add("options", options);
         byte[] encoded = root.toString().getBytes(StandardCharsets.UTF_8);
-        if (encoded.length > MAX_REQUEST_BYTES) {
+        int maximumRequestBytes = imageAttachment == null
+                ? MAX_TEXT_REQUEST_BYTES : MAX_MULTIMODAL_REQUEST_BYTES;
+        if (encoded.length > maximumRequestBytes) {
             throw new IllegalStateException("Ollama request exceeds the bounded envelope");
         }
         return encoded;
@@ -283,8 +398,13 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
                 throw new IllegalStateException("Ollama response is not terminal");
             }
             JsonObject message = envelope.getAsJsonObject("message");
-            JsonObject content = JsonParser.parseString(
-                    requiredString(message, "content")).getAsJsonObject();
+            String rawContent = requiredString(message, "content");
+            if (prompt.getOutputContract()
+                    == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
+                SmokingDetectionResult result = SmokingDetectionResult.parse(rawContent);
+                return smokingProjection(prompt, result);
+            }
+            JsonObject content = JsonParser.parseString(rawContent).getAsJsonObject();
             if (content.size() != 3
                     || !content.has("scenario_id")
                     || !content.has("reply")
@@ -331,6 +451,10 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
     }
 
     private static JsonObject responseSchema(CockpitModelPrompt prompt) {
+        if (prompt.getOutputContract()
+                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
+            return smokingResponseSchema();
+        }
         JsonObject schema = new JsonObject();
         schema.addProperty("type", "object");
         schema.addProperty("additionalProperties", false);
@@ -373,6 +497,76 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         return schema;
     }
 
+    private static JsonObject smokingResponseSchema() {
+        JsonObject schema = new JsonObject();
+        schema.addProperty("type", "object");
+        schema.addProperty("additionalProperties", false);
+        JsonObject properties = new JsonObject();
+        properties.add("smoking_detected", integerSchema(0, 1));
+        properties.add("person_count", integerSchema(0, 2));
+
+        JsonObject location = new JsonObject();
+        location.addProperty("type", "string");
+        JsonArray locations = new JsonArray();
+        for (String value : List.of(
+                "IMAGE_ROW_2_LEFT",
+                "IMAGE_ROW_2_RIGHT",
+                "IMAGE_ROW_1_LEFT",
+                "IMAGE_ROW_1_RIGHT",
+                "UNKNOWN")) {
+            locations.add(value);
+        }
+        location.add("enum", locations);
+        properties.add("location", location);
+
+        JsonObject confidence = new JsonObject();
+        confidence.addProperty("type", "number");
+        confidence.addProperty("minimum", 0);
+        confidence.addProperty("maximum", 1);
+        properties.add("confidence", confidence);
+
+        JsonObject description = new JsonObject();
+        description.addProperty("type", "string");
+        description.addProperty("minLength", 1);
+        description.addProperty("maxLength", SmokingDetectionResult.MAX_DESCRIPTION_CHARS);
+        properties.add("description", description);
+        schema.add("properties", properties);
+
+        JsonArray required = new JsonArray();
+        for (String field : List.of(
+                "smoking_detected",
+                "person_count",
+                "location",
+                "confidence",
+                "description")) {
+            required.add(field);
+        }
+        schema.add("required", required);
+        return schema;
+    }
+
+    private static JsonObject integerSchema(int minimum, int maximum) {
+        JsonObject schema = new JsonObject();
+        schema.addProperty("type", "integer");
+        schema.addProperty("minimum", minimum);
+        schema.addProperty("maximum", maximum);
+        return schema;
+    }
+
+    private static byte[] smokingProjection(
+            CockpitModelPrompt prompt,
+            SmokingDetectionResult result) {
+        List<String> admitted = List.of("assistant.respond");
+        prompt.validateAdmittedActions(admitted);
+        JsonObject canonical = new JsonObject();
+        canonical.addProperty("scenario_id", prompt.getScenarioId());
+        canonical.addProperty("reply", result.toCompactJson());
+        JsonArray actions = new JsonArray();
+        actions.add("assistant.respond");
+        canonical.add("actions", actions);
+        return canonical.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
     private static JsonObject message(String role, String content) {
         JsonObject message = new JsonObject();
         message.addProperty("role", role);
@@ -400,6 +594,22 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
                     .toString();
         } catch (CharacterCodingException failure) {
             throw new IllegalStateException("Ollama response is not valid UTF-8", failure);
+        }
+    }
+
+    private static String sha256(byte[] input) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(input);
+            char[] output = new char[digest.length * 2];
+            char[] alphabet = "0123456789abcdef".toCharArray();
+            for (int index = 0; index < digest.length; index++) {
+                int value = digest[index] & 0xff;
+                output[index * 2] = alphabet[value >>> 4];
+                output[index * 2 + 1] = alphabet[value & 0x0f];
+            }
+            return new String(output);
+        } catch (NoSuchAlgorithmException failure) {
+            throw new IllegalStateException("SHA-256 unavailable", failure);
         }
     }
 
@@ -458,6 +668,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
                     return "ACTION_ALLOWLIST_REJECTED";
                 }
                 if (message.contains("structured contract")
+                        || message.contains("CB_SMOKING_RESULT")
                         || message.startsWith("Ollama field is")
                         || message.contains("content shape")
                         || message.contains("valid UTF-8")) {

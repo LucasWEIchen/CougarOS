@@ -565,7 +565,9 @@ public final class ModelProviderRegistry {
                 DETERMINISTIC_TEST_ID,
                 ProviderKind.DETERMINISTIC_ANDROID_TEST,
                 HealthSource.CONTRACT_TEST,
-                EnumSet.of(ModelContractV2.RequiredCapability.TEXT_GENERATION),
+                EnumSet.of(
+                        ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                        ModelContractV2.RequiredCapability.VISION_CLASSIFICATION),
                 true,
                 false,
                 false,
@@ -578,6 +580,7 @@ public final class ModelProviderRegistry {
                 HealthSource.LOCAL_DEVELOPMENT_RUNTIME,
                 EnumSet.of(
                         ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                        ModelContractV2.RequiredCapability.VISION_CLASSIFICATION,
                         ModelContractV2.RequiredCapability.SUMMARIZATION),
                 false,
                 true,
@@ -602,6 +605,7 @@ public final class ModelProviderRegistry {
                 HealthSource.TARGET_OPENCLAW_RUNTIME,
                 EnumSet.of(
                         ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                        ModelContractV2.RequiredCapability.VISION_CLASSIFICATION,
                         ModelContractV2.RequiredCapability.SUMMARIZATION),
                 false,
                 false,

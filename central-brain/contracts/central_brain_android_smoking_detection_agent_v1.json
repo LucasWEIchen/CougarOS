@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-cabin-smoking-detection-agent-v1",
+  "requirement_ids": [
+    "APP-002",
+    "APP-003",
+    "APP-004",
+    "APP-005",
+    "APP-007",
+    "S2-PER-001",
+    "S2-SCN-001",
+    "S2-SCN-002",
+    "S2-SCN-004",
+    "S2-SCN-006",
+    "S2-MDL-001",
+    "S2-MDL-002",
+    "S2-MDL-004",
+    "S2-MDL-005",
+    "S2-MDL-007",
+    "S2-SAF-004",
+    "S2-SAF-005",
+    "S2-SAF-006",
+    "S2-HMI-008",
+    "S2-HMI-011",
+    "S2-OBS-001",
+    "S2-OBS-002"
+  ],
+  "scene": {
+    "ui_scenario_id": "cabin.smoking",
+    "canonical_scenario_id": "scene.cabin.compliance.smoking.v1",
+    "button_label": "检测吸烟",
+    "input_text": "检测吸烟",
+    "response_only": true,
+    "tool_node_count": 0,
+    "effect_node_count": 0
+  },
+  "agent_route": {
+    "triage_agent_id": "agent.cabin.compliance-triage.v1",
+    "specialist_agent_id": "agent.cabin.smoking-detection.v1",
+    "explicit_route_selected_by_model": false,
+    "triage_candidate_type": "SMOKING_DETECTION",
+    "minimum_triage_confidence": 0.5,
+    "unknown_route_fails_closed": true
+  },
+  "model_input": {
+    "mode": "TEXT_AND_IMAGE",
+    "maximum_images": 1,
+    "allowlisted_mime_types": ["image/png", "image/jpeg"],
+    "required_model_capability": "VISION_CLASSIFICATION",
+    "session_bound": true,
+    "single_consume": true
+  },
+  "agent_output": {
+    "contract_id": "SMOKING_DETECTION_V1",
+    "exact_fields": [
+      "smoking_detected",
+      "person_count",
+      "location",
+      "confidence",
+      "description"
+    ],
+    "allowed_locations": [
+      "IMAGE_ROW_2_LEFT",
+      "IMAGE_ROW_2_RIGHT",
+      "IMAGE_ROW_1_LEFT",
+      "IMAGE_ROW_1_RIGHT",
+      "UNKNOWN"
+    ],
+    "uncertain_confidence_below": 0.5,
+    "uncertain_location": "UNKNOWN",
+    "maximum_description_chars": 120,
+    "unknown_fields_rejected": true,
+    "duplicate_fields_rejected": true
+  },
+  "hmi_projection": {
+    "ordered_stages": [
+      "MODEL INPUT",
+      "AGENT ROUTER",
+      "MODEL OUTPUT",
+      "COMPLIANCE RESULT"
+    ],
+    "result_states": ["DETECTED", "NOT_DETECTED", "UNCERTAIN"],
+    "image_thumbnail": true,
+    "center_preview": true,
+    "vehicle_effect_feedback": false
+  },
+  "authority": {
+    "model_selects_explicit_specialist": false,
+    "model_authorizes_tool": false,
+    "model_authorizes_effect": false,
+    "vehicle_bus_accessed": false,
+    "business_disposition_in_agent": false
+  },
+  "validation_boundary": {
+    "camera_profile_requires_target_confirmation": true,
+    "seat_geometry_mismatch_uses_unknown": true,
+    "watermarked_fixture_is_accuracy_evidence": false,
+    "route_and_contract_evidence_available": true
+  },
+  "claim_state": {
+    "repository_implementation_present": true,
+    "local_provider_contract_verified": true,
+    "target_camera_validated": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

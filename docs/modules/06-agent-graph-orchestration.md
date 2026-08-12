@@ -22,7 +22,9 @@ Graph 执行器不授予动作权限；Policy、Approval 和 Effect 节点仍受
 | --- | --- |
 | `S2-GRF-001` | 不可变 DAG、节点状态、revision 和 checkpoint |
 | `S2-SCN-002` | 依赖、并发、重试、超时和补偿 |
+| `S2-SCN-006` | 合规 Triage 到专用 Agent 的确定性路由 |
 | `S2-SAF-003` | 独立审批中断和恢复 |
+| `S2-SAF-006` | 合规检测输出不得直接调用 Tool 或 Effect |
 | `S2-UX-002` | 按节点状态投影计划、审批、执行、核验 |
 | `S2-UX-003` | 部分成功、失败、重试、撤销和补偿状态 |
 | `S2-HMI-003` | 提供可恢复 OrchestrationSnapshot |
@@ -45,6 +47,8 @@ Graph 执行器不授予动作权限；Policy、Approval 和 Effect 节点仍受
 | [GraphRestartReconciler.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/GraphRestartReconciler.java) | `reconcile` | 重启后状态判定 |
 | [OrchestrationEndpoint.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/orchestration/OrchestrationEndpoint.java) | Binder Stub、`committed` | owner-scoped 编排入口 |
 | [OrchestrationProjectionFactory.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/orchestration/OrchestrationProjectionFactory.java) | `blocked`、`seal`、`copySnapshot` | 快照完整性 |
+| [CabinComplianceAgentRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/agent/CabinComplianceAgentRouter.java) | `routeExplicit`、`routeCandidate` | 合规 Agent 确定性路由 |
+| [smoking scenario manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json) | `route_smoking_specialist`、`invoke_smoking_detection_agent` | 吸烟检测 response-only DAG |
 
 ## 4. 核心设计
 
@@ -81,6 +85,19 @@ Node 典型状态：
 
 `GraphRestartReconciler` 根据 checkpoint、Effect delivery observation、补偿记录和治理重验结果产生
 directive。证据不足的执行中 Effect 不能重发；应进入 reconcile、failed 或 stuck。
+
+### 4.5 合规多 Agent 路由
+
+`ComplianceTriageAgent` 的候选结果不等于路由授权。`CabinComplianceAgentRouter.routeCandidate()` 只接受
+登记的候选类型、目标场景和不低于 0.5 的置信度，再返回带摘要的专用 Agent 决定。显式 HMI 场景调用
+`routeExplicit()`，因此不会因通用模型改写 Agent 名称或场景 ID。
+
+`scene.cabin.compliance.smoking.v1` 的固定节点顺序为：
+
+`capture_compliance_context → route_smoking_specialist → invoke_smoking_detection_agent → validate_smoking_detection_result → render_compliance_result`
+
+该图没有 `tool.invoke` 或 `effect.execute`。后续业务处置必须建立独立场景、策略和审批，不能在检测 Agent
+内新增副作用。
 
 ## 5. 接口与数据
 
@@ -137,6 +154,8 @@ sequenceDiagram
 - [ ] checkpoint canonical、带摘要、拒绝未知字段和超限。
 - [ ] restart 不重复执行证据不明的 Effect。
 - [ ] snapshot 提交与 Event 追加在同一 durable 事务。
+- [ ] 合规 Agent 路由只接受已登记场景、候选类型和专用 Agent ID。
+- [ ] 吸烟检测图保持 response-only，Tool 和 Effect 节点数为零。
 
 ## 9. 增量开发规则
 

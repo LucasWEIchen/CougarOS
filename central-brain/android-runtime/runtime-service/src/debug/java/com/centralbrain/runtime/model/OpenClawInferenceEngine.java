@@ -216,12 +216,15 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         ImageAttachment existing = pendingImages.get(inputDigest);
         if (existing != null) {
             if (!existing.matches(attachment)) {
+                attachment.clear();
                 throw new IllegalArgumentException("OpenClaw input digest image conflict");
             }
+            attachment.clear();
             return;
         }
         if (pendingImages.size() >= MAX_PENDING_PROMPTS
                 || pendingImageBytes + attachment.content.length > MAX_PENDING_IMAGE_BYTES) {
+            attachment.clear();
             throw new IllegalStateException("OpenClaw image registry capacity exhausted");
         }
         pendingImages.put(inputDigest, attachment);
@@ -248,28 +251,40 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 throw new IllegalStateException("OpenClaw model gateway is not warmed");
             }
             prompt = pending.remove(request.getInputDigest());
-            if (prompt == null) {
-                throw new IllegalArgumentException("OpenClaw prompt material is unavailable");
-            }
             imageAttachment = pendingImages.remove(request.getInputDigest());
             if (imageAttachment != null) {
                 pendingImageBytes -= imageAttachment.content.length;
             }
+            if (prompt == null) {
+                if (imageAttachment != null) {
+                    imageAttachment.clear();
+                }
+                throw new IllegalArgumentException(
+                        "OpenClaw prompt material is unavailable");
+            }
             invocationCount++;
         }
-        if (cancellationSignal.isCancellationRequested()
-                || cancellationSignal.isDeadlineExceeded()) {
-            throw new IllegalStateException("OpenClaw request was cancelled before transport");
-        }
-
-        String message = buildPrompt(prompt);
-        byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
-        if (messageBytes.length == 0
-                || messageBytes.length > OpenClawEndpointConfig.MAX_REQUEST_BYTES) {
-            throw new IllegalStateException("OpenClaw request exceeds the bounded envelope");
-        }
         long startedAt = clock.nowMs();
+        boolean networkAccessed = false;
         try {
+            if (cancellationSignal.isCancellationRequested()
+                    || cancellationSignal.isDeadlineExceeded()) {
+                throw new IllegalStateException(
+                        "OpenClaw request was cancelled before transport");
+            }
+            if (prompt.getOutputContract()
+                            == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1
+                    && imageAttachment == null) {
+                throw new IllegalStateException(
+                        "OpenClaw smoking detection requires an image attachment");
+            }
+            String message = buildPrompt(prompt);
+            byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
+            if (messageBytes.length == 0
+                    || messageBytes.length > OpenClawEndpointConfig.MAX_REQUEST_BYTES) {
+                throw new IllegalStateException(
+                        "OpenClaw request exceeds the bounded envelope");
+            }
             String token = credentialSource.requireToken();
             int remainingMs = remainingDeadlineMs(request);
             logInfo("openclaw_inference_started=true"
@@ -283,6 +298,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     + " raw_image_logged=false"
                     + " raw_prompt_logged=false"
                     + " credential_logged=false");
+            networkAccessed = true;
             Result result = transport.execute(new Request(
                     endpoint,
                     token,
@@ -332,7 +348,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             logError("openclaw_inference_completed=false"
                     + " endpoint_profile=" + endpoint.getProfile()
                     + " failure_code=" + failureCode
-                    + " network_accessed=true"
+                    + " network_accessed=" + networkAccessed
                     + " raw_image_logged=false"
                     + " raw_prompt_logged=false"
                     + " raw_response_logged=false"
@@ -377,6 +393,10 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
     }
 
     private static String buildPrompt(CockpitModelPrompt prompt) {
+        if (prompt.getOutputContract()
+                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
+            return prompt.systemInstruction() + "\n" + prompt.userInstruction();
+        }
         String example = "{\"scenario_id\":\"" + prompt.getScenarioId()
                 + "\",\"reply\":\"简短中文回复\",\"actions\":[\""
                 + String.join("\",\"", prompt.getRequiredActions()) + "\"]}";
@@ -402,6 +422,11 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             throw new IllegalStateException("OpenClaw response size is invalid");
         }
         try {
+            if (prompt.getOutputContract()
+                    == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
+                SmokingDetectionResult result = SmokingDetectionResult.parse(encoded);
+                return smokingProjection(prompt, result);
+            }
             JsonObject content = JsonParser.parseString(decodeUtf8(encoded)).getAsJsonObject();
             if (content.size() != 3
                     || !content.has("scenario_id")
@@ -450,6 +475,20 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             throw new IllegalStateException(
                     "OpenClaw response violates the structured contract", failure);
         }
+    }
+
+    private static byte[] smokingProjection(
+            CockpitModelPrompt prompt,
+            SmokingDetectionResult result) {
+        List<String> admitted = List.of("assistant.respond");
+        prompt.validateAdmittedActions(admitted);
+        JsonObject canonical = new JsonObject();
+        canonical.addProperty("scenario_id", prompt.getScenarioId());
+        canonical.addProperty("reply", result.toCompactJson());
+        JsonArray actions = new JsonArray();
+        actions.add("assistant.respond");
+        canonical.add("actions", actions);
+        return canonical.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     private static String sessionKey(ModelProvider.InferenceRequest request) {
@@ -540,7 +579,9 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         if (message.contains("scenario binding")) return "SCENARIO_BINDING_REJECTED";
         if (message.contains("reply")) return "REPLY_BOUNDS_REJECTED";
         if (message.contains("action")) return "ACTION_ALLOWLIST_REJECTED";
-        if (message.contains("structured contract") || message.contains("content shape")) {
+        if (message.contains("structured contract")
+                || message.contains("content shape")
+                || message.contains("CB_SMOKING_RESULT")) {
             return "STRUCTURED_OUTPUT_REJECTED";
         }
         if (message.contains("transport") || failure.getCause() instanceof IOException) {
@@ -1187,7 +1228,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         }
     }
 
-    private static void requireImageSignature(String mimeType, byte[] content) {
+    static void requireImageSignature(String mimeType, byte[] content) {
         boolean png = content.length >= 8
                 && (content[0] & 0xff) == 0x89
                 && content[1] == 0x50

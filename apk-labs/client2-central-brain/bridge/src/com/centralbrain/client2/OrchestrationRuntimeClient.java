@@ -200,6 +200,11 @@ public final class OrchestrationRuntimeClient implements
         if (multimodalInput != null && textInput != null) {
             throw new IllegalArgumentException("only one staged model input is allowed");
         }
+        if (multimodalInput != null
+                && !CockpitMultimodalInput.isMultimodalScenario(scenario)) {
+            throw new IllegalArgumentException(
+                    "multimodal input is bound to a registered image scenario");
+        }
         if ("agent.freeform".equals(scenario)) {
             String safe = textInput == null ? "" : textInput.trim();
             if (safe.isEmpty()

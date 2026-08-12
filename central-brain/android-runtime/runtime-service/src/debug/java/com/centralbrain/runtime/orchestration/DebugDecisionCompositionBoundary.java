@@ -3,6 +3,7 @@ package com.centralbrain.runtime.orchestration;
 import android.os.SystemClock;
 
 import com.centralbrain.runtime.BuildConfig;
+import com.centralbrain.runtime.agent.CabinComplianceAgentRouter;
 import com.centralbrain.runtime.events.BoundedEventRuntime;
 import com.centralbrain.runtime.events.ContextSourceAdapter;
 import com.centralbrain.runtime.events.CooldownStore;
@@ -64,6 +65,8 @@ final class DebugDecisionCompositionBoundary {
     private static final long MODEL_HEALTH_WINDOW_MS = 60_000L;
     private static final long MODEL_INFERENCE_TIMEOUT_MS = 120_000L;
     private static final int MAX_MODEL_PROJECTION_BYTES = 16_384;
+    private static final String TEST_SMOKING_AGENT_INSTRUCTION =
+            "Analyze objective smoking evidence and return the registered five-field JSON.";
 
     interface Clock {
         long nowMs();
@@ -90,12 +93,20 @@ final class DebugDecisionCompositionBoundary {
     private final OpenClawInferenceEngine openClawEngine;
     private final NetworkModelMode networkModelMode;
     private final BoundedEventRuntime events;
+    private final String smokingAgentInstruction;
     private final Map<String, Entry> bySession = new LinkedHashMap<>();
     private long modelHealthRevision;
 
     DebugDecisionCompositionBoundary(ScenarioCatalog catalog) {
         this(catalog, SystemClock::elapsedRealtime, sequence("decision-subscription-"),
-                sequence("decision-lease-"), true);
+                sequence("decision-lease-"), true, TEST_SMOKING_AGENT_INSTRUCTION);
+    }
+
+    DebugDecisionCompositionBoundary(
+            ScenarioCatalog catalog,
+            String smokingAgentInstruction) {
+        this(catalog, SystemClock::elapsedRealtime, sequence("decision-subscription-"),
+                sequence("decision-lease-"), true, smokingAgentInstruction);
     }
 
     DebugDecisionCompositionBoundary(
@@ -103,7 +114,8 @@ final class DebugDecisionCompositionBoundary {
             Clock clock,
             Supplier<String> subscriptionIds,
             Supplier<String> leaseIds) {
-        this(catalog, clock, subscriptionIds, leaseIds, false);
+        this(catalog, clock, subscriptionIds, leaseIds, false,
+                TEST_SMOKING_AGENT_INSTRUCTION);
     }
 
     private DebugDecisionCompositionBoundary(
@@ -111,9 +123,12 @@ final class DebugDecisionCompositionBoundary {
             Clock clock,
             Supplier<String> subscriptionIds,
             Supplier<String> leaseIds,
-            boolean networkModelBuild) {
+            boolean networkModelBuild,
+            String smokingAgentInstruction) {
         this.catalog = Objects.requireNonNull(catalog, "catalog");
         this.clock = Objects.requireNonNull(clock, "clock");
+        this.smokingAgentInstruction = requireAgentInstruction(
+                smokingAgentInstruction);
         this.networkModelMode = resolveNetworkMode(networkModelBuild);
         triggers = TriggerEngine.createForContractTest(
                 triggerManifest(catalog),
@@ -222,7 +237,9 @@ final class DebugDecisionCompositionBoundary {
                         scenarioId,
                         manifest.getArtifactDigest(),
                         capabilityForScenario(scenarioId),
-                        ScenarioManifest.Zone.ROW1_DRIVER,
+                        CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)
+                                ? ScenarioManifest.Zone.CABIN
+                                : ScenarioManifest.Zone.ROW1_DRIVER,
                         ProactiveConsentPolicy.RiskClass.LOW));
         if (consentDecision.getCode() != ProactiveConsentPolicy.AdmissionCode.NO_ACTIVE_GRANT
                 || consentDecision.isEffectDispatchAuthorized()) {
@@ -402,13 +419,7 @@ final class DebugDecisionCompositionBoundary {
             String requestDigest,
             long now) {
         TriggerRule.Metric metric = metricForScenario(scenarioId);
-        double value = "scene.fatigue.assist.v1".equals(scenarioId)
-                ? 0.8
-                : "scene.aios.freeform.v1".equals(scenarioId)
-                        ? 0.9
-                        : "scene.cabin.multimodal.assist.v1".equals(scenarioId)
-                                ? 1_500.0
-                                : 17.0;
+        double value = triggerValueForScenario(scenarioId);
         TriggerEngine.Evaluation terminal = null;
         for (int index = 0; index < 3; index++) {
             long observedAt = now - 100L + index * 50L;
@@ -416,7 +427,9 @@ final class DebugDecisionCompositionBoundary {
                     new TriggerEngine.Observation(
                             "obs." + requestDigest.substring(0, 24) + "." + index,
                             metric,
-                            ScenarioManifest.Zone.ROW1_DRIVER,
+                            CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)
+                                    ? ScenarioManifest.Zone.CABIN
+                                    : ScenarioManifest.Zone.ROW1_DRIVER,
                             digest("trigger-scope", session.getSessionId()),
                             observedAt,
                             SignalQuality.VALID,
@@ -485,6 +498,7 @@ final class DebugDecisionCompositionBoundary {
         byte[] stagedImage = null;
         boolean stagedImagePresent = false;
         if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)
+                || CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)
                 || "scene.aios.freeform.v1".equals(scenarioId)) {
             DevelopmentModelInputStore.ConsumedInput consumed =
                     DevelopmentModelInputStore.getInstance().consumeOwn(
@@ -510,9 +524,21 @@ final class DebugDecisionCompositionBoundary {
                 "model-input", requestDigest, String.join("|", contextDigests),
                 suggestion.getSuggestionDigest(), inputAggregateDigest);
         CockpitModelPrompt prompt;
+        CabinComplianceAgentRouter.RouteDecision specialistRoute = null;
         if ("scene.aios.freeform.v1".equals(scenarioId)) {
             prompt = CockpitModelPrompt.forFreeform(
                     inputDigest, stagedInput.inputText);
+        } else if (CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)) {
+            if (!stagedImagePresent) {
+                throw violation("smoking specialist requires one bound image");
+            }
+            specialistRoute = new CabinComplianceAgentRouter()
+                    .routeExplicit(scenarioId);
+            prompt = CockpitModelPrompt.forSmokingDetection(
+                    inputDigest,
+                    stagedInput.inputText,
+                    specialistRoute.getSpecialistAgentId(),
+                    smokingAgentInstruction);
         } else if (stagedInput != null) {
             prompt = CockpitModelPrompt.forMultimodal(
                     inputDigest, stagedInput.inputText);
@@ -526,7 +552,9 @@ final class DebugDecisionCompositionBoundary {
                 new ModelContractV2.LatencyBudget(
                         networkModel ? MODEL_INFERENCE_TIMEOUT_MS : 1_000),
                 new ModelContractV2.TokenBudget(128, 128, 256),
-                ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                stagedImagePresent
+                        ? ModelContractV2.RequiredCapability.VISION_CLASSIFICATION
+                        : ModelContractV2.RequiredCapability.TEXT_GENERATION,
                 ModelContractV2.FallbackPolicy.NO_FALLBACK,
                 digest("model-trace", session.getSessionId(), requestDigest),
                 inputDigest);
@@ -571,11 +599,18 @@ final class DebugDecisionCompositionBoundary {
                     }
                 }
             } else {
-                if (stagedImagePresent) {
-                    Arrays.fill(stagedImage, (byte) 0);
-                    throw violation("multimodal input requires OpenClaw routing");
-                }
                 ollamaEngine.registerPrompt(prompt);
+                if (stagedImagePresent) {
+                    try {
+                        ollamaEngine.registerScenarioImageAttachment(
+                                inputDigest,
+                                stagedInput.imageMimeType,
+                                stagedInput.imageFileName,
+                                stagedImage);
+                    } finally {
+                        Arrays.fill(stagedImage, (byte) 0);
+                    }
+                }
             }
             ModelProvider.InferenceHandle handle = modelProvider.infer(
                     new ModelProvider.InferenceRequest(
@@ -624,8 +659,14 @@ final class DebugDecisionCompositionBoundary {
                     : ollamaEngine.snapshot().getCompletedCount();
             ModelProjection projection = parseModelProjection(
                     observer.contentBytes(), prompt, completedCount, latencyMs);
+            String admittedRouteDigest = specialistRoute == null
+                    ? route.getDecisionDigest()
+                    : digest(
+                            "model-specialist-route-v1",
+                            route.getDecisionDigest(),
+                            specialistRoute.getRouteDigest());
             return new ModelEvidence(
-                    route.getDecisionDigest(),
+                    admittedRouteDigest,
                     observer.terminal.getOutputDigest(),
                     healthEvidence,
                     true,
@@ -785,6 +826,18 @@ final class DebugDecisionCompositionBoundary {
         } catch (IllegalArgumentException ignored) {
             // Older focused contract fixtures intentionally load only legacy scenarios.
         }
+        try {
+            rules.add(rule(
+                    "trigger.cabin.smoking.explicit.v1",
+                    CabinComplianceAgentRouter.SMOKING_SCENARIO_ID,
+                    catalog.require(CabinComplianceAgentRouter.SMOKING_SCENARIO_ID)
+                            .getArtifactDigest(),
+                    TriggerRule.Metric.CABIN_IMAGE_AVAILABLE,
+                    TriggerRule.ThresholdOperator.GREATER_THAN_OR_EQUAL,
+                    1.0));
+        } catch (IllegalArgumentException ignored) {
+            // Older focused contract fixtures intentionally load only legacy scenarios.
+        }
         return new TriggerRule.Manifest("trigger-manifest.debug-decision.v1", 1, rules);
     }
 
@@ -800,7 +853,9 @@ final class DebugDecisionCompositionBoundary {
                 scenarioId,
                 scenarioDigest,
                 metric,
-                ScenarioManifest.Zone.ROW1_DRIVER,
+                CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)
+                        ? ScenarioManifest.Zone.CABIN
+                        : ScenarioManifest.Zone.ROW1_DRIVER,
                 operator,
                 threshold,
                 100,
@@ -824,6 +879,9 @@ final class DebugDecisionCompositionBoundary {
         if ("scene.aios.freeform.v1".equals(scenarioId)) {
             return TriggerRule.Metric.DRIVER_ATTENTION_SCORE;
         }
+        if (CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)) {
+            return TriggerRule.Metric.CABIN_IMAGE_AVAILABLE;
+        }
         throw violation("scenario Trigger metric is unavailable");
     }
 
@@ -840,7 +898,28 @@ final class DebugDecisionCompositionBoundary {
         if ("scene.aios.freeform.v1".equals(scenarioId)) {
             return VehicleCapability.CapabilityId.HVAC_TARGET_TEMPERATURE;
         }
+        if (CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)) {
+            return VehicleCapability.CapabilityId.CABIN_SMOKING_DETECTION;
+        }
         throw violation("scenario consent capability is unavailable");
+    }
+
+    private static double triggerValueForScenario(String scenarioId) {
+        if ("scene.fatigue.assist.v1".equals(scenarioId)) return 0.8;
+        if ("scene.aios.freeform.v1".equals(scenarioId)) return 0.9;
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) return 1_500.0;
+        if (CabinComplianceAgentRouter.SMOKING_SCENARIO_ID.equals(scenarioId)) return 1.0;
+        if ("scene.comfort.cold.v1".equals(scenarioId)) return 17.0;
+        throw violation("scenario Trigger value is unavailable");
+    }
+
+    private static String requireAgentInstruction(String value) {
+        String instruction = Objects.requireNonNull(
+                value, "smokingAgentInstruction").trim();
+        if (instruction.isEmpty() || instruction.length() > 8_192) {
+            throw violation("smoking agent instruction is outside bounds");
+        }
+        return instruction;
     }
 
     private static Supplier<String> sequence(String prefix) {

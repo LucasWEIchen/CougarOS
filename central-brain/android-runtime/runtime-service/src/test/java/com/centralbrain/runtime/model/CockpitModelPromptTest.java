@@ -82,4 +82,24 @@ public final class CockpitModelPromptTest {
                 prompt.validateAdmittedActions(List.of(
                         "assistant.respond", "vehicle.unlock_doors")));
     }
+
+    @Test
+    public void smokingPromptUsesSpecialistContractWithoutEffectAuthority() {
+        CockpitModelPrompt prompt = CockpitModelPrompt.forSmokingDetection(
+                "e".repeat(64),
+                "检测吸烟",
+                "agent.cabin.smoking-detection.v1",
+                "只输出五字段紧凑JSON。");
+
+        assertEquals(CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1,
+                prompt.getOutputContract());
+        assertEquals("agent.cabin.smoking-detection.v1",
+                prompt.getSpecialistAgentId());
+        assertTrue(prompt.getContext().contains("execution_policy=DETECTION_ONLY"));
+        assertTrue(prompt.systemInstruction().contains("没有工具、车辆执行或业务处置权限"));
+        assertEquals(List.of("assistant.respond"), prompt.getAllowedActions());
+        prompt.validateAdmittedActions(List.of("assistant.respond"));
+        assertThrows(IllegalStateException.class, () ->
+                prompt.validateAdmittedActions(List.of("hvac.ventilate")));
+    }
 }

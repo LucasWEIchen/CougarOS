@@ -229,6 +229,27 @@ Graph Runtime 按依赖和策略执行 typed node。节点类型包括模型、�
 每次状态迁移先写检查点，再发布事件。重启后由 `GraphRestartReconciler` 根据持久状态恢复，不重复提交
 已经确认的外部动作。
 
+座舱合规检测采用两级 Agent：`ComplianceTriageAgent` 只产生版本化事件候选，
+`CabinComplianceAgentRouter` 用场景 ID、候选类型和置信度确定性选择专用 Agent。显式 HMI 场景直接进入
+代码路由，不让模型自行选择 Agent；连续图像流则先经过 Triage，再进入相同 Router。专用 Agent 的输出必须
+经过独立 Schema 校验，且检测结果不能直接连接 Tool 或 Effect。
+
+```mermaid
+flowchart LR
+    Input["座舱图像 + 文本"]
+    Triage["ComplianceTriageAgent<br/>事件候选"]
+    Router["Deterministic AgentRouter<br/>场景/类型/置信度白名单"]
+    Smoking["SmokingDetectionAgent<br/>客观事实判断"]
+    Validator["StrictResultValidator<br/>五字段/枚举/边界"]
+    Projection["HMI 合规结果"]
+    Reject["失败关闭"]
+
+    Input --> Triage --> Router --> Smoking --> Validator --> Projection
+    Input -. "显式检测吸烟场景" .-> Router
+    Router -. "未知或低置信度候选" .-> Reject
+    Validator -. "非法或不确定未规范化" .-> Reject
+```
+
 ### 5.7 Governance
 
 Governance 位于模型和 Effect 之间，是唯一动作准入权威：
@@ -432,6 +453,31 @@ sequenceDiagram
     V->>P: candidate actions
     P->>G: typed nodes and Effect intents
 ```
+
+### 6.4 座舱吸烟合规检测
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant H as Client2 HMI
+    participant S as Session Runtime
+    participant R as AgentRouter
+    participant A as SmokingDetectionAgent
+    participant V as StrictResultValidator
+
+    User->>H: 检测吸烟
+    H->>S: 文本 + 同帧座舱图像
+    S->>R: scene.cabin.compliance.smoking.v1
+    R-->>S: agent.cabin.smoking-detection.v1
+    S->>A: 专用指令 + 图像 + 合规上下文
+    A-->>V: 五字段紧凑 JSON
+    V-->>S: accepted / rejected
+    S-->>H: Agent 路由、输入消费、检测结果
+```
+
+标准输出只包含 `smoking_detected`、`person_count`、`location`、`confidence` 和 `description`。
+置信度低于 0.5 时必须规范化为 `UNKNOWN` 的不确定结果。场景图只包含 Context、路由、模型、校验和
+结果渲染节点，不包含 Tool、Effect 或业务处置节点。
 
 当前任意文本链路可输出模型回复和白名单候选动作。只有候选动作成功转换为构建时可审查的 typed Plan，
 并经过 Governance 后，才可进入 Tool 或 Effect；无法编译、未知参数或缺少能力时必须停止在结果投影阶段。

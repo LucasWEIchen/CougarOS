@@ -251,15 +251,16 @@ nulls, trailing content, oversized input and unsupported typed values. Manifest 
 node allowlist and limits nodes, dependencies, depth, parallelism, retry/timeout, capability references, risk,
 approval metadata, fallback and UI resource keys.
 
-APK assets contain exactly three build-owned v1 templates: `scene.comfort.cold.v1`,
-`scene.fatigue.assist.v1` and `scene.rest.nap.v1`. Fatigue/rest seat-recline nodes are explicitly
+APK assets contain exactly six build-owned v1 templates: `scene.comfort.cold.v1`,
+`scene.fatigue.assist.v1`, `scene.rest.nap.v1`, `scene.cabin.multimodal.assist.v1`,
+`scene.shopping.route.v1` and `scene.cabin.compliance.smoking.v1`. Fatigue/rest seat-recline nodes are explicitly
 `PARKED_ONLY` and approval-required. A strict draft-2020-12 JSON schema and SHA-256 sidecar are checked in CI and
 again from packaged assets by a DUMP-protected Android 13 ARM64 probe. Invalid or duplicate-ID assets are disabled
 without disabling unrelated valid scenarios.
 
 These are non-executable templates. P2-W05 performs no Resolver/Compiler/Graph/Effect action and does not wire the
 catalog into a production Service. The checksum is build integrity, not artifact cryptographic signature evidence.
-Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=5`,
+Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=6`,
 `scenario_manifest_artifact_crypto_verified=false`, `scenario_catalog_production_trusted=false`,
 `scenario_runtime_wired=false`, `scenario_graph_execution_enabled=false`, `hardware_accessed=false`.
 

@@ -84,7 +84,13 @@ public final class CapabilityCatalog {
                     Set.of("cabin"),
                     "",
                     VehicleCapability.TargetRange.text(128, Set.of()),
-                    VehicleCapability.RiskClass.MEDIUM)));
+                    VehicleCapability.RiskClass.MEDIUM),
+            capabilityWithoutVehicleReadback(
+                    VehicleCapability.CapabilityId.CABIN_SMOKING_DETECTION,
+                    Set.of("cabin"),
+                    "",
+                    VehicleCapability.TargetRange.booleanValue(),
+                    VehicleCapability.RiskClass.LOW)));
 
     private final Map<VehicleCapability.CapabilityId, VehicleCapability> byId;
     private final List<VehicleCapability> ordered;

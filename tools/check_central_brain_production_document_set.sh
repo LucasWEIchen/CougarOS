@@ -89,13 +89,13 @@ work_ids = re.findall(
     requirements,
     flags=re.MULTILINE,
 )
-if len(work_ids) != 140 or len(set(work_ids)) != 140:
+if len(work_ids) != 141 or len(set(work_ids)) != 141:
     raise SystemExit(
-        f"requirements must track 140 unique work packages: rows={len(work_ids)}, "
+        f"requirements must track 141 unique work packages: rows={len(work_ids)}, "
         f"unique={len(set(work_ids))}"
     )
 for required_id in (
-    "P0-W01", "P1-W01", "P4-R1", "P4-R7", "P4-R8", "P7-R3-OC2",
+    "P0-W01", "P1-W01", "P4-R1", "P4-R7", "P4-R8", "P4-R9", "P7-R3-OC2",
     "P6-P7-R1", "P8-W05", "P9-EXT-07", "P10-R1", "SCOPE-05",
 ):
     if required_id not in work_ids:
@@ -103,19 +103,20 @@ for required_id in (
 
 required_atomic_ids = (
     "APP-001", "APP-002", "APP-003", "APP-004", "APP-005", "APP-006",
+    "APP-007",
     "S2-SES-001", "S2-GRF-001", "S2-EVT-001", "S2-EFF-001",
     "S2-TRG-002", "S2-SCN-001", "S2-SCN-002", "S2-SCN-003",
-    "S2-SCN-004", "S2-SCN-005", "S2-INT-001", "S2-NAV-001",
+    "S2-SCN-004", "S2-SCN-005", "S2-SCN-006", "S2-INT-001", "S2-NAV-001",
     "S2-COM-001", "S2-MDL-001", "S2-MDL-002", "S2-MDL-003",
-    "S2-MDL-004", "S2-MDL-005", "S2-MDL-006", "S2-TOL-001",
+    "S2-MDL-004", "S2-MDL-005", "S2-MDL-006", "S2-MDL-007", "S2-TOL-001",
     "S2-TOL-002", "S2-SKL-001", "S2-MEM-001", "S2-MEM-002",
     "S2-CTX-001", "S2-CTX-002", "S2-TWN-001", "S2-ADP-001",
     "S2-ADP-002", "S2-ADP-003", "S2-ADP-004", "S2-SAF-001",
-    "S2-SAF-002", "S2-SAF-003", "S2-SAF-004", "S2-SAF-005",
+    "S2-SAF-002", "S2-SAF-003", "S2-SAF-004", "S2-SAF-005", "S2-SAF-006",
     "S2-UX-001", "S2-UX-002", "S2-UX-003", "S2-HMI-001",
     "S2-HMI-002", "S2-HMI-003", "S2-HMI-004", "S2-HMI-005",
     "S2-HMI-006", "S2-HMI-007", "S2-HMI-008", "S2-HMI-009",
-    "S2-HMI-010",
+    "S2-HMI-010", "S2-HMI-011",
     "S2-PER-001", "S2-OBS-001", "S2-OBS-002", "S2-REL-001",
 )
 for requirement_id in required_atomic_ids:
@@ -302,7 +303,7 @@ for relative in repository_files:
 if legacy_references:
     raise SystemExit("legacy document references remain:\n" + "\n".join(legacy_references))
 
-print("production_requirement_work_package_count=140")
+print("production_requirement_work_package_count=141")
 print(f"production_architecture_mermaid_diagram_count={mermaid_count}")
 print(f"production_module_detailed_design_count={len(module_paths)}")
 PY

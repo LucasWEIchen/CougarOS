@@ -27,10 +27,10 @@ public final class ScenarioManifestParserTest {
     private static final Path ASSETS = Path.of("src/main/assets/scenarios");
 
     @Test
-    public void loadsFiveVersionedBuiltInScenariosWithStableDigests() throws Exception {
+    public void loadsSixVersionedBuiltInScenariosWithStableDigests() throws Exception {
         ScenarioCatalog catalog = ScenarioCatalog.load(builtInAssets());
 
-        assertEquals(5, catalog.size());
+        assertEquals(6, catalog.size());
         assertTrue(catalog.disabled().isEmpty());
         assertTrue(catalog.getCatalogDigest().matches("[0-9a-f]{64}"));
         assertEquals(
@@ -41,6 +41,8 @@ public final class ScenarioManifestParserTest {
                 catalog.require("scene.cabin.multimodal.assist.v1");
         ScenarioManifest freeform =
                 catalog.require("scene.aios.freeform.v1");
+        ScenarioManifest smoking =
+                catalog.require("scene.cabin.compliance.smoking.v1");
         assertEquals(2, multimodal.getVersion());
         assertEquals(RiskClass.HIGH, multimodal.getRiskClass());
         assertTrue(multimodal.getRequiredCapabilities().stream()
@@ -57,6 +59,10 @@ public final class ScenarioManifestParserTest {
                 .noneMatch(node -> "effect.execute".equals(node.getNodeType())));
         assertEquals(4, freeform.getPlanTemplate().getNodes().size());
         assertTrue(freeform.getPlanTemplate().getNodes().stream()
+                .noneMatch(node -> "tool.invoke".equals(node.getNodeType())
+                        || "effect.execute".equals(node.getNodeType())));
+        assertEquals(5, smoking.getPlanTemplate().getNodes().size());
+        assertTrue(smoking.getPlanTemplate().getNodes().stream()
                 .noneMatch(node -> "tool.invoke".equals(node.getNodeType())
                         || "effect.execute".equals(node.getNodeType())));
         assertEquals(RiskClass.HIGH, fatigue.getRiskClass());
@@ -190,6 +196,8 @@ public final class ScenarioManifestParserTest {
         Map<String, byte[]> result = new LinkedHashMap<>();
         result.put("scene.cabin.multimodal.assist.v1.json",
                 asset("scene.cabin.multimodal.assist.v1.json"));
+        result.put("scene.cabin.compliance.smoking.v1.json",
+                asset("scene.cabin.compliance.smoking.v1.json"));
         result.put("scene.aios.freeform.v1.json",
                 asset("scene.aios.freeform.v1.json"));
         result.put("scene.comfort.cold.v1.json", asset("scene.comfort.cold.v1.json"));

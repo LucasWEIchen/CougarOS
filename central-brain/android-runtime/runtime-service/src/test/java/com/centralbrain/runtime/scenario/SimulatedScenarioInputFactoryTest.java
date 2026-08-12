@@ -106,6 +106,26 @@ public final class SimulatedScenarioInputFactoryTest {
     }
 
     @Test
+    public void smokingInputUsesCabinContextAndResponseOnlyPlan() throws Exception {
+        SimulatedScenarioRuntime runtime = runtime();
+        Input input = factory().create(
+                ScenarioKind.CABIN_SMOKING, DrivingProfile.PARKED);
+
+        SimulatedScenarioRuntime.Snapshot snapshot = runtime.start(
+                input.getRequest(),
+                input.getResolution(),
+                input.getContext(),
+                input.getCapabilities());
+
+        assertEquals("scene.cabin.compliance.smoking.v1", snapshot.getScenarioId());
+        assertEquals(com.centralbrain.runtime.context.ContextSnapshot.SeatZone.CABIN,
+                input.getContext().getSeatZone());
+        assertEquals(SimulatedScenarioRuntime.SessionState.COMPLETED,
+                snapshot.getSessionState());
+        assertEquals(null, snapshot.getPendingNode());
+    }
+
+    @Test
     public void nullOrInvalidFactoryInputsFailClosed() throws Exception {
         SimulatedScenarioInputFactory factory = factory();
 
@@ -196,6 +216,7 @@ public final class SimulatedScenarioInputFactoryTest {
         Map<String, byte[]> assets = new LinkedHashMap<>();
         for (String name : List.of(
                 "scene.aios.freeform.v1.json",
+                "scene.cabin.compliance.smoking.v1.json",
                 "scene.comfort.cold.v1.json",
                 "scene.fatigue.assist.v1.json",
                 "scene.rest.nap.v1.json")) {

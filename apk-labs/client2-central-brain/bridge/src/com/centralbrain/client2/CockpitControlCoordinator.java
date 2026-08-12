@@ -728,9 +728,9 @@ public final class CockpitControlCoordinator implements
         setVisible(modelInputSurface, false);
         setVisible(modelInputThumbnail, false);
         hideImagePreview();
-        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(scenarioId)) {
+        if (CockpitMultimodalInput.isMultimodalScenario(scenarioId)) {
             try {
-                pendingMultimodalInput = CockpitMultimodalInput.load(activity);
+                pendingMultimodalInput = CockpitMultimodalInput.load(activity, scenarioId);
                 modelInputBitmap = pendingMultimodalInput.decodePreview();
                 if (modelInputThumbnail != null) {
                     modelInputThumbnail.setImageBitmap(modelInputBitmap);
@@ -740,14 +740,17 @@ public final class CockpitControlCoordinator implements
                 }
                 setText(
                         modelInputTextView,
-                        "模型输入 · “处理一下” + 座舱图像 · "
+                        "模型输入 · “" + pendingMultimodalInput.getInputText()
+                                + "” + 座舱图像 · "
                                 + pendingMultimodalInput.getImageByteCount() + " bytes");
                 setVisible(modelInputSurface, true);
                 setVisible(modelInputThumbnail, true);
                 appendLiveTrace(
                         "MODEL INPUT",
                         "STAGING",
-                        "处理一下 + cabin frame · SHA-256 verified");
+                        pendingMultimodalInput.getInputText()
+                                + " + " + pendingMultimodalInput.getImageFileName()
+                                + " · SHA-256 verified");
             } catch (RuntimeException failure) {
                 appendLiveTrace(
                         "MODEL INPUT",
@@ -1140,17 +1143,28 @@ public final class CockpitControlCoordinator implements
         admittedModelActions.clear();
         admittedModelActions.addAll(Arrays.asList(projection.admittedActions));
         multimodalConsumptionProved =
-                !CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)
+                !CockpitMultimodalInput.isMultimodalScenario(uiScenarioId)
                         || projection.imageConsumed;
         appendLiveTrace(
                 "AGENT ACTIONS",
                 "ALLOWLISTED",
                 TextUtils.join(", ", admittedModelActions));
-        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)) {
+        if (CockpitMultimodalInput.isMultimodalScenario(uiScenarioId)) {
             appendLiveTrace(
                     "MODEL OUTPUT",
                     projection.imageConsumed ? "IMAGE_CONSUMED" : "REJECTED",
                     projection.assistantDisplayText);
+            if (CockpitMultimodalInput.SMOKING_UI_SCENARIO_ID.equals(uiScenarioId)) {
+                String resultStatus = projection.assistantDisplayText
+                        .contains("\"smoking_detected\":1")
+                                ? "DETECTED"
+                                : projection.assistantDisplayText.contains("uncertain")
+                                        ? "UNCERTAIN" : "NOT_DETECTED";
+                appendLiveTrace(
+                        "COMPLIANCE RESULT",
+                        resultStatus,
+                        projection.assistantDisplayText);
+            }
         }
     }
 
@@ -1173,6 +1187,12 @@ public final class CockpitControlCoordinator implements
                 "BOUNDARY",
                 "SIMULATION",
                 "Vehicle bus unavailable · safety interfaces reserved");
+        if (CockpitMultimodalInput.SMOKING_UI_SCENARIO_ID.equals(scenarioId)) {
+            appendLiveTrace(
+                    "AGENT ROUTER",
+                    "SELECTED",
+                    "compliance-triage.v1 → smoking-detection.v1 · explicit route");
+        }
         Log.i(TAG, markers()
                 + " voice_first_scenario_requested=true"
                 + " ui_scenario_id=" + safeDisplayToken(scenarioId)
@@ -1719,7 +1739,7 @@ public final class CockpitControlCoordinator implements
                 == CockpitSeatState.DrivingState.UNKNOWN_RESTRICTED
                 && simulated.isRuntimeAvailable()
                 && simulated.hasSnapshot()
-                && CockpitMultimodalInput.UI_SCENARIO_ID.equals(
+                && CockpitMultimodalInput.isMultimodalScenario(
                         simulated.getUiScenarioId())
                 && "PARKED".equals(simulated.getDrivingProfile());
         if (drivingState != CockpitSeatState.DrivingState.PARKED
@@ -1836,7 +1856,7 @@ public final class CockpitControlCoordinator implements
         accept(CockpitHmiReducer.Event.sessionOpened(handle, scenarioId));
         if (CockpitSimulatedScenarioState.isSupported(activeUiScenario)) {
             CockpitMultimodalInput multimodal =
-                    CockpitMultimodalInput.UI_SCENARIO_ID.equals(activeUiScenario)
+                    CockpitMultimodalInput.isMultimodalScenario(activeUiScenario)
                             ? pendingMultimodalInput : null;
             String freeform = "agent.freeform".equals(activeUiScenario)
                     ? pendingFreeformInput : null;
@@ -2611,6 +2631,9 @@ public final class CockpitControlCoordinator implements
         if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(scenarioId)) {
             return "处理一下";
         }
+        if (CockpitMultimodalInput.SMOKING_UI_SCENARIO_ID.equals(scenarioId)) {
+            return "检测吸烟";
+        }
         return "";
     }
 
@@ -2648,6 +2671,9 @@ public final class CockpitControlCoordinator implements
         }
         if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)) {
             return "购物服务 / 订单预览 / 购买路径规划 / 独立确认";
+        }
+        if (CockpitMultimodalInput.SMOKING_UI_SCENARIO_ID.equals(uiScenarioId)) {
+            return "座舱合规检测 / 结构化结果 / 无车身动作";
         }
         return "UNAVAILABLE";
     }

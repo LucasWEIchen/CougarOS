@@ -12,12 +12,20 @@ public final class CockpitModelPrompt {
     public static final String EFFECT_MODE = "UI_SIMULATION_ONLY";
     public static final String SAFETY_MODE = "INTERFACE_RESERVED";
 
+    public enum OutputContract {
+        COCKPIT_ACTIONS_V1,
+        SMOKING_DETECTION_V1
+    }
+
     private final String inputDigest;
     private final String scenarioId;
     private final String utterance;
     private final String context;
     private final List<String> allowedActions;
     private final Set<String> requiredActions;
+    private final OutputContract outputContract;
+    private final String specialistAgentId;
+    private final String specialistInstruction;
 
     private CockpitModelPrompt(
             String inputDigest,
@@ -26,6 +34,28 @@ public final class CockpitModelPrompt {
             String context,
             List<String> allowedActions,
             Set<String> requiredActions) {
+        this(
+                inputDigest,
+                scenarioId,
+                utterance,
+                context,
+                allowedActions,
+                requiredActions,
+                OutputContract.COCKPIT_ACTIONS_V1,
+                "",
+                "");
+    }
+
+    private CockpitModelPrompt(
+            String inputDigest,
+            String scenarioId,
+            String utterance,
+            String context,
+            List<String> allowedActions,
+            Set<String> requiredActions,
+            OutputContract outputContract,
+            String specialistAgentId,
+            String specialistInstruction) {
         this.inputDigest = requireDigest(inputDigest);
         this.scenarioId = bounded(scenarioId, 96, "scenarioId");
         this.utterance = bounded(utterance, 1_024, "utterance");
@@ -38,6 +68,11 @@ public final class CockpitModelPrompt {
             throw new IllegalArgumentException(
                     "CB_COCKPIT_MODEL_PROMPT: required action is not allowlisted");
         }
+        this.outputContract = Objects.requireNonNull(outputContract, "outputContract");
+        this.specialistAgentId = outputContract == OutputContract.SMOKING_DETECTION_V1
+                ? bounded(specialistAgentId, 96, "specialistAgentId") : "";
+        this.specialistInstruction = outputContract == OutputContract.SMOKING_DETECTION_V1
+                ? bounded(specialistInstruction, 8_192, "specialistInstruction") : "";
     }
 
     public static CockpitModelPrompt forScenario(String inputDigest, String scenarioId) {
@@ -82,6 +117,29 @@ public final class CockpitModelPrompt {
         }
         throw new IllegalArgumentException(
                 "CB_COCKPIT_MODEL_PROMPT: scenario is not allowlisted");
+    }
+
+    public static CockpitModelPrompt forSmokingDetection(
+            String inputDigest,
+            String inputText,
+            String specialistAgentId,
+            String specialistInstruction) {
+        return new CockpitModelPrompt(
+                inputDigest,
+                "scene.cabin.compliance.smoking.v1",
+                inputText,
+                "environment=ROBOTAXI_CABIN"
+                        + ";input_mode=TEXT_AND_IMAGE"
+                        + ";camera_contract=REAR_ROW_STANDARD_WITH_FRONT_ROW_EXTENSION"
+                        + ";location_policy=IMAGE_COORDINATES_ONLY"
+                        + ";view_mismatch_policy=USE_UNKNOWN_LOCATION"
+                        + ";execution_policy=DETECTION_ONLY"
+                        + ";vehicle_bus=NOT_AUTHORIZED",
+                List.of("assistant.respond"),
+                Set.of("assistant.respond"),
+                OutputContract.SMOKING_DETECTION_V1,
+                specialistAgentId,
+                specialistInstruction);
     }
 
     public static CockpitModelPrompt forFreeform(
@@ -143,6 +201,12 @@ public final class CockpitModelPrompt {
     }
 
     public String systemInstruction() {
+        if (outputContract == OutputContract.SMOKING_DETECTION_V1) {
+            return specialistInstruction
+                    + "\n运行时补充约束：如果输入图像不符合标准后排摄像头几何，"
+                    + "仍可判断直接可见的客观吸烟事实，但座位无法可靠确定时必须使用UNKNOWN。"
+                    + "你没有工具、车辆执行或业务处置权限。";
+        }
         return "你是运行在汽车座舱中的AIOS场景规划器，首要目标是服务驾驶员的舒适、清醒和行车任务。"
                 + "你只提出候选动作，不能授权Safety或Effect，也不能声称真实车辆已经执行。"
                 + "对于自由输入，先判断是否属于座舱服务；不明确时只回复并要求澄清。"
@@ -154,6 +218,13 @@ public final class CockpitModelPrompt {
     }
 
     public String userInstruction() {
+        if (outputContract == OutputContract.SMOKING_DETECTION_V1) {
+            return "触发文本：" + utterance
+                    + "\n场景ID：" + scenarioId
+                    + "\n专用Agent：" + specialistAgentId
+                    + "\n运行上下文：" + context
+                    + "\n请只返回该Agent规定的五字段紧凑JSON。";
+        }
         return "用户表达：" + utterance
                 + "\n场景ID：" + scenarioId
                 + "\n座舱上下文：" + context
@@ -186,7 +257,10 @@ public final class CockpitModelPrompt {
                 && utterance.equals(other.utterance)
                 && context.equals(other.context)
                 && allowedActions.equals(other.allowedActions)
-                && requiredActions.equals(other.requiredActions);
+                && requiredActions.equals(other.requiredActions)
+                && outputContract == other.outputContract
+                && specialistAgentId.equals(other.specialistAgentId)
+                && specialistInstruction.equals(other.specialistInstruction);
     }
 
     public String getInputDigest() { return inputDigest; }
@@ -195,6 +269,8 @@ public final class CockpitModelPrompt {
     public String getContext() { return context; }
     public List<String> getAllowedActions() { return allowedActions; }
     public Set<String> getRequiredActions() { return requiredActions; }
+    public OutputContract getOutputContract() { return outputContract; }
+    public String getSpecialistAgentId() { return specialistAgentId; }
 
     private static String context(
             String zone,

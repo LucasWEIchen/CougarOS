@@ -13,12 +13,13 @@ flowchart LR
     Runtime["Runtime Service<br/>Session、Plan、Graph、Event"]
     Governance["Governance<br/>身份、能力、安全、审批"]
     Model["Model Runtime<br/>Router、Provider、结构化输出"]
+    Agent["Agent Runtime<br/>合规 Triage、确定性路由、专用 Agent"]
     Effect["Effect Runtime<br/>Tool、Adapter、Readback"]
     AI["外部 AI 算力基座"]
     Vehicle["OEM / Vendor 车辆能力"]
 
     User --> HMI --> SDK --> Runtime
-    Runtime --> Model <--> AI
+    Runtime --> Agent --> Model <--> AI
     Runtime --> Governance --> Effect <--> Vehicle
     Runtime -. "计划、进度、结果" .-> SDK
     SDK -. "实时投影" .-> HMI
@@ -31,7 +32,7 @@ flowchart LR
 
 | 文档 | 内容 |
 | --- | --- |
-| [生产软件需求文档](docs/CENTRAL_BRAIN_REQUIREMENTS.md) | 全部 140 个工作包、Req ID、需求说明、验收和进度状态 |
+| [生产软件需求文档](docs/CENTRAL_BRAIN_REQUIREMENTS.md) | 全部 141 个工作包、Req ID、需求说明、验收和进度状态 |
 | [生产软件架构文档](docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md) | 自上而下的部署、分层、模块、数据、流程、安全和恢复架构 |
 | [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | 公共开发规则、对外接口摘要，以及 17 份模块详设入口 |
 
@@ -40,11 +41,12 @@ flowchart LR
 | 范围 | 状态 |
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
-| P4-R7/P4-R8 HMI 实现 | 当前 Draft 分支已包含渲染修订、双入口和任意文本模型链路，尚未进入 `main` |
-| Client2 集成合同 | `0.21.0`，新增 P4-R8 任意文本输入与第五个场景资产 |
-| Scenario Catalog | 5 个版本化场景；任意文本场景当前只产生回复和白名单候选动作 |
-| Ollama 开发投影 | AIDL v3 已在 Android 13 ARM64 上完成文字请求与模型回复投影 |
+| P4-R7/P4-R8/P4-R9 HMI 实现 | 当前 Draft 分支已包含渲染修订、双入口、任意文本和吸烟合规多 Agent 链路，尚未进入 `main` |
+| Client2 集成合同 | `0.22.0`，新增 P4-R9 “检测吸烟”图文入口 |
+| Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
+| Ollama 开发投影 | AIDL v3 支持文字请求、单图请求、专用五字段模型回复投影 |
 | Model Prompt API | Ollama/OpenClaw 统一接收受控 `CockpitModelPrompt`，Provider 不获得执行权限 |
+| 座舱吸烟合规 Agent | 确定性 Router、版本化 Agent 指令、五字段严格校验已形成；目标摄像头验收待完成 |
 | 任意文本动作权限 | 当前仅投影模型回复与白名单候选，动态 Tool/Effect 编译保持关闭 |
 | OpenClaw 生产以太网文字/图片接口 | [客户 ETH 联调说明与 Java/Python 示例](central-brain/integration/openclaw-eth-client/README.md)已形成，release Provider 待实现与准入 |
 | 真实 Vehicle/NPU Adapter | 外部接口阻塞 |

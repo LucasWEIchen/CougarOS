@@ -30,6 +30,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -43,6 +45,8 @@ import java.util.UUID;
 final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
     private static final int MAX_ASSET_BYTES = 64 * 1024;
     private static final int MAX_RUNS = 16;
+    private static final String SMOKING_AGENT_PROMPT_SHA256 =
+            "a79926000fbf7aa7d7888daa4ed04f72cd591ce48888303af7d0f3993827c2fc";
 
     private final FailClosedOrchestrationBackend failClosed =
             new FailClosedOrchestrationBackend();
@@ -68,7 +72,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         composition = new SimulatedScenarioEffectComposition(
                 clock, new SimulationClock(SystemClock.elapsedRealtime()));
         ScenarioCatalog catalog = loadCatalog(context);
-        decisionComposition = new DebugDecisionCompositionBoundary(catalog);
+        decisionComposition = new DebugDecisionCompositionBoundary(
+                catalog,
+                loadSmokingAgentPrompt(context));
         runtimeComposition = new DebugRuntimeCompositionBoundary();
         inputs = new SimulatedScenarioInputFactory(
                 catalog,
@@ -176,6 +182,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         Set<CapabilityId> unavailable = new LinkedHashSet<>();
         if (scenario == ScenarioKind.COLD) {
             unavailable.add(CapabilityId.SEAT_HEATING_LEVEL);
+            return unavailable;
+        }
+        if (scenario == ScenarioKind.CABIN_SMOKING) {
             return unavailable;
         }
         if (!actions.contains("seat.recline")) {
@@ -515,6 +524,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
             return ScenarioKind.CABIN_MULTIMODAL;
         }
+        if ("scene.cabin.compliance.smoking.v1".equals(scenarioId)) {
+            return ScenarioKind.CABIN_SMOKING;
+        }
         return null;
     }
 
@@ -550,6 +562,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             Map<String, byte[]> assets = new LinkedHashMap<>();
             for (String name : new String[] {
                     "scene.aios.freeform.v1.json",
+                    "scene.cabin.compliance.smoking.v1.json",
                     "scene.comfort.cold.v1.json",
                     "scene.fatigue.assist.v1.json",
                     "scene.cabin.multimodal.assist.v1.json",
@@ -560,6 +573,37 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             return ScenarioCatalog.load(assets);
         } catch (IOException failure) {
             throw new IllegalStateException("built-in scenario catalog unavailable", failure);
+        }
+    }
+
+    private static String loadSmokingAgentPrompt(Context context) {
+        try {
+            byte[] bytes = readAsset(
+                    context, "agents/smoking-detection-agent-v1.md");
+            if (!SMOKING_AGENT_PROMPT_SHA256.equals(sha256(bytes))) {
+                throw new IllegalStateException(
+                        "smoking agent prompt integrity mismatch");
+            }
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (IOException failure) {
+            throw new IllegalStateException(
+                    "smoking agent prompt is unavailable", failure);
+        }
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(bytes);
+            char[] result = new char[hash.length * 2];
+            char[] alphabet = "0123456789abcdef".toCharArray();
+            for (int index = 0; index < hash.length; index++) {
+                int value = hash[index] & 0xff;
+                result[index * 2] = alphabet[value >>> 4];
+                result[index * 2 + 1] = alphabet[value & 0x0f];
+            }
+            return new String(result);
+        } catch (NoSuchAlgorithmException failure) {
+            throw new IllegalStateException("SHA-256 unavailable", failure);
         }
     }
 

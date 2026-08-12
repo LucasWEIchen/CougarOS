@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -121,6 +122,69 @@ public final class OpenClawInferenceEngineTest {
                 "1b56b50ac4e976f488f128cabdcdffb2fc9331d6974bb9968131a415d14ade24",
                 image.sha256);
         assertTrue(captured.get().message.contains("汽车座舱"));
+    }
+
+    @Test
+    public void smokingSpecialistUsesSameImageAndStrictResultContract() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicReference<OpenClawInferenceEngine.Request> captured = new AtomicReference<>();
+        OpenClawInferenceEngine engine = engine(clock, request -> {
+            captured.set(request);
+            return new OpenClawInferenceEngine.Result(
+                    "{\"smoking_detected\":1,\"person_count\":1,"
+                            + "\"location\":\"IMAGE_ROW_1_RIGHT\","
+                            + "\"confidence\":0.88,"
+                            + "\"description\":\"可见烟支靠近嘴部。\"}",
+                    3,
+                    false);
+        });
+        engine.warmup(model());
+        engine.registerPrompt(CockpitModelPrompt.forSmokingDetection(
+                INPUT_DIGEST,
+                "检测吸烟",
+                "agent.cabin.smoking-detection.v1",
+                "只识别客观吸烟事实并输出五字段JSON。"));
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "smoking.png", minimalPng());
+
+        LocalModelProvider.EngineOutput output = engine.infer(
+                model(), request(INPUT_DIGEST), neverCancelled());
+
+        assertTrue(captured.get().message.contains("专用Agent"));
+        assertTrue(captured.get().message.contains("smoking-detection.v1"));
+        assertEquals("image/png", captured.get().imageAttachment.mimeType);
+        String canonical = new String(output.getChunks().get(0), StandardCharsets.UTF_8);
+        assertTrue(canonical.contains("\\\"smoking_detected\\\":1"));
+        assertTrue(canonical.contains("\"actions\":[\"assistant.respond\"]"));
+    }
+
+    @Test
+    public void cancelledSmokingRequestConsumesImageWithoutCallingTransport() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger transportCalls = new AtomicInteger();
+        OpenClawInferenceEngine engine = engine(clock, request -> {
+            transportCalls.incrementAndGet();
+            return new OpenClawInferenceEngine.Result("{}", 3, false);
+        });
+        engine.warmup(model());
+        engine.registerPrompt(CockpitModelPrompt.forSmokingDetection(
+                INPUT_DIGEST,
+                "检测吸烟",
+                "agent.cabin.smoking-detection.v1",
+                "只识别客观吸烟事实并输出五字段JSON。"));
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "smoking.png", minimalPng());
+
+        assertThrows(IllegalStateException.class, () -> engine.infer(
+                model(), request(INPUT_DIGEST), alwaysCancelled()));
+
+        assertEquals(0, transportCalls.get());
+        assertEquals(1, engine.snapshot().getFailureCount());
+        byte[] replacement = minimalPng();
+        replacement[replacement.length - 1] = 0x01;
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "smoking.png", replacement);
+        engine.close();
     }
 
     @Test
@@ -285,6 +349,20 @@ public final class OpenClawInferenceEngineTest {
             @Override
             public boolean isCancellationRequested() {
                 return false;
+            }
+
+            @Override
+            public boolean isDeadlineExceeded() {
+                return false;
+            }
+        };
+    }
+
+    private static LocalModelProvider.CancellationSignal alwaysCancelled() {
+        return new LocalModelProvider.CancellationSignal() {
+            @Override
+            public boolean isCancellationRequested() {
+                return true;
             }
 
             @Override

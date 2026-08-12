@@ -52,15 +52,15 @@
 | Session 与持久化 | [03-session-persistence.md](modules/03-session-persistence.md) | Room v4、Repository、Outbox、恢复 |
 | Context 与 Vehicle Twin | [04-context-vehicle-twin.md](modules/04-context-vehicle-twin.md) | 信号 Schema、Capability、Context、Digital Twin |
 | Scenario 与 Plan | [05-scenario-plan.md](modules/05-scenario-plan.md) | Manifest、Catalog、Resolver、Compiler |
-| Agent Graph 与 Orchestration | [06-agent-graph-orchestration.md](modules/06-agent-graph-orchestration.md) | Graph 状态机、Executor、Checkpoint、Endpoint |
+| Agent Graph 与 Orchestration | [06-agent-graph-orchestration.md](modules/06-agent-graph-orchestration.md) | Graph 状态机、确定性 Agent 路由、Executor、Checkpoint、Endpoint |
 | Governance、Approval 与 Identity | [07-governance-approval-identity.md](modules/07-governance-approval-identity.md) | 调用方身份、Capability、驾驶安全、审批 |
 | Tool 与 Skill Runtime | [08-tool-skill-runtime.md](modules/08-tool-skill-runtime.md) | Manifest、Registry、Resolver、Executor、Skill 校验 |
 | Memory Lifecycle | [09-memory-lifecycle.md](modules/09-memory-lifecycle.md) | Working/Profile/Episodic、Consent、Context Budget |
 | Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
-| Model、Scheduler 与 OpenClaw | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、Prompt、输出校验 |
+| Model、Scheduler 与 OpenClaw | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、专用 Agent Prompt、输出校验 |
 | OpenClaw 生产以太网 API | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 上层文字/图片接口、Binder V2、ETH、WebSocket、流式回复 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
-| Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态 |
+| Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态和合规检测 |
 | RenderService Unity | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | Unity bundle、TextMeshPro、温度状态、触摸链 |
 | Native Runtime | [15-native-runtime.md](modules/15-native-runtime.md) | C ABI、JNI、Native handle、NPU 扩展 |
 | Security、Privacy、Release 与 Observability | [16-security-privacy-release-observability.md](modules/16-security-privacy-release-observability.md) | 安全库存、隐私、诊断、准入、复测 |
@@ -629,6 +629,21 @@ Protocol: 3
 未知字段、重复字段、未知场景、未知能力、错误类型、越界值或超过 16 KiB 必须拒绝。
 `AcceptedOutput.isActionAuthorizationGranted()` 永远返回 false。
 
+### 15.6 吸烟检测 Agent 输出
+
+`CockpitModelPrompt.forSmokingDetection()` 绑定 `scene.cabin.compliance.smoking.v1`、专用 Agent ID、版本化
+指令和 `SMOKING_DETECTION_V1` 输出合同。Provider 必须具备 `VISION_CLASSIFICATION`，并把一张 PNG/JPEG
+与触发文本放入同一请求。
+
+`SmokingDetectionResult.parse()` 使用严格 JSON reader，字段集合必须恰好为：
+
+```json
+{"smoking_detected":1,"person_count":1,"location":"IMAGE_ROW_2_RIGHT","confidence":0.88,"description":"有乘客吸烟，请熄灭。"}
+```
+
+低置信度结果必须使用 `UNKNOWN` 并标明 `uncertain`；未知字段、重复字段、未知座位、阳性但人数为零、阴性
+却保留位置等组合必须拒绝。接受后只允许 `assistant.respond` 投影，不生成 Effect 权限。
+
 ## 16. Effect 与 Adapter
 
 ### 16.1 `EffectBatch`
@@ -755,6 +770,15 @@ View 只根据 state 渲染；点击事件转换为 reducer input 或 SDK comman
 4. 使用 `CockpitModelPrompt.forFreeform()` 注入座舱角色、安全边界和动作白名单。
 5. 校验模型回复及候选动作，拒绝未知动作、重复动作、缺失必要回复和超限输出。
 6. 显示实际输入、模型运行、回复和候选动作；未生成 typed Tool/Effect 节点时显示零执行记录，禁止伪造车辆完成状态。
+
+“检测吸烟”：
+
+1. 使用 `cabin.smoking` 打开 `scene.cabin.compliance.smoking.v1` Session。
+2. `CockpitMultimodalInput` 从场景白名单选择触发文字、图像资源、文件名、字节数和 SHA-256。
+3. Runtime 通过 `CabinComplianceAgentRouter.routeExplicit()` 选择 `agent.cabin.smoking-detection.v1`。
+4. 图文 Provider 返回五字段紧凑 JSON，`SmokingDetectionResult` 严格校验并规范化状态。
+5. HMI 按顺序显示输入、Agent 路由、模型输出与 `DETECTED`、`NOT_DETECTED` 或 `UNCERTAIN`。
+6. 场景图不得包含 `tool.invoke` 或 `effect.execute`；检测结果不代表业务处置或车辆动作完成。
 
 ### 17.3 执行链路
 

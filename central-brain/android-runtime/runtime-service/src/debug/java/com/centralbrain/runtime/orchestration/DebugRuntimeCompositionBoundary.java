@@ -369,6 +369,9 @@ final class DebugRuntimeCompositionBoundary {
         if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
             return BoundedBuiltInSkillRuntime.SKILL_CABIN_PRECONDITION;
         }
+        if ("scene.cabin.compliance.smoking.v1".equals(scenarioId)) {
+            return BoundedBuiltInSkillRuntime.SKILL_CABIN_PRECONDITION;
+        }
         throw violation("scenario has no built-in Skill binding");
     }
 

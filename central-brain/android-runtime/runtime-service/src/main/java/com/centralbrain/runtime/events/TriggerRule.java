@@ -31,7 +31,8 @@ public final class TriggerRule {
         CABIN_TEMPERATURE_C("metric.cabin.temperature_c", -50.0, 80.0),
         DRIVER_FATIGUE_SCORE("metric.driver.fatigue_score", 0.0, 1.0),
         DRIVER_ATTENTION_SCORE("metric.driver.attention_score", 0.0, 1.0),
-        CABIN_CO2_PPM("metric.cabin.co2_ppm", 0.0, 20_000.0);
+        CABIN_CO2_PPM("metric.cabin.co2_ppm", 0.0, 20_000.0),
+        CABIN_IMAGE_AVAILABLE("metric.cabin.image_available", 0.0, 1.0);
 
         private final String metricId;
         private final double minimum;
