@@ -156,7 +156,7 @@ public final class LocalModelProvider implements ModelProvider {
         this.limits = Objects.requireNonNull(limits, "limits");
         this.lastFault = new FaultSnapshot(descriptor.getProviderId(), "NONE", false, false);
         boolean developmentProfile = descriptor.getBackendKind()
-                        == BackendKind.ANDROID_LOCAL_DEVELOPMENT
+                        == BackendKind.VLLM_OPENAI_COMPATIBLE
                 && descriptor.getAssurance() == Assurance.DEBUG_ONLY;
         boolean targetIntegrationProfile = descriptor.getBackendKind()
                         == BackendKind.OPENCLAW_GATEWAY

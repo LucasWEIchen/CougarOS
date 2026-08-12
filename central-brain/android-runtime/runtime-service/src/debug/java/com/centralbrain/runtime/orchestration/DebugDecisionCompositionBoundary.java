@@ -22,8 +22,8 @@ import com.centralbrain.runtime.model.ModelProvider;
 import com.centralbrain.runtime.model.ModelProviderRegistry;
 import com.centralbrain.runtime.model.OpenClawEndpointConfig;
 import com.centralbrain.runtime.model.OpenClawInferenceEngine;
-import com.centralbrain.runtime.model.OllamaEndpointConfig;
-import com.centralbrain.runtime.model.OllamaInferenceEngine;
+import com.centralbrain.runtime.model.VllmEndpointConfig;
+import com.centralbrain.runtime.model.VllmInferenceEngine;
 import com.centralbrain.runtime.model.PolicyAwareModelRouter;
 import com.centralbrain.runtime.model.TestOnlyModelRouter;
 import com.centralbrain.runtime.scenario.ScenarioCatalog;
@@ -74,8 +74,7 @@ final class DebugDecisionCompositionBoundary {
 
     private enum NetworkModelMode {
         NONE,
-        OLLAMA_DEVELOPMENT,
-        OPENCLAW_DEVELOPMENT,
+        VLLM_DEVELOPMENT,
         OPENCLAW_TARGET
     }
 
@@ -89,7 +88,7 @@ final class DebugDecisionCompositionBoundary {
     private final ModelProvider.ModelSpec modelSpec;
     private final ModelProvider modelProvider;
     private final TestOnlyModelRouter modelRouter;
-    private final OllamaInferenceEngine ollamaEngine;
+    private final VllmInferenceEngine vllmEngine;
     private final OpenClawInferenceEngine openClawEngine;
     private final NetworkModelMode networkModelMode;
     private final BoundedEventRuntime events;
@@ -139,41 +138,32 @@ final class DebugDecisionCompositionBoundary {
                 clock::nowMs,
                 (mutation, evidence) -> ProactiveConsentPolicy.AuthorityDecision.DENIED);
         modelRegistry = ModelProviderRegistry.createForContractTest();
-        if (networkModelMode == NetworkModelMode.OLLAMA_DEVELOPMENT) {
-            OllamaEndpointConfig endpoint = OllamaEndpointConfig
-                    .developmentWslAdbReverse(BuildConfig.OLLAMA_MODEL);
-            ollamaEngine = new OllamaInferenceEngine(endpoint);
+        if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
+            VllmEndpointConfig endpoint = VllmEndpointConfig
+                    .ty1100EthernetViaAdbReverse();
+            vllmEngine = new VllmInferenceEngine(endpoint);
             openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0",
-                    "ollama-debug-v1",
-                    digest("ollama-model-spec", endpoint.getModelName()));
+                    "vllm-qwen3.5-9b-awq-v1",
+                    digest("vllm-model-spec", endpoint.getModelName()));
             modelProvider = LocalModelProvider.createForDevelopment(
                     modelSpec,
-                    ollamaEngine,
+                    vllmEngine,
                     modelExecutor,
                     clock::nowMs,
                     LocalModelProvider.StreamLimits.defaults());
             modelRouter = null;
-        } else if (isOpenClawMode(networkModelMode)) {
+        } else if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
             OpenClawEndpointConfig endpoint =
-                    networkModelMode == NetworkModelMode.OPENCLAW_TARGET
-                            ? OpenClawEndpointConfig.targetProductionTransitional()
-                            : OpenClawEndpointConfig.developmentWslAdbReverse();
+                    OpenClawEndpointConfig.targetProductionTransitional();
             openClawEngine = new OpenClawInferenceEngine(endpoint);
-            ollamaEngine = null;
+            vllmEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0",
                     "openclaw-ws-v3",
                     digest("openclaw-model-spec", endpoint.getWebSocketUri().toString()));
-            modelProvider = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
-                    ? LocalModelProvider.createForTargetOpenClawIntegration(
-                            modelSpec,
-                            openClawEngine,
-                            modelExecutor,
-                            clock::nowMs,
-                            LocalModelProvider.StreamLimits.defaults())
-                    : LocalModelProvider.createForDevelopment(
+            modelProvider = LocalModelProvider.createForTargetOpenClawIntegration(
                             modelSpec,
                             openClawEngine,
                             modelExecutor,
@@ -181,7 +171,7 @@ final class DebugDecisionCompositionBoundary {
                             LocalModelProvider.StreamLimits.defaults());
             modelRouter = null;
         } else {
-            ollamaEngine = null;
+            vllmEngine = null;
             openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0", "1", MODEL_DIGEST);
@@ -331,36 +321,26 @@ final class DebugDecisionCompositionBoundary {
                     || !"ws://169.254.208.110:18789".equals(BuildConfig.OPENCLAW_BASE_URL)
                     || BuildConfig.OPENCLAW_PROTOCOL_VERSION
                             != OpenClawEndpointConfig.TARGET_PROTOCOL_VERSION
-                    || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED) {
+                    || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
+                    || BuildConfig.VLLM_DEVELOPMENT_ENABLED) {
                 throw new IllegalStateException(
                         "target OpenClaw build configuration is invalid");
             }
             return NetworkModelMode.OPENCLAW_TARGET;
         }
-        if (BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED) {
-            if (!BuildConfig.OPENCLAW_TARGET_ENDPOINT_CONFIGURED
-                    || !"development_wsl_openclaw".equals(
-                            BuildConfig.MODEL_GATEWAY_PROFILE)
-                    || !"ws://127.0.0.1:18789".equals(BuildConfig.OPENCLAW_BASE_URL)
-                    || BuildConfig.OPENCLAW_PROTOCOL_VERSION
-                            != OpenClawEndpointConfig.DEVELOPMENT_PROTOCOL_VERSION
-                    || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED) {
-                throw new IllegalStateException(
-                        "development OpenClaw build configuration is invalid");
-            }
-            return NetworkModelMode.OPENCLAW_DEVELOPMENT;
+        if (!BuildConfig.VLLM_DEVELOPMENT_ENABLED
+                || BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED
+                || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
+                || !"development_ty1100_vllm".equals(BuildConfig.MODEL_GATEWAY_PROFILE)
+                || !"http://127.0.0.1:10030".equals(BuildConfig.VLLM_BASE_URL)
+                || !VllmEndpointConfig.EXPECTED_MODEL.equals(BuildConfig.VLLM_MODEL)) {
+            throw new IllegalStateException("debug TY1100 vLLM build configuration is invalid");
         }
-        if (!BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
-                || !"development_wsl_ollama".equals(BuildConfig.MODEL_GATEWAY_PROFILE)
-                || !"http://127.0.0.1:11434".equals(BuildConfig.OLLAMA_BASE_URL)) {
-            throw new IllegalStateException("debug Ollama build configuration is invalid");
-        }
-        return NetworkModelMode.OLLAMA_DEVELOPMENT;
+        return NetworkModelMode.VLLM_DEVELOPMENT;
     }
 
     private static boolean isOpenClawMode(NetworkModelMode mode) {
-        return mode == NetworkModelMode.OPENCLAW_DEVELOPMENT
-                || mode == NetworkModelMode.OPENCLAW_TARGET;
+        return mode == NetworkModelMode.OPENCLAW_TARGET;
     }
 
     private List<String> adaptContext(String scenarioId, String requestDigest, long now) {
@@ -470,8 +450,7 @@ final class DebugDecisionCompositionBoundary {
             providerId = ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID;
             healthSource = ModelProviderRegistry.HealthSource.TARGET_OPENCLAW_RUNTIME;
             routeMode = PolicyAwareModelRouter.RouteMode.TARGET_INTEGRATION;
-        } else if (networkModelMode == NetworkModelMode.OLLAMA_DEVELOPMENT
-                || networkModelMode == NetworkModelMode.OPENCLAW_DEVELOPMENT) {
+        } else if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
             providerId = ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID;
             healthSource = ModelProviderRegistry.HealthSource.LOCAL_DEVELOPMENT_RUNTIME;
             routeMode = PolicyAwareModelRouter.RouteMode.DEVELOPMENT;
@@ -599,10 +578,10 @@ final class DebugDecisionCompositionBoundary {
                     }
                 }
             } else {
-                ollamaEngine.registerPrompt(prompt);
+                vllmEngine.registerPrompt(prompt);
                 if (stagedImagePresent) {
                     try {
-                        ollamaEngine.registerScenarioImageAttachment(
+                        vllmEngine.registerScenarioImageAttachment(
                                 inputDigest,
                                 stagedInput.imageMimeType,
                                 stagedInput.imageFileName,
@@ -653,10 +632,10 @@ final class DebugDecisionCompositionBoundary {
         if (networkModel) {
             long latencyMs = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getLastLatencyMs()
-                    : ollamaEngine.snapshot().getLastLatencyMs();
+                    : vllmEngine.snapshot().getLastLatencyMs();
             long completedCount = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getCompletedCount()
-                    : ollamaEngine.snapshot().getCompletedCount();
+                    : vllmEngine.snapshot().getCompletedCount();
             ModelProjection projection = parseModelProjection(
                     observer.contentBytes(), prompt, completedCount, latencyMs);
             String admittedRouteDigest = specialistRoute == null

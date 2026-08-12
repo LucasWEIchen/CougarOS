@@ -10,7 +10,7 @@ ROUTER="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/java/co
 RESULT="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/SmokingDetectionResult.java"
 PROMPT="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/assets/agents/smoking-detection-agent-v1.md"
 SCENARIO="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json"
-OLLAMA="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OllamaInferenceEngine.java"
+VLLM="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/VllmInferenceEngine.java"
 OPENCLAW="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java"
 INPUT="$ROOT_DIR/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java"
 CONTROL="$ROOT_DIR/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
@@ -19,7 +19,7 @@ LAYOUT="$ROOT_DIR/apk-labs/client2-central-brain/patches/main_layout.central_bra
 IMAGE="$ROOT_DIR/apk-labs/client2-central-brain/patches/res/raw/central_brain_smoking_detection_frame.png"
 
 for path in "$CONTRACT" "$ROUTER" "$RESULT" "$PROMPT" "$SCENARIO" \
-  "$OLLAMA" "$OPENCLAW" "$INPUT" "$CONTROL" "$COORDINATOR" "$LAYOUT" "$IMAGE"; do
+  "$VLLM" "$OPENCLAW" "$INPUT" "$CONTROL" "$COORDINATOR" "$LAYOUT" "$IMAGE"; do
   [[ -f "$path" ]] || { echo "missing smoking-detection artifact: $path" >&2; exit 1; }
 done
 
@@ -61,9 +61,9 @@ PY
 grep -Fq 'routeExplicit(String scenarioId)' "$ROUTER"
 grep -Fq 'routeCandidate(' "$ROUTER"
 grep -Fq '"smoking_detected"' "$RESULT"
-grep -Fq 'SMOKING_DETECTION_V1' "$OLLAMA" "$OPENCLAW"
+grep -Fq 'SMOKING_DETECTION_V1' "$VLLM" "$OPENCLAW"
 grep -Fq 'reader.setStrictness(Strictness.STRICT)' "$RESULT"
-grep -Fq 'registerScenarioImageAttachment' "$OLLAMA" "$OPENCLAW"
+grep -Fq 'registerScenarioImageAttachment' "$VLLM" "$OPENCLAW"
 grep -Fq 'public static final String SMOKING_UI_SCENARIO_ID = "cabin.smoking"' "$INPUT"
 grep -Fq '"cabin.smoking", "scene.cabin.compliance.smoking.v1"' "$CONTROL"
 grep -Fq 'android:tag="cabin.smoking"' "$LAYOUT"

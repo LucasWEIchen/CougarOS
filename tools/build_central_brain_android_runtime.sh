@@ -23,13 +23,10 @@ if [[ -n "${CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE:-}" ]]; then
 elif [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
   MODEL_GATEWAY_PROFILE="target_openclaw_transitional"
 else
-  MODEL_GATEWAY_PROFILE="development_wsl_openclaw"
+  MODEL_GATEWAY_PROFILE="development_ty1100_vllm"
 fi
 case "$MODEL_GATEWAY_PROFILE" in
-  development_wsl_openclaw)
-    ;;
-  development_wsl_ollama)
-    GRADLE_PROFILE_ARGS+=("-PcentralBrainDevelopmentOllama=true")
+  development_ty1100_vllm)
     ;;
   target_openclaw_transitional)
     GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetOpenClaw=true")

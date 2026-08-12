@@ -602,6 +602,15 @@ public final class CentralBrainRuntimeService extends Service {
                 + modelRuntimeReadiness.isProductionModelRouterWired());
         writer.println("production_model_router_dispatch_enabled="
                 + modelRuntimeReadiness.isProductionModelRouterDispatchEnabled());
+        writer.println("vllm_android_provider_configured="
+                + BuildConfig.VLLM_DEVELOPMENT_ENABLED);
+        writer.println("vllm_development_gateway_enabled="
+                + BuildConfig.VLLM_DEVELOPMENT_ENABLED);
+        writer.println("vllm_endpoint_profile="
+                + (BuildConfig.VLLM_DEVELOPMENT_ENABLED
+                        ? "ty1100_ethernet_via_adb_reverse" : "disabled"));
+        writer.println("vllm_model=" + BuildConfig.VLLM_MODEL);
+        writer.println("vllm_release_provider_enabled=false");
         writer.println("ollama_android_provider_configured="
                 + modelRuntimeReadiness.isOllamaAndroidProviderConfigured());
         writer.println("ollama_development_gateway_enabled="

@@ -134,8 +134,7 @@ jobs:
           bash tools/check_central_brain_android_simulated_effect_composition.sh
           bash tools/check_central_brain_android_client2_orchestration_migration.sh
           bash tools/check_central_brain_android_client2_simulated_scenario_chain.sh
-          bash tools/check_central_brain_android_ollama_gateway.sh
-          bash tools/check_central_brain_android_openclaw_development_gateway.sh
+          bash tools/check_central_brain_android_ty1100_vllm_prototype.sh
           bash tools/check_central_brain_android_openclaw_target_gateway.sh
           bash tools/check_central_brain_android_client1_render_session_recovery.sh
           bash tools/check_central_brain_root_readme.sh

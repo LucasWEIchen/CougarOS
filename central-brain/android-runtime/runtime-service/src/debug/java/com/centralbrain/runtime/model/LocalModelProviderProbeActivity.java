@@ -117,7 +117,7 @@ public final class LocalModelProviderProbeActivity extends Activity {
 
             ModelProvider.Descriptor descriptor = streamProvider.descriptor();
             boolean profileBoundaryVerified = descriptor.getBackendKind()
-                            == ModelProvider.BackendKind.ANDROID_LOCAL_DEVELOPMENT
+                            == ModelProvider.BackendKind.VLLM_OPENAI_COMPATIBLE
                     && descriptor.getAssurance() == ModelProvider.Assurance.DEBUG_ONLY
                     && descriptor.getFallbackClass() == ModelProvider.FallbackClass.NEVER
                     && !descriptor.isProductionEligible()

@@ -37,6 +37,7 @@ public interface ModelProvider extends AutoCloseable {
         DETERMINISTIC_STUB,
         ANDROID_LOCAL_DEVELOPMENT,
         OLLAMA_DEBUG,
+        VLLM_OPENAI_COMPATIBLE,
         OPENCLAW_GATEWAY,
         VENDOR_NPU
     }
@@ -140,7 +141,8 @@ public interface ModelProvider extends AutoCloseable {
             }
             if ((backendKind == BackendKind.DETERMINISTIC_STUB
                     || backendKind == BackendKind.ANDROID_LOCAL_DEVELOPMENT
-                    || backendKind == BackendKind.OLLAMA_DEBUG)
+                    || backendKind == BackendKind.OLLAMA_DEBUG
+                    || backendKind == BackendKind.VLLM_OPENAI_COMPATIBLE)
                     && (hardwareBacked || productionEligible)) {
                 throw new IllegalArgumentException(
                         "development providers cannot claim hardware or production");

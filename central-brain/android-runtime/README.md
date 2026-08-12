@@ -1731,6 +1731,8 @@ probe subchecks pass; ARM64 remains pending. State: `decision_composition_debug_
 
 ## P7-R2 WSL Ollama development gateway
 
+> 历史记录：从 `P4-R10-VLLM` 起不再作为原型验证环境或默认构建配置。
+
 The debug Orchestration backend now selects `android.local.development`, invokes
 `OllamaInferenceEngine` through `LocalModelProvider`, and sends a bounded `/api/chat` request to
 `http://127.0.0.1:11434`. The device endpoint is reachable only through an explicit
@@ -1778,6 +1780,8 @@ and completed OpenClaw protocol v3 multimodal inference plus the Client2 shoppin
 
 ## P7-R4-OCDEV OpenClaw development build on real Android hardware
 
+> 历史记录：从 `P4-R10-VLLM` 起不再作为原型验证环境或默认构建配置。
+
 The default debug profile is now `development_wsl_openclaw`. It compiles `ws://127.0.0.1:18789`, protocol v4 and the
 development router into Runtime APK. Before launch, `adb reverse tcp:18789 tcp:18789` maps the real Android device to the
 WSL OpenClaw gateway. OpenClaw then invokes Ollama `qwen3.6:27b` at WSL port 11435.
@@ -1804,3 +1808,30 @@ ANDROID_TRANSPORT_ID=<id> \
 This regression launches Client2 at 1920x1080, resolves controls by resource ID, invokes the real WSL OpenClaw/Ollama path,
 and verifies the orchestration projection plus simulated actuator feedback. It fails closed if an old Client2/SDK projection,
 model failure, missing HMI result or hardware-authority claim is observed.
+
+## P4-R10-VLLM TY1100 prototype provider
+
+The default debug profile is `development_ty1100_vllm`. Android calls the fixed
+`http://127.0.0.1:10030/v1/chat/completions` endpoint through ADB reverse; WSL forwards that
+port over Ethernet and SSH to the TY1100 AI device's loopback-only vLLM service. The only admitted
+model identity is `Qwen3.5-9B-AWQ`. WSL Ollama and WSL OpenClaw are no longer valid prototype
+acceptance providers.
+
+The OpenAI-compatible engine supports structured text and one digest-bound PNG/JPEG Data URL.
+Every output is parsed locally, rebound to the scenario, checked against required actions and the
+action allowlist, and denied all Tool, Safety, Effect and vehicle authority. The production Release
+OpenClaw endpoint, protocol and disabled routing state are unchanged.
+
+```bash
+tools/manage_central_brain_ty1100_vllm_bridge.sh start
+tools/run_central_brain_android_ty1100_vllm_probe.sh
+CENTRAL_BRAIN_CLIENT2_SCENARIO=smoking \
+  tools/run_client2_central_brain_ty1100_vllm_test.sh
+```
+
+Android 13 ARM64 passed both the structured text probe and Client2 smoking image route on
+2026-08-13. See `central-brain/integration/ty1100-vllm-prototype/README.md` and
+`central-brain/contracts/central_brain_android_ty1100_vllm_prototype_v1.json`.
+`direct_android_ethernet_validated=false`, `vehicle_effect_hardware_accessed=false`,
+`production_configuration_changed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P4-R10-VLLM`.

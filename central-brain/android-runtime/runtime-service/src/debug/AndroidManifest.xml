@@ -48,7 +48,7 @@
             android:permission="android.permission.DUMP"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
-            android:name=".orchestration.OpenClawDevelopmentIntegrationProbeActivity"
+            android:name=".orchestration.VllmPrototypeIntegrationProbeActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:noHistory="true"

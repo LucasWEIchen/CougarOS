@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "implementation_stage": "P4-R10-VLLM",
+  "requirement_ids": [
+    "S2-MDL-001",
+    "S2-MDL-002",
+    "S2-SAF-001",
+    "S2-OBS-001",
+    "S2-OBS-002",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "prototype_provider": {
+    "provider_id": "android.vllm.prototype",
+    "backend_kind": "VLLM_OPENAI_COMPATIBLE",
+    "model": "Qwen3.5-9B-AWQ",
+    "android_base_url": "http://127.0.0.1:10030",
+    "chat_path": "/v1/chat/completions",
+    "models_path": "/v1/models",
+    "health_path": "/health",
+    "debug_build_only": true,
+    "only_selectable_prototype_network_provider": true,
+    "arbitrary_endpoint_override_allowed": false
+  },
+  "validation_topology": {
+    "android_device": "testboard",
+    "android_to_wsl": "ADB_REVERSE_TCP_10030",
+    "wsl_to_ai_device": "SSH_LOCAL_FORWARD_OVER_ETHERNET",
+    "ai_device_ipv4": "192.168.250.100",
+    "ai_device_vllm_bind": "127.0.0.1:10030",
+    "ai_device_service_modified": false,
+    "direct_android_to_ai_ethernet_validated": false
+  },
+  "protocol": {
+    "transport": "HTTP_JSON",
+    "api": "OPENAI_CHAT_COMPLETIONS_COMPATIBLE",
+    "stream": false,
+    "response_format": "JSON_SCHEMA",
+    "text_supported": true,
+    "one_png_or_jpeg_image_supported": true,
+    "image_encoding": "DATA_URL",
+    "maximum_image_bytes": 6291456,
+    "maximum_response_bytes": 65536,
+    "model_output_authorizes_effects": false,
+    "action_allowlist_enforced_locally": true,
+    "duplicate_actions_rejected_locally": true
+  },
+  "android13_arm64_evidence": {
+    "evidence_date": "2026-08-13",
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "display": "1920x1080",
+    "health_verified": true,
+    "model_identity_verified": true,
+    "structured_text_verified": true,
+    "structured_image_verified": true,
+    "runtime_probe_verified": true,
+    "runtime_probe_latency_ms": 3566,
+    "client2_smoking_route_verified": true,
+    "client2_image_consumed": true,
+    "client2_model_latency_ms": 4246,
+    "client2_image_sha256": "fc561d2870d467da910353e6623ab39f056641bf4169083953b9d3c9c82f10a7",
+    "raw_prompt_logged": false,
+    "raw_response_logged": false,
+    "vehicle_effect_hardware_accessed": false
+  },
+  "production_separation": {
+    "release_profile": "target_openclaw_transitional",
+    "release_openclaw_base_url": "ws://169.254.208.110:18789",
+    "release_openclaw_protocol_version": 3,
+    "release_openclaw_routing_enabled": false,
+    "release_vllm_provider_enabled": false,
+    "production_configuration_changed": false,
+    "prototype_evidence_is_production_evidence": false
+  },
+  "claim_state": {
+    "ty1100_vllm_prototype_implemented": true,
+    "android13_arm64_text_verified": true,
+    "android13_arm64_image_verified": true,
+    "external_compute_accessed": true,
+    "direct_android_ethernet_validated": false,
+    "direct_npu_api_accessed": false,
+    "vehicle_effect_hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

@@ -8,14 +8,14 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_voice_first_hmi_v1.json"
 MODEL_PROMPT="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java"
 OPENCLAW="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java"
-OLLAMA="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OllamaInferenceEngine.java"
+VLLM="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/VllmInferenceEngine.java"
 BOUNDARY="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/orchestration/DebugDecisionCompositionBoundary.java"
 BACKEND="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/orchestration/DebugSimulatedOrchestrationBackend.java"
 LAYOUT="$ROOT_DIR/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml"
 COORDINATOR="$ROOT_DIR/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 CLIENT="$ROOT_DIR/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/OrchestrationRuntimeClient.java"
 
-for path in "$CONTRACT" "$MODEL_PROMPT" "$OPENCLAW" "$OLLAMA" "$BOUNDARY" \
+for path in "$CONTRACT" "$MODEL_PROMPT" "$OPENCLAW" "$VLLM" "$BOUNDARY" \
   "$BACKEND" "$LAYOUT" "$COORDINATOR" "$CLIENT"; do
   test -f "$path"
 done
@@ -30,7 +30,7 @@ assert contract["profile_id"] == "android13-client2-voice-first-hmi-v1"
 assert {"S2-HMI-007", "S2-MDL-002", "S2-OBS-002"}.issubset(
     contract["requirement_ids"])
 hmi = contract["hmi"]
-assert hmi["task_trigger_count"] == 2
+assert hmi["task_trigger_count"] == 4
 assert hmi["four_stage_navigation_exposed"] is False
 assert hmi["manual_actuator_controls_exposed"] is False
 assert hmi["panel_bounds_1920x1080"] == [1288, 200, 1888, 960]
@@ -43,10 +43,11 @@ assert feedback["vehicle_bus_accessed"] is False
 assert feedback["effect_authority_granted"] is False
 assert feedback["safety_implementation_present"] is False
 evidence = contract["android13_arm64_evidence"]
-assert evidence["development_ollama_over_adb_reverse_completed"] is True
-assert evidence["openclaw_target_port_18789_listening"] is False
-assert evidence["openclaw_target_profile_installed_after_development_retest"] is True
-assert evidence["fixed_target_credential_embedded_in_source_and_apk"] is True
+assert evidence["prototype_vllm_over_adb_reverse_and_ethernet_tunnel_completed"] is True
+assert evidence["prototype_provider_id"] == "android.vllm.prototype"
+assert evidence["prototype_vllm_model"] == "Qwen3.5-9B-AWQ"
+assert evidence["smoking_image_consumed"] is True
+assert evidence["production_openclaw_configuration_changed"] is False
 assert evidence["credential_logged"] is False
 claims = contract["claim_state"]
 assert claims["voice_first_hmi_implemented"] is True
@@ -64,7 +65,7 @@ for marker in \
   'required action is missing'; do
   grep -Fq "$marker" "$MODEL_PROMPT"
 done
-grep -Fq 'CockpitModelPrompt' "$OPENCLAW" "$OLLAMA" "$BOUNDARY"
+grep -Fq 'CockpitModelPrompt' "$OPENCLAW" "$VLLM" "$BOUNDARY"
 grep -Fq 'getAdmittedActions' "$BOUNDARY"
 grep -Fq 'modelUnavailableCapabilities' "$BACKEND"
 

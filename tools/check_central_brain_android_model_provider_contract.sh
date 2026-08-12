@@ -70,6 +70,7 @@ done
 require_text "$CONTRACT" "DETERMINISTIC_STUB"
 require_text "$CONTRACT" "ANDROID_LOCAL_DEVELOPMENT"
 require_text "$CONTRACT" "OLLAMA_DEBUG"
+require_text "$CONTRACT" "VLLM_OPENAI_COMPATIBLE"
 require_text "$CONTRACT" "VENDOR_NPU"
 require_text "$CONTRACT" "FAULT_ISOLATED"
 require_text "$CONTRACT" "POLICY_CONTROLLED"
@@ -85,7 +86,7 @@ require_text "$PROFILES" '"STUB_IMPLEMENTATION_NOT_WIRED"'
 require_text "$PROFILES" '"VENDOR_RUNTIME_UNAVAILABLE"'
 require_text "$PROFILES" "return new Profile(descriptor, snapshot, false, false)"
 require_text "$TEST" "unsafeStubAndEmptyDescriptorsAreRejected"
-require_text "$TEST" "androidLocalProfileIsDevelopmentOnlyAndNotConfiguredByDefault"
+require_text "$TEST" "androidVllmProfileIsDevelopmentOnlyAndNotConfiguredByDefault"
 require_text "$TEST" "streamChunksAreBoundedAndDefensivelyCopied"
 require_text "$DEBUG_MANIFEST" ".model.ModelProviderContractProbeActivity"
 

@@ -56,13 +56,13 @@ public final class ModelProviderContractTest {
     }
 
     @Test
-    public void androidLocalProfileIsDevelopmentOnlyAndNotConfiguredByDefault() {
+    public void androidVllmProfileIsDevelopmentOnlyAndNotConfiguredByDefault() {
         ModelProviderProfiles.Profile profile =
                 ModelProviderProfiles.androidLocalDevelopment();
         ModelProvider.Descriptor descriptor = profile.getDescriptor();
 
         assertTrue(descriptor.getBackendKind()
-                == ModelProvider.BackendKind.ANDROID_LOCAL_DEVELOPMENT);
+                == ModelProvider.BackendKind.VLLM_OPENAI_COMPATIBLE);
         assertTrue(descriptor.getAssurance() == ModelProvider.Assurance.DEBUG_ONLY);
         assertTrue(descriptor.getFallbackClass() == ModelProvider.FallbackClass.NEVER);
         assertTrue(descriptor.isSupportsInference());

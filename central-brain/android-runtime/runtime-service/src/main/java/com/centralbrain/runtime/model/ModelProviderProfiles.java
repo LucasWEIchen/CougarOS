@@ -5,8 +5,9 @@ import java.util.Objects;
 /** Current Android model-provider profiles; no profile is production-routable. */
 public final class ModelProviderProfiles {
     public static final String DETERMINISTIC_STUB_ID = "deterministic.stub";
+    public static final String ANDROID_VLLM_PROTOTYPE_ID = "android.vllm.prototype";
     public static final String ANDROID_LOCAL_DEVELOPMENT_ID =
-            "android.local.development";
+            ANDROID_VLLM_PROTOTYPE_ID;
     public static final String VENDOR_NPU_EMPTY_ID = "vendor.npu.empty";
     public static final String TARGET_OPENCLAW_TRANSITIONAL_ID =
             "external.openclaw.transitional";
@@ -94,7 +95,7 @@ public final class ModelProviderProfiles {
     private static Profile createAndroidLocalDevelopment() {
         ModelProvider.Descriptor descriptor = new ModelProvider.Descriptor(
                 ANDROID_LOCAL_DEVELOPMENT_ID,
-                ModelProvider.BackendKind.ANDROID_LOCAL_DEVELOPMENT,
+                ModelProvider.BackendKind.VLLM_OPENAI_COMPATIBLE,
                 ModelProvider.Assurance.DEBUG_ONLY,
                 ModelProvider.FallbackClass.NEVER,
                 false,

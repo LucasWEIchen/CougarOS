@@ -5,13 +5,6 @@ plugins {
 val targetOpenClaw = providers.gradleProperty("centralBrainTargetOpenClaw")
     .map { it.equals("true", ignoreCase = true) }
     .getOrElse(false)
-val developmentOllama = providers.gradleProperty("centralBrainDevelopmentOllama")
-    .map { it.equals("true", ignoreCase = true) }
-    .getOrElse(false)
-
-check(!(targetOpenClaw && developmentOllama)) {
-    "target OpenClaw and development Ollama profiles are mutually exclusive"
-}
 
 android {
     namespace = "com.centralbrain.runtime"
@@ -22,8 +15,8 @@ android {
         applicationId = "com.centralbrain.runtime"
         minSdk = 33
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.3.0-b3"
+        versionCode = 4
+        versionName = "0.4.0-b4"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -40,16 +33,22 @@ android {
                 "String",
                 "MODEL_GATEWAY_PROFILE",
                 if (targetOpenClaw) "\"target_openclaw_transitional\""
-                else if (developmentOllama) "\"development_wsl_ollama\""
-                else "\"development_wsl_openclaw\""
+                else "\"development_ty1100_vllm\""
             )
             buildConfigField(
                 "boolean",
+                "VLLM_DEVELOPMENT_ENABLED",
+                (!targetOpenClaw).toString()
+            )
+            buildConfigField("String", "VLLM_BASE_URL", "\"http://127.0.0.1:10030\"")
+            buildConfigField("String", "VLLM_MODEL", "\"Qwen3.5-9B-AWQ\"")
+            buildConfigField(
+                "boolean",
                 "OLLAMA_DEVELOPMENT_ENABLED",
-                developmentOllama.toString()
+                "false"
             )
             buildConfigField("String", "OLLAMA_BASE_URL", "\"http://127.0.0.1:11434\"")
-            buildConfigField("String", "OLLAMA_MODEL", "\"qwen3.5:27b-optimized\"")
+            buildConfigField("String", "OLLAMA_MODEL", "\"UNCONFIGURED\"")
             buildConfigField("boolean", "OPENCLAW_TARGET_ENDPOINT_CONFIGURED", "true")
             buildConfigField(
                 "boolean",
@@ -59,7 +58,7 @@ android {
             buildConfigField(
                 "boolean",
                 "OPENCLAW_DEVELOPMENT_ROUTING_ENABLED",
-                (!targetOpenClaw && !developmentOllama).toString()
+                "false"
             )
             buildConfigField(
                 "String",
@@ -70,7 +69,7 @@ android {
             buildConfigField(
                 "int",
                 "OPENCLAW_PROTOCOL_VERSION",
-                if (targetOpenClaw || developmentOllama) "3" else "4"
+                "3"
             )
         }
         getByName("release") {
@@ -79,6 +78,9 @@ android {
                 "MODEL_GATEWAY_PROFILE",
                 "\"target_openclaw_transitional\""
             )
+            buildConfigField("boolean", "VLLM_DEVELOPMENT_ENABLED", "false")
+            buildConfigField("String", "VLLM_BASE_URL", "\"UNCONFIGURED\"")
+            buildConfigField("String", "VLLM_MODEL", "\"UNCONFIGURED\"")
             buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "false")
             buildConfigField("String", "OLLAMA_BASE_URL", "\"http://169.254.208.110:11434\"")
             buildConfigField("String", "OLLAMA_MODEL", "\"UNCONFIGURED\"")

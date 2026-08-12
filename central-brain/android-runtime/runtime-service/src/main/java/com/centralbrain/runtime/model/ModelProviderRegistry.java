@@ -26,6 +26,8 @@ public final class ModelProviderRegistry {
             ModelProviderProfiles.DETERMINISTIC_STUB_ID;
     public static final String ANDROID_LOCAL_DEVELOPMENT_ID =
             ModelProviderProfiles.ANDROID_LOCAL_DEVELOPMENT_ID;
+    public static final String ANDROID_VLLM_PROTOTYPE_ID =
+            ModelProviderProfiles.ANDROID_VLLM_PROTOTYPE_ID;
     public static final String VENDOR_NPU_PLACEHOLDER_ID =
             ModelProviderProfiles.VENDOR_NPU_EMPTY_ID;
     public static final String TARGET_OPENCLAW_TRANSITIONAL_ID =

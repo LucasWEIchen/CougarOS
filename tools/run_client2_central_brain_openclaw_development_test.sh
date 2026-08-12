@@ -12,9 +12,14 @@ CLIENT2_PACKAGE="com.tuanjie.urasclient2"
 CLIENT2_ACTIVITY="$CLIENT2_PACKAGE/.MainActivity"
 TIMEOUT_SECONDS="${CENTRAL_BRAIN_CLIENT2_OPENCLAW_TIMEOUT_SECONDS:-180}"
 SCENARIO="${CENTRAL_BRAIN_CLIENT2_SCENARIO:-cold}"
-MODEL_ROUTE="${CENTRAL_BRAIN_CLIENT2_MODEL_ROUTE:-development_wsl_openclaw}"
+MODEL_ROUTE="${CENTRAL_BRAIN_CLIENT2_MODEL_ROUTE:-development_ty1100_vllm}"
 
 case "$MODEL_ROUTE" in
+  development_ty1100_vllm)
+    build_profile="development_ty1100_vllm"
+    expected_protocol="openai_chat_completions"
+    expected_transport="ADB_REVERSE_AND_ETHERNET_SSH_TUNNEL"
+    ;;
   development_wsl_openclaw)
     build_profile="development_wsl_openclaw"
     expected_protocol=4
@@ -40,6 +45,9 @@ case "$SCENARIO" in
     ;;
   multimodal)
     scenario_button="centralBrainMultimodalButton"
+    ;;
+  smoking)
+    scenario_button="centralBrainSmokingButton"
     ;;
   *)
     echo "client2_openclaw_development_test_complete=false reason=INVALID_SCENARIO" >&2
@@ -137,7 +145,11 @@ case "${CENTRAL_BRAIN_SKIP_ANDROID_INSTALL:-false}" in
     ;;
 esac
 
-if [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
+if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
+  CENTRAL_BRAIN_ANDROID_SERIAL="${ANDROID_SERIAL:-testboard}" \
+    ADB_SERVER_PORT="${ADB_SERVER_PORT:-5038}" \
+    "$ROOT/tools/manage_central_brain_ty1100_vllm_bridge.sh" start >/dev/null
+elif [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
   bridge_env=()
   [[ -n "${ANDROID_TRANSPORT_ID:-}" ]] \
     && bridge_env+=("ANDROID_TRANSPORT_ID=$ANDROID_TRANSPORT_ID")
@@ -202,12 +214,12 @@ purchase_commit_approved=false
 navigation_start_approved=false
 for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
   logs="$("${adb[@]}" logcat -d -v brief \
-    -s CentralBrainOpenClaw:I CbClient2Orchestration:I CbDevModelProjection:I '*:S' \
+    -s CentralBrainVllm:I CentralBrainOpenClaw:I CbClient2Orchestration:I CbDevModelProjection:I '*:S' \
     | tr -d '\r')"
   if printf '%s\n' "$logs" | grep -Eq \
-      'client2_orchestration_command_failed=true|openclaw_inference_failed=true'; then
+      'client2_orchestration_command_failed=true|openclaw_inference_failed=true|vllm_inference_completed=false'; then
     printf '%s\n' "$logs" | grep -E \
-      'client2_orchestration_(failure_diagnosed|command_failed)=true|openclaw_inference_failed=true' >&2
+      'client2_orchestration_(failure_diagnosed|command_failed)=true|openclaw_inference_failed=true|vllm_inference_completed=false' >&2
     echo "client2_openclaw_development_test_complete=false reason=RUNTIME_FAILURE" >&2
     exit 11
   fi
@@ -240,17 +252,47 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       continue
     fi
   fi
-  if printf '%s\n' "$logs" | grep -q \
+  model_completed=false
+  if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
+    printf '%s\n' "$logs" | grep -q \
+      'vllm_inference_completed=true endpoint_profile=ty1100_ethernet_via_adb_reverse model=Qwen3.5-9B-AWQ' \
+      && model_completed=true
+  else
+    printf '%s\n' "$logs" | grep -q \
       "openclaw_inference_completed=true endpoint_profile=${MODEL_ROUTE} protocol=${expected_protocol}" \
+      && model_completed=true
+  fi
+  if [[ "$model_completed" == "true" ]] \
       && printf '%s\n' "$logs" | grep -Eq \
       'client2_orchestration_snapshot_projected=true .*model_projection_available=true .*simulated_only=true .*hardware_accessed=false'; then
     ui="$(dump_ui)"
-    if ! printf '%s\n' "$ui" | grep -q 'RESULT / COMPLETED' \
-        || ! printf '%s\n' "$ui" | grep -q 'centralBrainActuatorOverlay'; then
+    if [[ "$SCENARIO" == "smoking" ]]; then
+      hmi_complete=false
+      printf '%s\n' "$ui" | grep -q 'centralBrainPanel' \
+        && printf '%s\n' "$ui" | grep -q 'centralBrainLiveTraceText' \
+        && hmi_complete=true
+    else
+      hmi_complete=false
+      printf '%s\n' "$ui" | grep -q 'RESULT / COMPLETED' \
+        && printf '%s\n' "$ui" | grep -q 'centralBrainActuatorOverlay' \
+        && hmi_complete=true
+    fi
+    if [[ "$hmi_complete" != "true" ]]; then
       echo "client2_openclaw_development_test_complete=false reason=HMI_FEEDBACK_INCOMPLETE" >&2
       exit 12
     fi
-    if [[ "$SCENARIO" == "multimodal" ]]; then
+    if [[ "$SCENARIO" == "smoking" ]]; then
+      if ! printf '%s\n' "$logs" | grep -Eq \
+              'vllm_inference_completed=true .*image_present=true image_bytes=206611 image_sha256=fc561d2870d467da910353e6623ab39f056641bf4169083953b9d3c9c82f10a7' \
+          || ! printf '%s\n' "$logs" | grep -Eq \
+              'development_model_projection_read=true .*projection_available=true image_consumed=true' \
+          || ! printf '%s\n' "$logs" | grep -q \
+              'client2_orchestration_snapshot_projected=true orchestration_state=5' \
+          || ! printf '%s\n' "$logs" | grep -q 'model_projection_available=true'; then
+        echo "client2_openclaw_development_test_complete=false reason=SMOKING_PROOF_INCOMPLETE" >&2
+        exit 21
+      fi
+    elif [[ "$SCENARIO" == "multimodal" ]]; then
       if ! { printf '%s\n' "$logs" | grep -Eq \
               'openclaw_inference_started=true .*image_present=true image_bytes=2244206 image_sha256=93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438' \
             || printf '%s\n' "$logs" | grep -Eq \
@@ -275,8 +317,14 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       exit 18
     fi
     printf '%s\n' "$logs" | grep -E \
-      'openclaw_(protocol_stage|inference_(started|completed))=|client2_orchestration_snapshot_projected=true'
-    if [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
+      'vllm_inference_completed=|openclaw_(protocol_stage|inference_(started|completed))=|client2_orchestration_snapshot_projected=true'
+    if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
+      route_claims=(
+        'real_ty1100_vllm_accessed=true'
+        'direct_android_ethernet_validated=false'
+        'production_configuration_changed=false'
+      )
+    elif [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
       route_claims=(
         'real_wsl_openclaw_ollama_accessed=true'
         'target_openclaw_ethernet_validated=false'
@@ -289,6 +337,17 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
         'ethernet_validated=true'
       )
     fi
+    if [[ "$SCENARIO" == "smoking" ]]; then
+      hmi_effect_claims=(
+        'response_only_hmi_projection_verified=true'
+        'simulated_hmi_effect_verified=false'
+      )
+    else
+      hmi_effect_claims=(
+        'response_only_hmi_projection_verified=false'
+        'simulated_hmi_effect_verified=true'
+      )
+    fi
     printf '%s\n' \
       'client2_openclaw_development_test_complete=true' \
       "scenario=$SCENARIO" \
@@ -296,12 +355,15 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       'android13_arm64_1920x1080_verified=true' \
       "transport=$expected_transport" \
       "endpoint_profile=$MODEL_ROUTE" \
-      "openclaw_protocol=$expected_protocol" \
+      "model_protocol=$expected_protocol" \
       "${route_claims[@]}" \
-      'simulated_hmi_effect_verified=true' \
+      "${hmi_effect_claims[@]}" \
       'vehicle_effect_hardware_accessed=false' \
       'production_ready=false' \
       'target_hardware_validated=false'
+    if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
+      printf '%s\n' 'client2_ty1100_vllm_test_complete=true'
+    fi
     exit 0
   fi
   sleep 1
