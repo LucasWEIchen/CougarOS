@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <LinearLayout android:id="@+id/centralBrainRenderRegion" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
         <FrameLayout android:id="@id/view1" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0" />
         <FrameLayout android:id="@id/view2" android:visibility="gone" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0" />
         <FrameLayout android:id="@id/view3" android:visibility="gone" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0" />
     </LinearLayout>
+    <LinearLayout android:layout_gravity="end|top" android:orientation="horizontal" android:id="@id/topControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="8.0dp" />
 
     <LinearLayout android:id="@+id/centralBrainActuatorOverlay" android:orientation="vertical" android:layout_width="430.0dp" android:layout_height="520.0dp" android:layout_gravity="left|top" android:layout_marginLeft="32.0dp" android:layout_marginTop="248.0dp" android:background="@drawable/central_brain_effect_feedback_background" android:elevation="7.0dp" android:padding="22.0dp" android:visibility="gone">
         <TextView android:id="@+id/centralBrainActuatorTitleText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="座舱执行反馈" android:textColor="#172129" android:textSize="21.0sp" android:textStyle="bold" />
@@ -99,5 +100,4 @@
     <FrameLayout android:id="@+id/centralBrainImagePreviewOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#B8000000" android:clickable="true" android:focusable="true" android:visibility="gone">
         <ImageView android:id="@+id/centralBrainImagePreview" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:layout_marginLeft="96.0dp" android:layout_marginTop="72.0dp" android:layout_marginRight="96.0dp" android:layout_marginBottom="72.0dp" android:adjustViewBounds="true" android:clickable="true" android:contentDescription="座舱模型输入图片大图" android:scaleType="fitCenter" />
     </FrameLayout>
-    <LinearLayout android:layout_gravity="start|top" android:orientation="horizontal" android:id="@id/topControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="8.0dp" />
 </FrameLayout>

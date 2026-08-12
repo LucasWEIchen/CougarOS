@@ -89,9 +89,9 @@ work_ids = re.findall(
     requirements,
     flags=re.MULTILINE,
 )
-if len(work_ids) != 141 or len(set(work_ids)) != 141:
+if len(work_ids) != 142 or len(set(work_ids)) != 142:
     raise SystemExit(
-        f"requirements must track 141 unique work packages: rows={len(work_ids)}, "
+        f"requirements must track 142 unique work packages: rows={len(work_ids)}, "
         f"unique={len(set(work_ids))}"
     )
 for required_id in (
@@ -303,7 +303,7 @@ for relative in repository_files:
 if legacy_references:
     raise SystemExit("legacy document references remain:\n" + "\n".join(legacy_references))
 
-print("production_requirement_work_package_count=141")
+print("production_requirement_work_package_count=142")
 print(f"production_architecture_mermaid_diagram_count={mermaid_count}")
 print(f"production_module_detailed_design_count={len(module_paths)}")
 PY

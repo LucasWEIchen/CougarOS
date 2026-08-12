@@ -1,46 +1,32 @@
 {
-  "project": "Central Brain RenderService dynamic HVAC, vendor orbit verification and fidelity patch",
+  "project": "Central Brain RenderService vendor baseline preservation",
   "package": "com.tuanjie.renderservice",
   "requirements": [
+    "APP-001",
+    "APP-004",
     "S2-HMI-001",
-    "S2-HMI-002",
-    "S2-HMI-004",
     "S2-UX-002",
     "DEL-004"
   ],
   "source_apk": "apks/original/service_20260306_171242.apk",
-  "patched_entry": "assets/aa/HMIAndroid/launcher_assets_all_c93fe44a4d61e1b9545c50b3baddfbd7.bundle",
+  "source_sha256": "a24fbb471399e152c172455afbaee92e311f24f63910b263a577d58d59d7c633",
+  "delivery_mode": "vendor_baseline_passthrough",
   "implementation": {
-    "unity_asset": "UI_Launcher.prefab",
-    "native_temperature_range_c": {
-      "minimum": 18.0,
-      "maximum": 30.0,
-      "step": 0.5,
-      "default": 26.5
-    },
-    "zones": [
-      "driver",
-      "passenger"
-    ],
-    "control": "Client2 c2sSendMessage to Unity TextMeshPro set_text(String)",
-    "render_scale_request": 1.5,
-    "orbit_input": {
-      "mode": "vendor_configuration_preserved",
-      "target_input_display": 2,
-      "render_service_display_index": 1,
-      "android_motion_event_display_id": 0,
-      "event_system_raycast_check": true,
-      "use_finger_polling": false
-    }
+    "unity_asset_patch_enabled": false,
+    "render_scale_override_enabled": false,
+    "touch_listener_override_enabled": false,
+    "client1_render_index": 0,
+    "client2_render_index": 1,
+    "vendor_input_contract": "unchanged"
   },
   "hardware_dependencies": {
-    "vehicle_hvac_bus": "reserved interface only",
-    "render_service_runtime": "required"
+    "render_service_runtime": "required",
+    "vehicle_hvac_bus": "reserved interface only"
   },
   "non_goals": [
-    "libtuanjie.so engine binary replacement",
+    "Unity Addressables rewriting",
+    "libtuanjie.so replacement",
     "vehicle HVAC actuation",
-    "vendor Android system image modification",
-    "production graphics quality qualification"
+    "vendor Android system image modification"
   ]
 }

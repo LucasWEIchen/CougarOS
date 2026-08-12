@@ -41,8 +41,8 @@ flowchart LR
 | 范围 | 状态 |
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
-| P4-R7/P4-R8/P4-R9/P4-R10 HMI 与模型链路 | 当前 Draft 分支已包含渲染修订、双入口、任意文本、吸烟合规多 Agent 与 TY1100 vLLM 链路，尚未进入 `main` |
-| Client2 集成合同 | `0.22.0`，新增 P4-R9 “检测吸烟”图文入口 |
+| P4-R7/P4-R8/P4-R9/P4-R10/P4-R11 HMI 与模型链路 | 当前 Draft 分支已包含厂商三 APK 架构恢复、双入口、任意文本、吸烟合规多 Agent 与 TY1100 vLLM 链路；RenderService 已回到原版只读基线，物理触摸旋转仍需目标硬件复验 |
+| Client2 集成合同 | `0.23.0`，保留 P4-R9 “检测吸烟”图文入口并完成 P4-R11 厂商渲染边界恢复 |
 | Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
 | 唯一原型模型环境 | [TY1100 vLLM 原型说明](central-brain/integration/ty1100-vllm-prototype/README.md)：Android 实机经受控桥接访问 `Qwen3.5-9B-AWQ`，文字和单图已验证；WSL Ollama 不再用于后续原型验收 |
 | Model Prompt API | vLLM Debug Provider 与生产 OpenClaw 路径接收受控 `CockpitModelPrompt`，Provider 不获得执行权限 |

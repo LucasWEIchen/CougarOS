@@ -27,7 +27,7 @@ then rebuilds and signs a debug APK.
 | Live execution projection | `S2-OBS-002` | Ten bounded Runtime/model/effect milestones feed one 32-line scrolling trace. |
 | Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
 | Uni Info Bus / SOA / Governance | `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006` | Runtime remains the single app-facing ingress; Client2 does not bypass it for model or vehicle access. |
-| Unity-native HVAC feedback | `S2-HMI-001/003/004`, `S2-ADP-001` | Client2 sends bounded touchscreen events to the companion RenderService bundle; Android temperature overlays are forbidden. |
+| Vendor render/input preservation | `APP-001/004`, `S2-HMI-001/003/004`, `S2-UX-002`, `DEL-004` | The original Client/Client2 render hierarchy, TuanjieView touch path, render scale and vendor RenderService APK remain unchanged. AIOS effects stay in an Android overlay until an OEM source-level adapter is available. |
 
 ## Commands
 
@@ -91,7 +91,7 @@ right-side overlay in the existing root `FrameLayout`:
 Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
 ├── floating overlay: 600x760 translucent Central Brain panel in the 1920x1080 safe frame
-├── Unity-native dual-zone HVAC setpoints in the companion RenderService bundle
+├── untouched vendor Unity/TuanjieView render and input surface
 ├── left actuator overlay: HVAC and scenario-dependent Seat animation
 └── bottom trigger rail: phone target for free-form text and navigation target for fixed tasks
 ```
@@ -122,20 +122,20 @@ HTTP fallback.
 `OrchestrationRuntimeClient.Callback.onPipelineMilestone` projects RUNTIME,
 INTENT, CONTEXT, MODEL, PLAN, POLICY, GRAPH, SAFETY, EFFECT and READBACK states.
 `CockpitControlCoordinator` paces the view at 360 ms, retains 32 lines and shows
-MODEL/RUNNING before network I/O. Cold animates 26.5 to 28.0 degrees C. Fatigue
+MODEL/RUNNING before network I/O. Cold animates 26.5 to 28.0 degrees C in the
+explicit UI-only actuator surface. Fatigue
 animates fan 1 to 3 and shows a left-side driver-seat 15 to 30 degree response.
 The seat back uses a bottom-center pivot and negative rotation so increasing
-recline moves away from the cushion. Cold also sends two bounded touchscreen
-events through `TuanjieView`; the companion RenderService patch changes the
-driver/passenger Unity-native setpoints from 26.5 to 28.0 degrees C. No Android
-temperature TextView is drawn over Unity. These remain `SIMULATED`; no vehicle
-bus or hardware readback is accessed.
+recline moves away from the cushion. The Coordinator does not attach a listener
+to `TuanjieView`, call `setRenderScale`, reflect into RenderService, or send
+Unity messages. These effects remain `SIMULATED`; no vehicle bus or hardware
+readback is accessed.
 
-The companion project is
-`apk-labs/renderservice-central-brain`. It patches only the launcher
-Addressables bundle and does not replace `libtuanjie.so` or the Android system
-image. Build and install both signed APKs for this feature. See
-`docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md`.
+The companion project `apk-labs/renderservice-central-brain` now verifies and
+passes through the original vendor APK byte-for-byte. The earlier Addressables
+rewriter is not part of the active build or installation path. This restores
+the shared Client/Client2 render-session architecture while retaining AIOS in
+the overlay and Runtime Binder boundary.
 
 The four visible XML scenario tags remain stable two-segment UI aliases. A 14-entry exact bridge
 compatibility allowlist still maps all supported aliases to qualified Session IDs before Runtime admission; unknown
@@ -174,6 +174,8 @@ The bottom navigation is drawn by the Tuanjie render surface and has no Android
 touch target aligned to the current navigation location. This is verified on
 the 1920x1080 API 33 target and remains a closed-source geometry dependency;
 supported display variants need their own coordinate/accessibility regression.
+When all AIOS overlays are hidden, no full-screen AIOS view is touchable; the
+original vehicle interaction surface receives input without an AIOS listener.
 
 The debug build is deliberately signed with the same Gradle debug signer as
 the Runtime APK. Runtime still applies default-deny package/current-signer

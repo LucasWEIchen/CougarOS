@@ -19,6 +19,25 @@ bash -n "$PROJECT_DIR/scripts/install_debug_apk.sh"
 python3 -m py_compile "$PROJECT_DIR/scripts/apply_static_panel_patch.py"
 rm -rf "$PROJECT_DIR/scripts/__pycache__"
 python3 -m json.tool "$PROJECT_DIR/client2-central-brain.project.json" >/dev/null
+python3 - "$PROJECT_DIR/patches/main_layout.central_brain_panel.xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+android_id = "{http://schemas.android.com/apk/res/android}id"
+root = ET.parse(sys.argv[1]).getroot()
+children = list(root)
+if len(children) < 2:
+    raise SystemExit("Client2 root layout must retain the two vendor baseline children")
+render_container, top_controls = children[:2]
+if render_container.tag != "LinearLayout" or android_id in render_container.attrib:
+    raise SystemExit("Client2 first root child must be the original unnamed render container")
+render_ids = [child.attrib.get(android_id) for child in list(render_container)]
+if render_ids != ["@id/view1", "@id/view2", "@id/view3"]:
+    raise SystemExit("Client2 original render view order changed")
+if (top_controls.tag != "LinearLayout"
+        or top_controls.attrib.get(android_id) != "@id/topControls"):
+    raise SystemExit("Client2 second root child must remain the original topControls layer")
+PY
 
 for resource_file in \
   'central_brain_panel_background.xml' \
@@ -116,11 +135,11 @@ if [[ -d "$WORK_DIR" ]]; then
     exit 1
   fi
   rg -q "central_brain_panel_background" "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q 'centralBrainRenderRegion.*android:layout_width="match_parent".*android:layout_height="match_parent"' "$WORK_DIR/res/layout/main_layout.xml"
-  if rg -q 'centralBrainRenderRegion.*android:layout_weight=' "$WORK_DIR/res/layout/main_layout.xml"; then
-    echo "Client2 render region must remain full-screen behind the floating panel" >&2
+  if rg -q 'centralBrainRenderRegion' "$WORK_DIR/res/layout/main_layout.xml"; then
+    echo "Client2 must preserve the original unnamed render container" >&2
     exit 1
   fi
+  rg -q 'android:layout_gravity="end\|top".*android:id="@id/topControls"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainPanelOverlay.*android:layout_width="match_parent".*android:layout_height="match_parent".*android:visibility="gone".*android:clickable="true"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainPanel.*android:layout_width="600.0dp".*android:layout_height="760.0dp".*android:layout_gravity="top|right".*android:layout_marginTop="200.0dp".*android:layout_marginRight="32.0dp".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainNavigationTriggerRail.*android:layout_height="96.0dp".*android:layout_gravity="bottom".*android:weightSum="24.0"' "$WORK_DIR/res/layout/main_layout.xml"
@@ -140,22 +159,15 @@ if [[ -d "$WORK_DIR" ]]; then
   fi
   rg -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' \
     "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -q 'unity_hvac_native_dispatch=' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'UNITY_TEMPERATURE_MIN_C = 18.0f' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'UNITY_TEMPERATURE_MAX_C = 30.0f' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'UNITY_TEMPERATURE_STEP_C = 0.5f' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'UNITY_RENDER_SCALE = 1.5f' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'CentralBrainDriverTemperature' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'CentralBrainPassengerTemperature' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -Fq 'UNITY_TEMPERATURE_METHOD = "set_text"' \
-    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  for forbidden in setRenderScale setOnTouchListener c2sSendMessage \
+    mTuanjieRenderService CentralBrainDriverTemperature \
+    CentralBrainPassengerTemperature; do
+    if rg -Fq "$forbidden" \
+        "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"; then
+      echo "Client2 must not override vendor Unity behavior: $forbidden" >&2
+      exit 1
+    fi
+  done
   rg -q 'UI SIMULATION ONLY' "$WORK_DIR/res/layout/main_layout.xml"
   if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' \
       "$WORK_DIR/res/layout/main_layout.xml"; then

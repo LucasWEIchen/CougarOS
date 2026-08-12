@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: S2-HMI-001/002/003/004, S2-UX-002, S2-ADP-001/002,
-# S2-SAF-001, DEL-004.
+# Req IDs: APP-001/004, S2-HMI-001/003/004, S2-UX-002, DEL-004.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLIENT_PROJECT="$ROOT_DIR/apk-labs/client2-central-brain"
 RENDER_PROJECT="$ROOT_DIR/apk-labs/renderservice-central-brain"
 COORDINATOR="$CLIENT_PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 LAYOUT="$CLIENT_PROJECT/patches/main_layout.central_brain_panel.xml"
-DESIGN="$ROOT_DIR/docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md"
 
-for path in "$COORDINATOR" "$LAYOUT" "$DESIGN" \
-  "$RENDER_PROJECT/renderservice-central-brain.project.json" \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"; do
+for path in "$COORDINATOR" "$LAYOUT" \
+  "$RENDER_PROJECT/renderservice-central-brain.project.json"; do
   test -f "$path"
 done
 
@@ -21,48 +18,36 @@ bash "$RENDER_PROJECT/scripts/verify_project.sh"
 bash "$CLIENT_PROJECT/scripts/verify_project.sh"
 
 grep -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' "$COORDINATOR"
-grep -Fq 'UNITY_RENDER_SCALE = 1.5f' "$COORDINATOR"
-grep -Fq 'UNITY_TEMPERATURE_MIN_C = 18.0f' "$COORDINATOR"
-grep -Fq 'UNITY_TEMPERATURE_MAX_C = 30.0f' "$COORDINATOR"
-grep -Fq 'UNITY_TEMPERATURE_STEP_C = 0.5f' "$COORDINATOR"
-grep -Fq 'CentralBrainDriverTemperature' "$COORDINATOR"
-grep -Fq 'CentralBrainPassengerTemperature' "$COORDINATOR"
-grep -Fq '"c2sSendMessage"' "$COORDINATOR"
-grep -Fq 'UNITY_TEMPERATURE_METHOD = "set_text"' "$COORDINATOR"
-grep -Fq 'return false;' "$COORDINATOR"
-grep -Fq '"driver": "CentralBrainDriverTemperature"' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq '"passenger": "CentralBrainPassengerTemperature"' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq '"_targetInputDisplay": 2' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq '"_eventSystemRaycastCheck": 1' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq '"useFingerPolling": 0' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq '"vendorConfigurationPreserved": True' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq '(key, -0.18 if key == "_FaceDilate" else value)' \
-  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
+grep -Fq 'android:layout_gravity="end|top"' "$LAYOUT"
+grep -Fq 'android:id="@id/topControls"' "$LAYOUT"
+grep -Fq 'android:id="@id/view1"' "$LAYOUT"
+grep -Fq 'android:id="@id/view2"' "$LAYOUT"
+grep -Fq 'android:id="@id/view3"' "$LAYOUT"
 
-if grep -Fq 'centralBrainDriverTemperatureOverlay' "$LAYOUT"; then
-  echo "Android driver temperature overlay is still present" >&2
-  exit 1
-fi
-if grep -Fq 'centralBrainPassengerTemperatureOverlay' "$LAYOUT"; then
-  echo "Android passenger temperature overlay is still present" >&2
+for forbidden in \
+  'setRenderScale' \
+  'setOnTouchListener' \
+  'c2sSendMessage' \
+  'mTuanjieRenderService' \
+  'CentralBrainDriverTemperature' \
+  'CentralBrainPassengerTemperature'; do
+  if grep -Fq "$forbidden" "$COORDINATOR"; then
+    echo "Client2 must not override vendor Unity behavior: $forbidden" >&2
+    exit 1
+  fi
+done
+if grep -Fq 'centralBrainRenderRegion' "$LAYOUT"; then
+  echo "Client2 must preserve the original unnamed render container" >&2
   exit 1
 fi
 
 printf '%s\n' \
-  'seat_recline_expansion_direction_verified=true' \
-  'unity_dynamic_temperature_defined=true' \
-  'unity_temperature_range_18_30=true' \
-  'unity_temperature_step_0_5=true' \
-  'unity_vendor_orbit_input_preserved=true' \
-  'unity_render_scale_1_5_requested=true' \
-  'android_temperature_overlay_present=false' \
+  'client1_vendor_ui_preserved=true' \
+  'client2_vendor_render_hierarchy_preserved=true' \
+  'client2_vendor_touch_path_preserved=true' \
+  'client2_render_scale_override_enabled=false' \
+  'renderservice_vendor_apk_preserved=true' \
+  'seat_recline_simulation_direction_verified=true' \
   'vehicle_bus_accessed=false' \
-  'testboard_android13_arm64_verified=false' \
   'production_ready=false' \
   'target_hardware_validated=false'

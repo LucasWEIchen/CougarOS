@@ -4,44 +4,36 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 PROJECT_DIR="$ROOT_DIR/apk-labs/renderservice-central-brain"
 SOURCE_APK="${CENTRAL_BRAIN_RENDERSERVICE_SOURCE_APK:-$ROOT_DIR/apks/original/service_20260306_171242.apk}"
-OUT_ROOT="$ROOT_DIR/builds/renderservice-central-brain"
-UNALIGNED_APK="$OUT_ROOT/unsigned/renderservice-central-brain.unaligned.apk"
-ALIGNED_APK="$OUT_ROOT/aligned/renderservice-central-brain.aligned.apk"
-SIGNED_APK="$OUT_ROOT/signed/renderservice-central-brain.debug.apk"
+EXPECTED_SHA256="a24fbb471399e152c172455afbaee92e311f24f63910b263a577d58d59d7c633"
+OUT_DIR="$ROOT_DIR/builds/renderservice-central-brain/vendor-baseline"
+OUTPUT_APK="$OUT_DIR/renderservice-vendor-baseline.apk"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
   source "$ROOT_DIR/env.sh"
 fi
 
-DEFAULT_ANDROID_USER_HOME="${ANDROID_USER_HOME:-$HOME/.android}"
-KEYSTORE="${CENTRAL_BRAIN_ANDROID_DEBUG_KEYSTORE:-$DEFAULT_ANDROID_USER_HOME/debug.keystore}"
-if [[ ! -f "$SOURCE_APK" ]]; then
-  echo "Missing original RenderService APK: $SOURCE_APK" >&2
+[[ -f "$SOURCE_APK" ]] || { echo "Missing original RenderService APK: $SOURCE_APK" >&2; exit 1; }
+SOURCE_SHA256="$(sha256sum "$SOURCE_APK" | awk '{print $1}')"
+[[ "$SOURCE_SHA256" == "$EXPECTED_SHA256" ]] || {
+  echo "RenderService vendor baseline hash mismatch" >&2
   exit 1
-fi
-if [[ ! -f "$KEYSTORE" ]]; then
-  echo "Missing Android debug keystore: $KEYSTORE" >&2
+}
+
+mkdir -p "$OUT_DIR"
+cp -f "$SOURCE_APK" "$OUTPUT_APK"
+OUTPUT_SHA256="$(sha256sum "$OUTPUT_APK" | awk '{print $1}')"
+[[ "$OUTPUT_SHA256" == "$EXPECTED_SHA256" ]] || {
+  echo "RenderService passthrough output differs from vendor baseline" >&2
   exit 1
-fi
+}
 
-mkdir -p "$(dirname "$UNALIGNED_APK")" "$(dirname "$ALIGNED_APK")" \
-  "$(dirname "$SIGNED_APK")"
-rm -f "$UNALIGNED_APK" "$ALIGNED_APK" "$SIGNED_APK"
-
-python "$PROJECT_DIR/scripts/build_unaligned_apk.py" \
-  --source-apk "$SOURCE_APK" \
-  --output-apk "$UNALIGNED_APK"
-zipalign -p -f 4 "$UNALIGNED_APK" "$ALIGNED_APK"
-apksigner sign \
-  --ks "$KEYSTORE" \
-  --ks-pass pass:android \
-  --key-pass pass:android \
-  --out "$SIGNED_APK" \
-  "$ALIGNED_APK"
-apksigner verify --verbose --print-certs "$SIGNED_APK" >/dev/null
-aapt dump badging "$SIGNED_APK" \
-  | rg -q "package: name='com.tuanjie.renderservice'"
-
+apksigner verify --verbose --print-certs "$OUTPUT_APK" >/dev/null
+aapt dump badging "$OUTPUT_APK" | rg -q "package: name='com.tuanjie.renderservice'"
 "$PROJECT_DIR/scripts/verify_project.sh"
-echo "signed APK: $SIGNED_APK"
+
+printf '%s\n' \
+  "renderservice_vendor_baseline_preserved=true" \
+  "renderservice_unity_bundle_modified=false" \
+  "renderservice_apk_sha256=$OUTPUT_SHA256" \
+  "vendor APK: $OUTPUT_APK"

@@ -153,6 +153,21 @@ HMI 由任务入口、输入/输出流、执行链路、审批条和执行器反
 - HVAC 温度、座椅角度等 UI 状态来自 Runtime 投影，不使用固定结果文本。
 - 1920x1080 下 HMI 不改变车模画布的原始比例、清晰度和触摸坐标。
 
+Client、Client2 与 RenderService 的厂商渲染关系是受保护边界：
+
+```mermaid
+flowchart LR
+    C1["原版 Client<br/>仪表/泊车/行车"] -->|"Render index 0"| RS["原版 RenderService<br/>只读厂商基线"]
+    C2["Client2 原版渲染树<br/>TuanjieView"] -->|"Render index 1"| RS
+    O["AIOS Android Overlay<br/>默认隐藏"] -->|"Session/Orchestration Binder"| RT["Central Brain Runtime"]
+    O -. "同一 Activity 叠加但不改写输入" .-> C2
+```
+
+AIOS 不得调用 `TuanjieView.setRenderScale()`、覆盖其触摸监听、反射访问 RenderService
+或要求修改后的 Unity bundle。浮层关闭时，只允许保留导航/电话入口的有界透明热区；车模区域的
+事件必须继续进入厂商输入链。共享 RenderService 更新后必须按 Client1 后 Client2 的顺序重建
+双路会话，但不得通过资源重写修复 UI。
+
 ### 5.2 Central Brain SDK
 
 SDK 是 HMI 与 Runtime 的唯一正式入口，包括：

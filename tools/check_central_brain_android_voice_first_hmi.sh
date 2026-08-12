@@ -89,8 +89,15 @@ grep -Fq 'android:layout_height="760.0dp"' "$LAYOUT"
 grep -Fq 'LIVE_TRACE_INTERVAL_MS = 360L' "$COORDINATOR"
 grep -Fq 'MAX_LIVE_TRACE_LINES = 32' "$COORDINATOR"
 grep -Fq 'animateTemperature(26.5f, 28.0f)' "$COORDINATOR"
-grep -Fq 'UNITY_TEMPERATURE_METHOD = "set_text"' "$COORDINATOR"
-grep -Fq 'setUnityTemperatureForBothZones(value, "scenario_transition")' "$COORDINATOR"
+grep -Fq 'ValueAnimator.ofFloat(from, to)' "$COORDINATOR"
+for forbidden in setRenderScale setOnTouchListener c2sSendMessage \
+  mTuanjieRenderService CentralBrainDriverTemperature \
+  CentralBrainPassengerTemperature; do
+  if grep -Fq "$forbidden" "$COORDINATOR"; then
+    echo "voice-first HMI must not override vendor Unity behavior: $forbidden" >&2
+    exit 1
+  fi
+done
 grep -Fq 'animateFan(1, 3)' "$COORDINATOR"
 grep -Fq 'animateSeat(15.0f, 30.0f)' "$COORDINATOR"
 grep -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' "$COORDINATOR"
@@ -105,6 +112,7 @@ printf '%s\n' \
   'model_action_plan_binding_verified=true' \
   'live_pipeline_trace_verified=true' \
   'simulated_actuator_feedback_verified=true' \
+  'vendor_unity_behavior_preserved=true' \
   'security_implementation_present=false' \
   'vehicle_bus_accessed=false' \
   'production_ready=false' \

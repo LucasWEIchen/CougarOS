@@ -34,7 +34,7 @@
 | `central-brain/android-runtime/native-runtime` | Native | JNI、稳定 C ABI、资源与 Vendor 扩展入口 |
 | `central-brain/contracts` | 机器可读合同 | Schema、能力、发布和外部接口约束 |
 | `apk-labs/client2-central-brain` | Client2 集成代码 | 座舱 HMI、输入、执行链路和 Unity 协同 |
-| `apk-labs/renderservice-central-brain` | RenderService 集成代码 | Unity 原生 HVAC、座椅和渲染资源更新 |
+| `apk-labs/renderservice-central-brain` | RenderService 厂商基线保护 | 校验并透传原版 APK，禁止 Unity 资源重写、重签和输入改写 |
 | `docs/modules` | 模块详设 | 需求、源码、符号、接口、流程、校对清单和增量规则 |
 
 `apk-labs` 当前承载已部署 HMI 集成源。量产发布前应迁移到 OEM 可持续构建的正式工程；迁移不得改变
@@ -61,7 +61,7 @@
 | OpenClaw 生产以太网 API | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 上层文字/图片接口、Binder V2、ETH、WebSocket、流式回复 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
 | Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态和合规检测 |
-| RenderService Unity | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | Unity bundle、TextMeshPro、温度状态、触摸链 |
+| RenderService 厂商基线 | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | 原版 APK 哈希、签名、共享渲染会话与禁止修改项 |
 | Native Runtime | [15-native-runtime.md](modules/15-native-runtime.md) | C ABI、JNI、Native handle、NPU 扩展 |
 | Security、Privacy、Release 与 Observability | [16-security-privacy-release-observability.md](modules/16-security-privacy-release-observability.md) | 安全库存、隐私、诊断、准入、复测 |
 
@@ -75,7 +75,7 @@
 | Runtime Service | 独立 APK | `INTERNET`，三个 signature Binder 权限 |
 | Central Brain SDK | AAR | AIDL/Parcelable/Java facade |
 | Native Runtime | AAR + `.so` | JNI，C ABI v1 |
-| RenderService 集成 | OEM APK 增量 | Unity/Tuanjie 资源与跨进程展示接口 |
+| RenderService 集成 | 厂商 APK 只读基线 | Client/Client2 共享渲染会话；OEM 源码级扩展接口预留 |
 
 ### 3.2 Runtime Service
 
@@ -804,7 +804,7 @@ SESSION_COMPLETED / PARTIAL / FAILED
 
 - 温度 UI 范围 18.0..30.0，步进 0.5。
 - 温度使用与 Unity 原界面一致的字体、位置和材质。
-- 禁止用 Android 文本覆盖 Unity 原生温度。
+- AIOS 执行反馈使用明确标注的 UI 仿真层；没有 OEM 源码级 bridge 时，不修改 Unity 原生温度资源。
 - 座椅靠背 15 度到 30 度为展开方向。
 - 动画进度不等于 Effect readback；完成状态由 Runtime 投影。
 
@@ -812,7 +812,7 @@ SESSION_COMPLETED / PARTIAL / FAILED
 
 - 设计分辨率 1920x1080。
 - Client2 悬浮层不得修改车模渲染 viewport。
-- RenderService 保留原生触摸输入；覆盖层只拦截自身可交互区域。
+- RenderService 使用批准的原版 APK；Client2 不设置 RenderScale、不覆盖 `TuanjieView` 触摸监听，覆盖层只拦截自身可交互区域。
 - 图片居中预览时点击遮罩关闭，点击图片本身不关闭。
 - 行驶受限模式隐藏长文本、禁用高风险入口并保留紧急取消。
 
@@ -938,7 +938,7 @@ Session 结束后清理 Working Memory 和临时媒体。Profile/Episodic 数据
 | OpenClaw | 过渡接口已实现 | production assurance、凭据和发布路由未关闭 |
 | Effect Coordinator | 已实现 | 真实 Vehicle Adapter 未注册 |
 | Native C ABI | 已实现 | Vendor NPU Provider 未实现 |
-| Client2 HMI | 已实现主要闭环 | P4-R7 实现仍在 Draft，正式工程迁移未完成 |
+| Client2 HMI | 已实现主要闭环 | 厂商渲染/输入边界已恢复；生产物理触摸旋转和 OEM 正式工程迁移未完成 |
 | Release/Privacy/Safety | 合同已实现 | owner 审批和目标证据外部阻塞 |
 
 因此当前仓库的软件合同和大部分模块已形成，但不能声明为量产就绪，也不能声明真实车辆或 NPU

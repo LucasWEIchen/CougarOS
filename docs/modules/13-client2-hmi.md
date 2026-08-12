@@ -122,7 +122,17 @@ belt 和 evidence 决定 ALLOW/DENY/APPROVAL；HMI 本地判断只负责禁用�
 主面板为 1920x1080 右侧半透明 overlay，由底部导航热区切换；点击面板外关闭。图像预览覆盖屏幕中心，
 点击图外退出。`CockpitDisplayPolicy.panelFitsDisplay()` 必须在渲染前通过。
 
-### 4.6 吸烟检测投影
+### 4.6 厂商渲染与输入隔离
+
+Client2 补丁必须保留原版 `view1/view2/view3` 容器和 `topControls` 属性。AIOS 只追加默认隐藏的
+Android overlay，不得给 `TuanjieView` 设置触摸监听、调用 `setRenderScale`、反射访问
+RenderService 或发送 Unity GameObject 消息。浮层隐藏时，车模区域的触摸全部由厂商输入链处理。
+
+AIOS HVAC/Seat 动画是明确标注的 UI 仿真，不覆盖 Unity 原生温度，不写入共享 RenderService，
+也不作为 Effect/readback 成功证据。详见
+[RenderService 厂商渲染基线模块](14-renderservice-unity.md)。
+
+### 4.7 吸烟检测投影
 
 `CockpitMultimodalInput` 用场景白名单选择图像资源、触发文字、文件名、字节数和 SHA-256，不能由任意 UI tag
 拼接资源名。“检测吸烟”触发后，链路依次显示 `MODEL INPUT`、`AGENT ROUTER`、`MODEL OUTPUT` 和
@@ -243,6 +253,9 @@ sequenceDiagram
 - [ ] 座椅角度增大表示展开，并显示安全决定。
 - [ ] unknown/partial/retry/undo/compensation 有独立显示。
 - [ ] 1920x1080 panel bounds 和触摸目标符合 policy。
+- [ ] 原版渲染容器和右上 `topControls` 属性保持不变。
+- [ ] Coordinator 无 `setRenderScale`、TuanjieView listener、RenderService 反射和 Unity message。
+- [ ] AIOS 面板关闭后车门、车模和底部原生控件不受覆盖层拦截。
 
 ## 9. 增量开发规则
 
@@ -253,7 +266,7 @@ timeline 文案和 accessibility label。新增车辆控件必须复用 Session/
 ## 10. 当前缺口
 
 - `apk-labs` 集成源仍需迁移到 OEM 可持续构建的正式 Client2 工程。
-- 部分 P4-R7 渲染和交互修订尚未进入主分支生产基线。
+- P4-R7 的侵入式 RenderScale/Unity 资源修改已撤回；生产物理触摸旋转仍待验收。
 - 真实语音、相机 authority、车辆 readback 和生产 Orchestration 后端尚未闭环。
 - 任意文本到动态 typed Plan、Tool 参数和 EffectIntent 的生产编译链尚未闭环。
 - `production_ready=false`，`target_hardware_validated=false`。
