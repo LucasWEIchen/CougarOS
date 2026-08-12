@@ -28,4 +28,8 @@ keystores/
 logs/test/
 central-brain-remote-evidence-*/
 
+# Local controlled inputs and generated integration bundles are not published.
+central-brain/querySample/
+central-brain/integration/openclaw-eth-client.zip
+
 # Retired Central Brain Python runtime outputs are intentionally absent.
