@@ -6,8 +6,10 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
@@ -41,7 +43,9 @@ public final class VllmInferenceEngineTest {
         assertEquals("http://127.0.0.1:10030/v1/chat/completions",
                 captured.get().uri.toString());
         assertTrue(requestJson.contains("\"stream\":false"));
-        assertFalse(requestJson.contains("\"think\""));
+        assertTrue(requestJson.contains("\"chat_template_kwargs\""));
+        assertTrue(requestJson.contains("\"enable_thinking\":false"));
+        assertFalse(requestJson.contains("\"enable_thinking\":true"));
         assertTrue(requestJson.contains("\"response_format\""));
         assertTrue(requestJson.contains("\"json_schema\""));
         assertTrue(requestJson.contains("\"max_tokens\":192"));
@@ -118,22 +122,15 @@ public final class VllmInferenceEngineTest {
     }
 
     @Test
-    public void smokingSpecialistBindsImageAndValidatesFiveFieldPayload() {
+    public void smokingSpecialistUsesFastCompactPassAndExpandsFiveFields() {
         AtomicLong clock = new AtomicLong(1_000L);
         AtomicReference<VllmInferenceEngine.Request> captured = new AtomicReference<>();
         VllmInferenceEngine engine = engine(clock, request -> {
             captured.set(request);
-            return envelope(("{\"smoking_detected\":1,\"person_count\":1,"
-                    + "\"location\":\"IMAGE_ROW_1_RIGHT\",\"confidence\":0.88,"
-                    + "\"description\":\"可见烟支靠近嘴部。\"}")
-                    .getBytes(StandardCharsets.UTF_8));
+            return envelope("[1,1,4,95]".getBytes(StandardCharsets.UTF_8));
         });
         engine.warmup(model());
-        engine.registerPrompt(CockpitModelPrompt.forSmokingDetection(
-                INPUT_DIGEST,
-                "检测吸烟",
-                "agent.cabin.smoking-detection.v1",
-                "只识别客观吸烟事实并输出五字段JSON。"));
+        engine.registerPrompt(smokingPrompt());
         byte[] png = new byte[] {
                 (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
         };
@@ -146,18 +143,129 @@ public final class VllmInferenceEngineTest {
         String requestJson = new String(captured.get().body, StandardCharsets.UTF_8);
         assertTrue(requestJson.contains("\"type\":\"image_url\""));
         assertTrue(requestJson.contains(
-                "\"max_tokens\":" + VllmInferenceEngine.SMOKING_MAX_OUTPUT_TOKENS));
+                "\"max_tokens\":"
+                        + VllmInferenceEngine.SMOKING_FAST_MAX_OUTPUT_TOKENS));
         assertTrue(requestJson.contains(
-                "data:image/png;base64,iVBORw0KGgo="));
+                "data:image/jpeg;base64,/9j/2Q=="));
         assertFalse(requestJson.contains("uniqueItems"));
-        assertTrue(requestJson.contains("检测到吸烟行为。"));
-        assertTrue(requestJson.contains("\"smoking_detected\""));
+        assertTrue(requestJson.contains("central_brain_smoking_wire_v2"));
+        assertTrue(requestJson.contains("\"prefixItems\""));
+        assertTrue(requestJson.contains("四元素JSON数组"));
+        assertTrue(requestJson.contains("\"enable_thinking\":false"));
         assertTrue(requestJson.contains("agent.cabin.smoking-detection.v1"));
         String canonical = new String(output.getChunks().get(0), StandardCharsets.UTF_8);
         assertTrue(canonical.contains(
                 "\"scenario_id\":\"scene.cabin.compliance.smoking.v1\""));
         assertTrue(canonical.contains("\\\"smoking_detected\\\":1"));
         assertTrue(canonical.contains("\"actions\":[\"assistant.respond\"]"));
+    }
+
+    @Test
+    public void smokingNegativeFastPassFallsBackToOriginalFiveFieldRequest() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger transportCalls = new AtomicInteger();
+        List<VllmInferenceEngine.Request> captured = new ArrayList<>();
+        VllmInferenceEngine engine = engine(clock, request -> {
+            captured.add(request);
+            if (transportCalls.getAndIncrement() == 0) {
+                return envelope("[0,0,0,95]".getBytes(StandardCharsets.UTF_8));
+            }
+            return envelope(("{\"smoking_detected\":1,\"person_count\":1,"
+                    + "\"location\":\"IMAGE_ROW_2_LEFT\",\"confidence\":0.91,"
+                    + "\"description\":\"检测到吸烟行为。\"}")
+                    .getBytes(StandardCharsets.UTF_8));
+        });
+        engine.warmup(model());
+        engine.registerPrompt(smokingPrompt());
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", fixturePng());
+
+        LocalModelProvider.EngineOutput output = engine.infer(
+                model(), request(INPUT_DIGEST), neverCancelled());
+
+        assertEquals(2, transportCalls.get());
+        String fastRequest = new String(captured.get(0).body, StandardCharsets.UTF_8);
+        String fallbackRequest = new String(captured.get(1).body, StandardCharsets.UTF_8);
+        assertTrue(fastRequest.contains(
+                "\"max_tokens\":"
+                        + VllmInferenceEngine.SMOKING_FAST_MAX_OUTPUT_TOKENS));
+        assertTrue(fastRequest.contains("central_brain_smoking_wire_v2"));
+        assertTrue(fallbackRequest.contains(
+                "\"max_tokens\":"
+                        + VllmInferenceEngine.SMOKING_FALLBACK_MAX_OUTPUT_TOKENS));
+        assertTrue(fallbackRequest.contains("central_brain_smoking_detection_v1"));
+        assertTrue(fallbackRequest.contains("data:image/png;base64,iVBORw0KGgo="));
+        assertTrue(fallbackRequest.contains("\"enable_thinking\":false"));
+        String canonical = new String(output.getChunks().get(0), StandardCharsets.UTF_8);
+        assertTrue(canonical.contains("\\\"smoking_detected\\\":1"));
+        assertTrue(canonical.contains("IMAGE_ROW_2_LEFT"));
+    }
+
+    @Test
+    public void malformedCompactSmokingResultFailsClosedWithoutFallback() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger transportCalls = new AtomicInteger();
+        VllmInferenceEngine engine = engine(clock, request -> {
+            transportCalls.incrementAndGet();
+            return envelope("[1,0,0,95]".getBytes(StandardCharsets.UTF_8));
+        });
+        engine.warmup(model());
+        engine.registerPrompt(smokingPrompt());
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", fixturePng());
+
+        assertThrows(IllegalStateException.class, () -> engine.infer(
+                model(), request(INPUT_DIGEST), neverCancelled()));
+
+        assertEquals(1, transportCalls.get());
+        assertEquals(1, engine.snapshot().getFailureCount());
+    }
+
+    @Test
+    public void smokingFallbackHonorsRemainingDeadlineBeforeSecondTransport() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger transportCalls = new AtomicInteger();
+        VllmInferenceEngine engine = engine(clock, request -> {
+            transportCalls.incrementAndGet();
+            clock.set(10_000L);
+            return envelope("[2,0,0,45]".getBytes(StandardCharsets.UTF_8));
+        });
+        engine.warmup(model());
+        engine.registerPrompt(smokingPrompt());
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", fixturePng());
+
+        assertThrows(IllegalStateException.class, () -> engine.infer(
+                model(), request(INPUT_DIGEST), neverCancelled()));
+
+        assertEquals(1, transportCalls.get());
+        assertEquals(1, engine.snapshot().getFailureCount());
+    }
+
+    @Test
+    public void smokingPreprocessorFailureDoesNotCallTransport() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger transportCalls = new AtomicInteger();
+        VllmInferenceEngine engine = new VllmInferenceEngine(
+                VllmEndpointConfig.ty1100EthernetViaAdbReverse(),
+                request -> {
+                    transportCalls.incrementAndGet();
+                    return envelope("[1,1,1,95]".getBytes(StandardCharsets.UTF_8));
+                },
+                clock::get,
+                (source, mimeType, maximumWidth, maximumHeight, jpegQuality) -> {
+                    throw new IllegalArgumentException("fixture decode failure");
+                });
+        engine.warmup(model());
+        engine.registerPrompt(smokingPrompt());
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", fixturePng());
+
+        assertThrows(IllegalArgumentException.class, () -> engine.infer(
+                model(), request(INPUT_DIGEST), neverCancelled()));
+
+        assertEquals(0, transportCalls.get());
+        assertEquals(1, engine.snapshot().getFailureCount());
     }
 
     @Test
@@ -169,11 +277,7 @@ public final class VllmInferenceEngineTest {
             return envelope("{}".getBytes(StandardCharsets.UTF_8));
         });
         engine.warmup(model());
-        engine.registerPrompt(CockpitModelPrompt.forSmokingDetection(
-                INPUT_DIGEST,
-                "检测吸烟",
-                "agent.cabin.smoking-detection.v1",
-                "只识别客观吸烟事实并输出五字段JSON。"));
+        engine.registerPrompt(smokingPrompt());
         byte[] png = new byte[] {
                 (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
         };
@@ -223,7 +327,33 @@ public final class VllmInferenceEngineTest {
         return new VllmInferenceEngine(
                 VllmEndpointConfig.ty1100EthernetViaAdbReverse(),
                 transport,
-                clock::get);
+                clock::get,
+                (source, mimeType, maximumWidth, maximumHeight, jpegQuality) -> {
+                    assertEquals(VllmInferenceEngine.SMOKING_FAST_IMAGE_WIDTH,
+                            maximumWidth);
+                    assertEquals(VllmInferenceEngine.SMOKING_FAST_IMAGE_HEIGHT,
+                            maximumHeight);
+                    assertEquals(VllmInferenceEngine.SMOKING_FAST_JPEG_QUALITY,
+                            jpegQuality);
+                    return new byte[] {
+                            (byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xd9
+                    };
+                });
+    }
+
+    private static CockpitModelPrompt smokingPrompt() {
+        return CockpitModelPrompt.forSmokingDetection(
+                INPUT_DIGEST,
+                "检测吸烟",
+                "agent.cabin.smoking-detection.v1",
+                "# 安全 Agent\n只识别客观吸烟事实。\n\n"
+                        + "## 输出字段\n只输出五字段JSON。");
+    }
+
+    private static byte[] fixturePng() {
+        return new byte[] {
+                (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+        };
     }
 
     private static ModelProvider.ModelSpec model() {

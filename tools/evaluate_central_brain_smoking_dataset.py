@@ -295,6 +295,7 @@ def request_body(
         "stream": False,
         "temperature": 0,
         "max_tokens": max_tokens,
+        "chat_template_kwargs": {"enable_thinking": False},
         "messages": [
             {"role": "system", "content": system},
             {
@@ -499,6 +500,7 @@ def summarize(
             "agent_instruction_sha256": agent_sha256,
             "stream": False,
             "temperature": 0,
+            "thinking_enabled": False,
         },
         "outcomes": {
             **counts,

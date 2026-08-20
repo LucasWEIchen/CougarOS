@@ -63,7 +63,15 @@ grep -Fq 'routeCandidate(' "$ROUTER"
 grep -Fq '"smoking_detected"' "$RESULT"
 grep -Fq 'SMOKING_DETECTION_V1' "$VLLM" "$OPENCLAW"
 grep -Fq 'reader.setStrictness(Strictness.STRICT)' "$RESULT"
+grep -Fq 'parseCompactWire(String raw)' "$RESULT"
 grep -Fq 'registerScenarioImageAttachment' "$VLLM" "$OPENCLAW"
+grep -Fq 'SMOKING_FAST_MAX_OUTPUT_TOKENS = 24' "$VLLM"
+grep -Fq 'SMOKING_FALLBACK_MAX_OUTPUT_TOKENS = 64' "$VLLM"
+grep -Fq 'SMOKING_FAST_IMAGE_WIDTH = 1_280' "$VLLM"
+grep -Fq 'SMOKING_FAST_IMAGE_HEIGHT = 720' "$VLLM"
+grep -Fq 'chatTemplateKwargs.addProperty("enable_thinking", false)' "$VLLM"
+grep -Fq 'requiresSmokingFallback' "$VLLM"
+grep -Fq 'Arrays.fill(fastImage, (byte) 0)' "$VLLM"
 grep -Fq 'public static final String SMOKING_UI_SCENARIO_ID = "cabin.smoking"' "$INPUT"
 grep -Fq '"cabin.smoking", "scene.cabin.compliance.smoking.v1"' "$CONTROL"
 grep -Fq 'android:tag="cabin.smoking"' "$LAYOUT"
@@ -89,6 +97,9 @@ printf '%s\n' \
   "Central Brain Android smoking-detection Agent check passed" \
   "smoking_detection_route_deterministic=true" \
   "smoking_detection_output_strict=true" \
+  "smoking_detection_fast_path=1280x720_compact_wire_v2" \
+  "smoking_detection_fallback=original_image_five_field_v1" \
+  "smoking_detection_thinking_enabled=false" \
   "smoking_detection_tool_node_count=0" \
   "smoking_detection_effect_node_count=0" \
   "fixture_accuracy_evidence=false" \

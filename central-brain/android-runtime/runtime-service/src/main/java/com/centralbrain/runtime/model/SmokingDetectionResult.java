@@ -47,6 +47,10 @@ public final class SmokingDetectionResult {
             "右边",
             "左侧",
             "右侧");
+    private static final String DESCRIPTION_DETECTED = "检测到吸烟行为。";
+    private static final String DESCRIPTION_NOT_DETECTED = "未检测到吸烟行为。";
+    private static final String DESCRIPTION_UNCERTAIN =
+            "uncertain: 图像不足以可靠判断。";
 
     private final int smokingDetected;
     private final int personCount;
@@ -146,6 +150,98 @@ public final class SmokingDetectionResult {
             }
             throw violation("payload is not strict JSON", failure);
         }
+    }
+
+    /** Parses the provider-internal four-integer wire format [status,count,location,confidence]. */
+    public static SmokingDetectionResult parseCompactWire(String raw) {
+        if (raw == null) {
+            throw violation("compact payload is missing", null);
+        }
+        byte[] encoded = raw.getBytes(StandardCharsets.UTF_8);
+        if (encoded.length == 0 || encoded.length > MAX_OUTPUT_BYTES) {
+            throw violation("compact payload size is invalid", null);
+        }
+        try (JsonReader reader = new JsonReader(new InputStreamReader(
+                new ByteArrayInputStream(encoded),
+                StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(CodingErrorAction.REPORT)))) {
+            reader.setStrictness(Strictness.STRICT);
+            if (reader.peek() != JsonToken.BEGIN_ARRAY) {
+                throw violation("compact top level must be an array", null);
+            }
+            reader.beginArray();
+            int status = readInteger(reader, "status");
+            int personCount = readInteger(reader, "person_count");
+            int locationCode = readInteger(reader, "location_code");
+            int confidencePercent = readInteger(reader, "confidence_percent");
+            if (reader.hasNext()) {
+                throw violation("compact payload shape is not exact", null);
+            }
+            reader.endArray();
+            if (reader.peek() != JsonToken.END_DOCUMENT) {
+                throw violation("compact payload has trailing data", null);
+            }
+            return fromCompactValues(
+                    status, personCount, locationCode, confidencePercent);
+        } catch (IOException | RuntimeException failure) {
+            if (failure instanceof IllegalArgumentException
+                    && failure.getMessage() != null
+                    && failure.getMessage().startsWith("CB_SMOKING_RESULT:")) {
+                throw (IllegalArgumentException) failure;
+            }
+            throw violation("compact payload is not strict JSON", failure);
+        }
+    }
+
+    private static SmokingDetectionResult fromCompactValues(
+            int status,
+            int personCount,
+            int locationCode,
+            int confidencePercent) {
+        if (status < 0 || status > 2) {
+            throw violation("compact status is outside 0..2", null);
+        }
+        if (personCount < 0 || personCount > 2) {
+            throw violation("compact person_count is outside 0..2", null);
+        }
+        if (locationCode < 0 || locationCode > 4) {
+            throw violation("compact location_code is outside 0..4", null);
+        }
+        if (confidencePercent < 0 || confidencePercent > 100) {
+            throw violation("compact confidence_percent is outside 0..100", null);
+        }
+        String[] locations = {
+            "UNKNOWN",
+            "IMAGE_ROW_2_LEFT",
+            "IMAGE_ROW_2_RIGHT",
+            "IMAGE_ROW_1_LEFT",
+            "IMAGE_ROW_1_RIGHT"
+        };
+        double confidence = confidencePercent / 100.0;
+        if (status == 2) {
+            if (personCount != 0 || locationCode != 0 || confidencePercent >= 50) {
+                throw violation("compact uncertain result is not normalized", null);
+            }
+            return validate(
+                    0, 0, "UNKNOWN", confidence, DESCRIPTION_UNCERTAIN);
+        }
+        if (status == 1) {
+            if (personCount < 1 || locationCode == 0 || confidencePercent < 50) {
+                throw violation("compact positive result is inconsistent", null);
+            }
+            return validate(
+                    1,
+                    personCount,
+                    locations[locationCode],
+                    confidence,
+                    DESCRIPTION_DETECTED);
+        }
+        if (personCount != 0 || locationCode != 0 || confidencePercent < 50) {
+            throw violation("compact negative result is inconsistent", null);
+        }
+        return validate(
+                0, 0, "UNKNOWN", confidence, DESCRIPTION_NOT_DETECTED);
     }
 
     private static SmokingDetectionResult validate(

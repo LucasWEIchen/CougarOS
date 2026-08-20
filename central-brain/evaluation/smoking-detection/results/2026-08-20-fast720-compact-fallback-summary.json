@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-20T12:59:42.873467+00:00",
+  "dataset": {
+    "expected_positive_cases": 100,
+    "executed_cases": 100,
+    "unique_image_sha256": 100,
+    "required_source_resolution": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "pipeline": {
+    "fast_image_maximum": {
+      "width": 1280,
+      "height": 720
+    },
+    "fast_jpeg_quality": 85,
+    "fast_wire": "[status,count,location_code,confidence_percent]",
+    "fast_max_tokens": 24,
+    "fast_accept_confidence": 0.8,
+    "fallback_image": "ORIGINAL_1920x1080",
+    "fallback_contract": "FIVE_FIELD_V1",
+    "fallback_max_tokens": 64,
+    "thinking_enabled": false
+  },
+  "route": {
+    "activation_source": "EXPLICIT_SCENARIO",
+    "triage_agent_id": "agent.cabin.compliance-triage.v1",
+    "specialist_agent_id": "agent.cabin.smoking-detection.v1",
+    "scenario_id": "scene.cabin.compliance.smoking.v1",
+    "route_digest": "096e1a54356dc4fc4c38cfcfcb3e439137f6a350bc75977556b9f65681486796",
+    "model_selected_route": false
+  },
+  "provider": {
+    "model": "Qwen3.5-9B-AWQ",
+    "agent_instruction_sha256": "b769af4f42bcfe0bbfc45cf0625aab78ad5b19782efa9e604f4ac9fc7447ef6b",
+    "stream": false,
+    "temperature": 0
+  },
+  "outcomes": {
+    "detected": 99,
+    "not_detected": 0,
+    "uncertain": 1,
+    "contract_error": 0,
+    "transport_error": 0,
+    "strict_valid_outputs": 100,
+    "positive_sample_hit_rate": 0.99,
+    "strict_valid_output_rate": 1.0,
+    "complete_dataset_accuracy_available": false,
+    "metric_note": "positive-only dataset; hit rate equals positive-class recall"
+  },
+  "fallback": {
+    "count": 1,
+    "rate": 0.01
+  },
+  "latency": {
+    "preprocess": {
+      "count": 100,
+      "min_ms": 27.014,
+      "mean_ms": 30.683,
+      "p50_ms": 29.3,
+      "p90_ms": 33.58,
+      "p95_ms": 41.48,
+      "p99_ms": 55.765,
+      "max_ms": 81.551
+    },
+    "fast_request": {
+      "count": 100,
+      "min_ms": 1993.417,
+      "mean_ms": 2350.247,
+      "p50_ms": 2344.53,
+      "p90_ms": 2459.972,
+      "p95_ms": 2528.45,
+      "p99_ms": 2693.932,
+      "max_ms": 2758.723
+    },
+    "fallback_request": {
+      "count": 1,
+      "min_ms": 5501.36,
+      "mean_ms": 5501.36,
+      "p50_ms": 5501.36,
+      "p90_ms": 5501.36,
+      "p95_ms": 5501.36,
+      "p99_ms": 5501.36,
+      "max_ms": 5501.36
+    },
+    "end_to_end": {
+      "count": 100,
+      "min_ms": 2024.787,
+      "mean_ms": 2438.297,
+      "p50_ms": 2375.841,
+      "p90_ms": 2538.679,
+      "p95_ms": 2615.207,
+      "p99_ms": 2840.329,
+      "max_ms": 7847.007
+    },
+    "wall_clock_ms": 243835.004,
+    "images_per_minute": 24.607
+  },
+  "tokens": {
+    "prompt_mean": 1638.66,
+    "prompt_max": 4476,
+    "completion_mean": 14.26,
+    "completion_max": 52
+  },
+  "evidence_boundary": {
+    "android_bitmap_preprocessor_included": false,
+    "android_binder_hmi_included": false,
+    "vehicle_bus_accessed": false,
+    "production_acceptance": false
+  }
+}

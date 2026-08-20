@@ -1,5 +1,7 @@
 package com.centralbrain.runtime.model;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -40,7 +42,20 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
     private static final int MAX_REPLY_CHARS = 256;
     private static final int MAX_ACTIONS = 4;
     private static final int DEFAULT_MAX_OUTPUT_TOKENS = 192;
-    static final int SMOKING_MAX_OUTPUT_TOKENS = 64;
+    static final int SMOKING_FAST_MAX_OUTPUT_TOKENS = 24;
+    static final int SMOKING_FALLBACK_MAX_OUTPUT_TOKENS = 64;
+    static final int SMOKING_FAST_IMAGE_WIDTH = 1_280;
+    static final int SMOKING_FAST_IMAGE_HEIGHT = 720;
+    static final int SMOKING_FAST_JPEG_QUALITY = 85;
+    static final double SMOKING_FAST_ACCEPT_CONFIDENCE = 0.80;
+    private static final int MAX_DECODED_IMAGE_DIMENSION = 8_192;
+    private static final long MAX_DECODED_IMAGE_PIXELS = 32L * 1024L * 1024L;
+
+    private enum RequestProfile {
+        STANDARD,
+        SMOKING_FAST,
+        SMOKING_FALLBACK
+    }
 
     interface Transport {
         Response execute(Request request);
@@ -48,6 +63,90 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
 
     interface ElapsedClock {
         long nowMs();
+    }
+
+    interface ImagePreprocessor {
+        byte[] prepareFastJpeg(
+                byte[] source,
+                String mimeType,
+                int maximumWidth,
+                int maximumHeight,
+                int jpegQuality);
+    }
+
+    private static final class AndroidImagePreprocessor implements ImagePreprocessor {
+        @Override
+        public byte[] prepareFastJpeg(
+                byte[] source,
+                String mimeType,
+                int maximumWidth,
+                int maximumHeight,
+                int jpegQuality) {
+            requireImageSignature(mimeType, source);
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(source, 0, source.length, bounds);
+            int sourceWidth = bounds.outWidth;
+            int sourceHeight = bounds.outHeight;
+            if (sourceWidth <= 0
+                    || sourceHeight <= 0
+                    || sourceWidth > MAX_DECODED_IMAGE_DIMENSION
+                    || sourceHeight > MAX_DECODED_IMAGE_DIMENSION
+                    || (long) sourceWidth * sourceHeight > MAX_DECODED_IMAGE_PIXELS) {
+                throw new IllegalArgumentException(
+                        "Vllm decoded image dimensions are invalid");
+            }
+
+            BitmapFactory.Options decode = new BitmapFactory.Options();
+            decode.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            decode.inSampleSize = sampleSize(
+                    sourceWidth, sourceHeight, maximumWidth, maximumHeight);
+            Bitmap decoded = BitmapFactory.decodeByteArray(
+                    source, 0, source.length, decode);
+            if (decoded == null) {
+                throw new IllegalArgumentException("Vllm image decode failed");
+            }
+            Bitmap scaled = decoded;
+            try {
+                double scale = Math.min(
+                        1.0,
+                        Math.min(
+                                maximumWidth / (double) decoded.getWidth(),
+                                maximumHeight / (double) decoded.getHeight()));
+                int targetWidth = Math.max(1, (int) Math.round(decoded.getWidth() * scale));
+                int targetHeight = Math.max(1, (int) Math.round(decoded.getHeight() * scale));
+                if (targetWidth != decoded.getWidth() || targetHeight != decoded.getHeight()) {
+                    scaled = Bitmap.createScaledBitmap(
+                            decoded, targetWidth, targetHeight, true);
+                }
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                if (!scaled.compress(Bitmap.CompressFormat.JPEG, jpegQuality, output)) {
+                    throw new IllegalStateException("Vllm fast image encode failed");
+                }
+                byte[] encoded = output.toByteArray();
+                if (encoded.length == 0 || encoded.length > MAX_IMAGE_BYTES) {
+                    Arrays.fill(encoded, (byte) 0);
+                    throw new IllegalStateException("Vllm fast image size is invalid");
+                }
+                requireImageSignature("image/jpeg", encoded);
+                return encoded;
+            } finally {
+                if (scaled != decoded) {
+                    scaled.recycle();
+                }
+                decoded.recycle();
+            }
+        }
+
+        private static int sampleSize(
+                int width, int height, int maximumWidth, int maximumHeight) {
+            int sample = 1;
+            while (width / (sample * 2) >= maximumWidth
+                    && height / (sample * 2) >= maximumHeight) {
+                sample *= 2;
+            }
+            return sample;
+        }
     }
 
     static final class Request {
@@ -120,6 +219,7 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
     private final VllmEndpointConfig endpoint;
     private final Transport transport;
     private final ElapsedClock clock;
+    private final ImagePreprocessor imagePreprocessor;
     private final Map<String, CockpitModelPrompt> pending = new LinkedHashMap<>();
     private final Map<String, ImageAttachment> pendingImages = new LinkedHashMap<>();
     private int pendingImageBytes;
@@ -131,17 +231,33 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
     private long lastLatencyMs;
 
     public VllmInferenceEngine(VllmEndpointConfig endpoint) {
-        this(endpoint, new UrlConnectionTransport(), SystemClock::elapsedRealtime);
+        this(
+                endpoint,
+                new UrlConnectionTransport(),
+                SystemClock::elapsedRealtime,
+                new AndroidImagePreprocessor());
     }
 
     VllmInferenceEngine(VllmEndpointConfig endpoint, Transport transport) {
-        this(endpoint, transport, SystemClock::elapsedRealtime);
+        this(
+                endpoint,
+                transport,
+                SystemClock::elapsedRealtime,
+                new AndroidImagePreprocessor());
     }
 
     VllmInferenceEngine(
             VllmEndpointConfig endpoint,
             Transport transport,
             ElapsedClock clock) {
+        this(endpoint, transport, clock, new AndroidImagePreprocessor());
+    }
+
+    VllmInferenceEngine(
+            VllmEndpointConfig endpoint,
+            Transport transport,
+            ElapsedClock clock,
+            ImagePreprocessor imagePreprocessor) {
         this.endpoint = Objects.requireNonNull(endpoint, "endpoint");
         if (endpoint.getProfile()
                 != VllmEndpointConfig.Profile.TY1100_ETHERNET_VIA_ADB_REVERSE) {
@@ -150,6 +266,8 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         }
         this.transport = Objects.requireNonNull(transport, "transport");
         this.clock = Objects.requireNonNull(clock, "clock");
+        this.imagePreprocessor = Objects.requireNonNull(
+                imagePreprocessor, "imagePreprocessor");
     }
 
     public synchronized void registerScenarioPrompt(String inputDigest, String scenarioId) {
@@ -236,6 +354,9 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         }
         long startedAt = clock.nowMs();
         boolean networkAccessed = false;
+        boolean fallbackUsed = false;
+        int passCount = 1;
+        int fastImageBytes = 0;
         try {
             if (cancellationSignal.isCancellationRequested()
                     || cancellationSignal.isDeadlineExceeded()) {
@@ -248,20 +369,58 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                 throw new IllegalStateException(
                         "Vllm smoking detection requires an image attachment");
             }
-            byte[] requestBody = buildRequest(prompt, imageAttachment);
-            int remainingMs = remainingDeadlineMs(request);
-            networkAccessed = true;
-            Response response = transport.execute(new Request(
-                    endpoint.getChatCompletionsUri(),
-                    requestBody,
-                    Math.min(endpoint.getConnectTimeoutMs(), remainingMs),
-                    Math.min(endpoint.getReadTimeoutMs(), remainingMs),
-                    VllmEndpointConfig.MAX_RESPONSE_BYTES));
-            if (cancellationSignal.isCancellationRequested()
-                    || cancellationSignal.isDeadlineExceeded()) {
-                throw new IllegalStateException("Vllm request crossed its deadline");
+            byte[] canonical;
+            if (prompt.getOutputContract()
+                    == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
+                byte[] fastImage = imagePreprocessor.prepareFastJpeg(
+                        imageAttachment.content,
+                        imageAttachment.mimeType,
+                        SMOKING_FAST_IMAGE_WIDTH,
+                        SMOKING_FAST_IMAGE_HEIGHT,
+                        SMOKING_FAST_JPEG_QUALITY);
+                fastImageBytes = fastImage.length;
+                try {
+                    networkAccessed = true;
+                    Response fastResponse = executeRequest(
+                            buildRequest(
+                                    prompt,
+                                    "image/jpeg",
+                                    fastImage,
+                                    RequestProfile.SMOKING_FAST),
+                            request,
+                            cancellationSignal);
+                    SmokingDetectionResult fastResult =
+                            parseSmokingCompactResponse(fastResponse);
+                    if (requiresSmokingFallback(fastResult)) {
+                        fallbackUsed = true;
+                        passCount = 2;
+                        Response fallbackResponse = executeRequest(
+                                buildRequest(
+                                        prompt,
+                                        imageAttachment.mimeType,
+                                        imageAttachment.content,
+                                        RequestProfile.SMOKING_FALLBACK),
+                                request,
+                                cancellationSignal);
+                        canonical = parseAndValidate(
+                                fallbackResponse,
+                                prompt,
+                                RequestProfile.SMOKING_FALLBACK);
+                    } else {
+                        canonical = smokingProjection(prompt, fastResult);
+                    }
+                } finally {
+                    Arrays.fill(fastImage, (byte) 0);
+                }
+            } else {
+                networkAccessed = true;
+                Response response = executeRequest(
+                        buildRequest(prompt, null, null, RequestProfile.STANDARD),
+                        request,
+                        cancellationSignal);
+                canonical = parseAndValidate(
+                        response, prompt, RequestProfile.STANDARD);
             }
-            byte[] canonical = parseAndValidate(response, prompt);
             long latencyMs = Math.max(0L, clock.nowMs() - startedAt);
             synchronized (this) {
                 completedCount++;
@@ -275,6 +434,10 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                     + (imageAttachment == null ? 0 : imageAttachment.content.length)
                     + " image_sha256="
                     + (imageAttachment == null ? "none" : imageAttachment.sha256)
+                    + " thinking_enabled=false"
+                    + " pass_count=" + passCount
+                    + " fallback_used=" + fallbackUsed
+                    + " fast_image_bytes=" + fastImageBytes
                     + " latency_ms=" + latencyMs
                     + " response_bytes=" + canonical.length
                     + " network_accessed=true"
@@ -300,6 +463,33 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                 imageAttachment.clear();
             }
         }
+    }
+
+    private Response executeRequest(
+            byte[] requestBody,
+            ModelProvider.InferenceRequest request,
+            LocalModelProvider.CancellationSignal cancellationSignal) {
+        if (cancellationSignal.isCancellationRequested()
+                || cancellationSignal.isDeadlineExceeded()) {
+            throw new IllegalStateException("Vllm request was cancelled before transport");
+        }
+        int remainingMs = remainingDeadlineMs(request);
+        Response response = transport.execute(new Request(
+                endpoint.getChatCompletionsUri(),
+                requestBody,
+                Math.min(endpoint.getConnectTimeoutMs(), remainingMs),
+                Math.min(endpoint.getReadTimeoutMs(), remainingMs),
+                VllmEndpointConfig.MAX_RESPONSE_BYTES));
+        if (cancellationSignal.isCancellationRequested()
+                || cancellationSignal.isDeadlineExceeded()) {
+            throw new IllegalStateException("Vllm request crossed its deadline");
+        }
+        return response;
+    }
+
+    private static boolean requiresSmokingFallback(SmokingDetectionResult result) {
+        return result.getStatus() != SmokingDetectionResult.DecisionStatus.DETECTED
+                || result.getConfidence() < SMOKING_FAST_ACCEPT_CONFIDENCE;
     }
 
     @Override
@@ -333,35 +523,57 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
 
     private byte[] buildRequest(
             CockpitModelPrompt prompt,
-            ImageAttachment imageAttachment) {
+            String imageMimeType,
+            byte[] imageContent,
+            RequestProfile profile) {
+        boolean smoking = prompt.getOutputContract()
+                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1;
+        if ((smoking && profile == RequestProfile.STANDARD)
+                || (!smoking && profile != RequestProfile.STANDARD)
+                || (smoking && imageContent == null)
+                || (imageContent == null) != (imageMimeType == null)) {
+            throw new IllegalArgumentException("Vllm request profile is inconsistent");
+        }
         JsonObject root = new JsonObject();
         root.addProperty("model", endpoint.getModelName());
         root.addProperty("stream", false);
         root.addProperty("temperature", 0);
-        root.addProperty(
-                "max_tokens",
-                prompt.getOutputContract()
-                                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1
-                        ? SMOKING_MAX_OUTPUT_TOKENS : DEFAULT_MAX_OUTPUT_TOKENS);
+        int maximumOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS;
+        if (profile == RequestProfile.SMOKING_FAST) {
+            maximumOutputTokens = SMOKING_FAST_MAX_OUTPUT_TOKENS;
+        } else if (profile == RequestProfile.SMOKING_FALLBACK) {
+            maximumOutputTokens = SMOKING_FALLBACK_MAX_OUTPUT_TOKENS;
+        }
+        root.addProperty("max_tokens", maximumOutputTokens);
+        JsonObject chatTemplateKwargs = new JsonObject();
+        chatTemplateKwargs.addProperty("enable_thinking", false);
+        root.add("chat_template_kwargs", chatTemplateKwargs);
 
         JsonArray messages = new JsonArray();
-        if (prompt.getOutputContract()
-                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
-            messages.add(message("system", prompt.systemInstruction()));
+        if (smoking) {
+            messages.add(message(
+                    "system",
+                    profile == RequestProfile.SMOKING_FAST
+                            ? smokingFastSystemInstruction(prompt)
+                            : prompt.systemInstruction()));
             JsonObject user = new JsonObject();
             user.addProperty("role", "user");
             JsonArray content = new JsonArray();
             JsonObject text = new JsonObject();
             text.addProperty("type", "text");
-            text.addProperty("text", prompt.userInstruction());
+            text.addProperty(
+                    "text",
+                    profile == RequestProfile.SMOKING_FAST
+                            ? smokingFastUserInstruction(prompt)
+                            : prompt.userInstruction());
             content.add(text);
             JsonObject image = new JsonObject();
             image.addProperty("type", "image_url");
             JsonObject imageUrl = new JsonObject();
             imageUrl.addProperty(
                     "url",
-                    "data:" + imageAttachment.mimeType + ";base64,"
-                            + Base64.getEncoder().encodeToString(imageAttachment.content));
+                    "data:" + imageMimeType + ";base64,"
+                            + Base64.getEncoder().encodeToString(imageContent));
             imageUrl.addProperty("detail", "auto");
             image.add("image_url", imageUrl);
             content.add(image);
@@ -390,16 +602,17 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         JsonObject jsonSchema = new JsonObject();
         jsonSchema.addProperty(
                 "name",
-                prompt.getOutputContract()
-                                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1
-                        ? "central_brain_smoking_detection_v1"
-                        : "central_brain_scenario_result_v1");
+                profile == RequestProfile.SMOKING_FAST
+                        ? "central_brain_smoking_wire_v2"
+                        : smoking
+                                ? "central_brain_smoking_detection_v1"
+                                : "central_brain_scenario_result_v1");
         jsonSchema.addProperty("strict", true);
-        jsonSchema.add("schema", responseSchema(prompt));
+        jsonSchema.add("schema", responseSchema(prompt, profile));
         responseFormat.add("json_schema", jsonSchema);
         root.add("response_format", responseFormat);
         byte[] encoded = root.toString().getBytes(StandardCharsets.UTF_8);
-        int maximumRequestBytes = imageAttachment == null
+        int maximumRequestBytes = imageContent == null
                 ? MAX_TEXT_REQUEST_BYTES : MAX_MULTIMODAL_REQUEST_BYTES;
         if (encoded.length > maximumRequestBytes) {
             throw new IllegalStateException("Vllm request exceeds the bounded envelope");
@@ -407,33 +620,57 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         return encoded;
     }
 
-    private byte[] parseAndValidate(Response response, CockpitModelPrompt prompt) {
-        if (response.statusCode < 200 || response.statusCode >= 300) {
-            throw new IllegalStateException("Vllm returned HTTP " + response.statusCode);
+    private static String smokingFastSystemInstruction(CockpitModelPrompt prompt) {
+        String instruction = prompt.systemInstruction();
+        int outputSection = instruction.indexOf("## 输出字段");
+        if (outputSection <= 0) {
+            throw new IllegalStateException(
+                    "Vllm smoking Agent output section is unavailable");
         }
-        if (response.body.length == 0
-                || response.body.length > VllmEndpointConfig.MAX_RESPONSE_BYTES) {
-            throw new IllegalStateException("Vllm response size is invalid");
+        return instruction.substring(0, outputSection).trim()
+                + "\n运行时补充约束：如果输入图像不符合标准后排摄像头几何，"
+                + "仍可判断直接可见的客观吸烟事实，但座位无法可靠确定时必须使用UNKNOWN。"
+                + "你没有工具、车辆执行或业务处置权限。"
+                + "\n## Provider内部传输格式\n"
+                + "只输出四元素紧凑JSON数组[s,n,l,c]，不得输出其他文字："
+                + "s为0未吸烟、1吸烟、2不确定；n为吸烟人数0..2；"
+                + "l为0 UNKNOWN、1 IMAGE_ROW_2_LEFT、2 IMAGE_ROW_2_RIGHT、"
+                + "3 IMAGE_ROW_1_LEFT、4 IMAGE_ROW_1_RIGHT；"
+                + "c为整数置信度百分比0..100。"
+                + "s=2时必须输出[2,0,0,c]且c<50。";
+    }
+
+    private static String smokingFastUserInstruction(CockpitModelPrompt prompt) {
+        String instruction = prompt.userInstruction();
+        int outputLine = instruction.lastIndexOf("\n请只返回");
+        if (outputLine <= 0) {
+            throw new IllegalStateException(
+                    "Vllm smoking Agent user output line is unavailable");
         }
+        return instruction.substring(0, outputLine)
+                + "\n只返回四元素JSON数组。";
+    }
+
+    private SmokingDetectionResult parseSmokingCompactResponse(Response response) {
         try {
-            JsonObject envelope = JsonParser.parseString(
-                    decodeUtf8(response.body)).getAsJsonObject();
-            if (!requiredString(envelope, "model").equals(endpoint.getModelName())) {
-                throw new IllegalStateException("Vllm response model does not match");
-            }
-            JsonArray choices = envelope.getAsJsonArray("choices");
-            if (choices == null || choices.size() != 1) {
-                throw new IllegalStateException("Vllm response choice count is invalid");
-            }
-            JsonObject choice = choices.get(0).getAsJsonObject();
-            if (!"stop".equals(requiredString(choice, "finish_reason"))) {
-                throw new IllegalStateException("Vllm response is not terminal");
-            }
-            JsonObject message = choice.getAsJsonObject("message");
-            if (!"assistant".equals(requiredString(message, "role"))) {
-                throw new IllegalStateException("Vllm response role is invalid");
-            }
-            String rawContent = requiredString(message, "content");
+            return SmokingDetectionResult.parseCompactWire(
+                    requireAssistantContent(response));
+        } catch (RuntimeException failure) {
+            throw new IllegalStateException(
+                    "Vllm response violates the structured contract", failure);
+        }
+    }
+
+    private byte[] parseAndValidate(
+            Response response,
+            CockpitModelPrompt prompt,
+            RequestProfile profile) {
+        if (profile == RequestProfile.SMOKING_FAST) {
+            throw new IllegalArgumentException(
+                    "Vllm compact response requires the dedicated parser");
+        }
+        String rawContent = requireAssistantContent(response);
+        try {
             if (prompt.getOutputContract()
                     == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
                 SmokingDetectionResult result = SmokingDetectionResult.parse(rawContent);
@@ -485,7 +722,44 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         }
     }
 
-    private static JsonObject responseSchema(CockpitModelPrompt prompt) {
+    private String requireAssistantContent(Response response) {
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+            throw new IllegalStateException("Vllm returned HTTP " + response.statusCode);
+        }
+        if (response.body.length == 0
+                || response.body.length > VllmEndpointConfig.MAX_RESPONSE_BYTES) {
+            throw new IllegalStateException("Vllm response size is invalid");
+        }
+        try {
+            JsonObject envelope = JsonParser.parseString(
+                    decodeUtf8(response.body)).getAsJsonObject();
+            if (!requiredString(envelope, "model").equals(endpoint.getModelName())) {
+                throw new IllegalStateException("Vllm response model does not match");
+            }
+            JsonArray choices = envelope.getAsJsonArray("choices");
+            if (choices == null || choices.size() != 1) {
+                throw new IllegalStateException("Vllm response choice count is invalid");
+            }
+            JsonObject choice = choices.get(0).getAsJsonObject();
+            if (!"stop".equals(requiredString(choice, "finish_reason"))) {
+                throw new IllegalStateException("Vllm response is not terminal");
+            }
+            JsonObject message = choice.getAsJsonObject("message");
+            if (!"assistant".equals(requiredString(message, "role"))) {
+                throw new IllegalStateException("Vllm response role is invalid");
+            }
+            return requiredString(message, "content");
+        } catch (RuntimeException failure) {
+            throw new IllegalStateException("Vllm response violates the structured contract", failure);
+        }
+    }
+
+    private static JsonObject responseSchema(
+            CockpitModelPrompt prompt,
+            RequestProfile profile) {
+        if (profile == RequestProfile.SMOKING_FAST) {
+            return smokingCompactResponseSchema();
+        }
         if (prompt.getOutputContract()
                 == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1) {
             return smokingResponseSchema();
@@ -529,6 +803,20 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         required.add("reply");
         required.add("actions");
         schema.add("required", required);
+        return schema;
+    }
+
+    private static JsonObject smokingCompactResponseSchema() {
+        JsonObject schema = new JsonObject();
+        schema.addProperty("type", "array");
+        JsonArray prefixItems = new JsonArray();
+        prefixItems.add(integerSchema(0, 2));
+        prefixItems.add(integerSchema(0, 2));
+        prefixItems.add(integerSchema(0, 4));
+        prefixItems.add(integerSchema(0, 100));
+        schema.add("prefixItems", prefixItems);
+        schema.addProperty("minItems", 4);
+        schema.addProperty("maxItems", 4);
         return schema;
     }
 

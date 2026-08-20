@@ -46,7 +46,7 @@ flowchart LR
 | Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
 | 唯一原型模型环境 | [TY1100 vLLM 原型说明](central-brain/integration/ty1100-vllm-prototype/README.md)：Android 实机经受控桥接访问 `Qwen3.5-9B-AWQ`，文字和单图已验证；WSL Ollama 不再用于后续原型验收 |
 | Model Prompt API | vLLM Debug Provider 与生产 OpenClaw 路径接收受控 `CockpitModelPrompt`，Provider 不获得执行权限 |
-| 座舱吸烟合规 Agent | 确定性 Router、版本化 Agent 指令、五字段严格校验已形成；目标摄像头验收待完成 |
+| 座舱吸烟合规 Agent | 确定性 Router、版本化 Agent 指令、五字段严格校验已形成；[720p/24-token 快速通道 + 原图回退评测](central-brain/evaluation/smoking-detection/README.md)已请求级关闭 thinking，100 张正样本召回率 99%、P95 2,615.207 ms；阴性集与目标摄像头验收待完成 |
 | 任意文本动作权限 | 当前仅投影模型回复与白名单候选，动态 Tool/Effect 编译保持关闭 |
 | OpenClaw 生产以太网文字/图片接口 | [客户 ETH 联调说明与 Java/Python 示例](central-brain/integration/openclaw-eth-client/README.md)已形成，release Provider 待实现与准入 |
 | 生产配置隔离 | Release 仍为 `target_openclaw_transitional`、`ws://169.254.208.110:18789`、协议 3、路由禁用；本次未修改 |
