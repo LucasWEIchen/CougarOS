@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-20T12:27:55.087098+00:00",
+  "dataset": {
+    "expected_positive_cases": 100,
+    "executed_cases": 100,
+    "unique_image_sha256": 100,
+    "required_resolution": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "route": {
+    "activation_source": "EXPLICIT_SCENARIO",
+    "triage_agent_id": "agent.cabin.compliance-triage.v1",
+    "specialist_agent_id": "agent.cabin.smoking-detection.v1",
+    "scenario_id": "scene.cabin.compliance.smoking.v1",
+    "route_digest": "096e1a54356dc4fc4c38cfcfcb3e439137f6a350bc75977556b9f65681486796",
+    "model_selected_route": false
+  },
+  "provider": {
+    "model": "Qwen3.5-9B-AWQ",
+    "max_tokens": 64,
+    "agent_instruction_sha256": "b769af4f42bcfe0bbfc45cf0625aab78ad5b19782efa9e604f4ac9fc7447ef6b",
+    "stream": false,
+    "temperature": 0
+  },
+  "outcomes": {
+    "detected": 98,
+    "not_detected": 0,
+    "uncertain": 2,
+    "contract_error": 0,
+    "transport_error": 0,
+    "strict_valid_outputs": 100,
+    "positive_sample_hit_rate": 0.98,
+    "strict_valid_output_rate": 1.0,
+    "complete_dataset_accuracy_available": false,
+    "metric_note": "positive-only dataset; hit rate equals positive-class recall"
+  },
+  "latency": {
+    "request": {
+      "count": 100,
+      "min_ms": 5331.709,
+      "mean_ms": 5608.263,
+      "p50_ms": 5581.888,
+      "p90_ms": 5779.345,
+      "p95_ms": 5877.606,
+      "p99_ms": 6126.328,
+      "max_ms": 6132.918
+    },
+    "end_to_end": {
+      "count": 100,
+      "min_ms": 5337.644,
+      "mean_ms": 5613.417,
+      "p50_ms": 5587.13,
+      "p90_ms": 5784.602,
+      "p95_ms": 5882.826,
+      "p99_ms": 6131.631,
+      "max_ms": 6137.452
+    },
+    "wall_clock_ms": 561368.105,
+    "images_per_minute": 10.688
+  },
+  "tokens": {
+    "completion_count": 100,
+    "completion_mean": 35.04,
+    "completion_max": 37,
+    "truncated_response_count": 0
+  },
+  "evidence_boundary": {
+    "android_binder_hmi_included": false,
+    "vehicle_bus_accessed": false,
+    "production_acceptance": false
+  }
+}

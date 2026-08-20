@@ -39,6 +39,8 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
     private static final int MAX_PENDING_IMAGE_BYTES = 12 * 1024 * 1024;
     private static final int MAX_REPLY_CHARS = 256;
     private static final int MAX_ACTIONS = 4;
+    private static final int DEFAULT_MAX_OUTPUT_TOKENS = 192;
+    static final int SMOKING_MAX_OUTPUT_TOKENS = 64;
 
     interface Transport {
         Response execute(Request request);
@@ -336,7 +338,11 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         root.addProperty("model", endpoint.getModelName());
         root.addProperty("stream", false);
         root.addProperty("temperature", 0);
-        root.addProperty("max_tokens", 192);
+        root.addProperty(
+                "max_tokens",
+                prompt.getOutputContract()
+                                == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1
+                        ? SMOKING_MAX_OUTPUT_TOKENS : DEFAULT_MAX_OUTPUT_TOKENS);
 
         JsonArray messages = new JsonArray();
         if (prompt.getOutputContract()

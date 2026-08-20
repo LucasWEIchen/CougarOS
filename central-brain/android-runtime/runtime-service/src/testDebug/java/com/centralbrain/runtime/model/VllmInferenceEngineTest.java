@@ -44,6 +44,7 @@ public final class VllmInferenceEngineTest {
         assertFalse(requestJson.contains("\"think\""));
         assertTrue(requestJson.contains("\"response_format\""));
         assertTrue(requestJson.contains("\"json_schema\""));
+        assertTrue(requestJson.contains("\"max_tokens\":192"));
         assertTrue(requestJson.contains("scene.comfort.cold.v1"));
         assertTrue(requestJson.contains("键名scenario_id、reply、actions必须完全一致"));
         assertTrue(requestJson.contains("actions的每一项必须是可用动作中的字符串"));
@@ -144,6 +145,8 @@ public final class VllmInferenceEngineTest {
 
         String requestJson = new String(captured.get().body, StandardCharsets.UTF_8);
         assertTrue(requestJson.contains("\"type\":\"image_url\""));
+        assertTrue(requestJson.contains(
+                "\"max_tokens\":" + VllmInferenceEngine.SMOKING_MAX_OUTPUT_TOKENS));
         assertTrue(requestJson.contains(
                 "data:image/png;base64,iVBORw0KGgo="));
         assertFalse(requestJson.contains("uniqueItems"));
