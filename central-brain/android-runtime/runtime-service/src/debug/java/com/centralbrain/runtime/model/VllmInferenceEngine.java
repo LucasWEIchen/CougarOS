@@ -808,12 +808,31 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
 
     private static JsonObject smokingCompactResponseSchema() {
         JsonObject schema = new JsonObject();
+        JsonArray branches = new JsonArray();
+        branches.add(smokingCompactResponseBranch(0, 0, 0, 0, 0, 50, 100));
+        branches.add(smokingCompactResponseBranch(1, 1, 2, 1, 4, 50, 100));
+        branches.add(smokingCompactResponseBranch(2, 0, 0, 0, 0, 0, 49));
+        schema.add("oneOf", branches);
+        return schema;
+    }
+
+    private static JsonObject smokingCompactResponseBranch(
+            int status,
+            int countMinimum,
+            int countMaximum,
+            int locationMinimum,
+            int locationMaximum,
+            int confidenceMinimum,
+            int confidenceMaximum) {
+        JsonObject schema = new JsonObject();
         schema.addProperty("type", "array");
         JsonArray prefixItems = new JsonArray();
-        prefixItems.add(integerSchema(0, 2));
-        prefixItems.add(integerSchema(0, 2));
-        prefixItems.add(integerSchema(0, 4));
-        prefixItems.add(integerSchema(0, 100));
+        JsonObject statusSchema = new JsonObject();
+        statusSchema.addProperty("const", status);
+        prefixItems.add(statusSchema);
+        prefixItems.add(integerSchema(countMinimum, countMaximum));
+        prefixItems.add(integerSchema(locationMinimum, locationMaximum));
+        prefixItems.add(integerSchema(confidenceMinimum, confidenceMaximum));
         schema.add("prefixItems", prefixItems);
         schema.addProperty("minItems", 4);
         schema.addProperty("maxItems", 4);

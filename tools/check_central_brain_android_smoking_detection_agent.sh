@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: APP-002/003/004/005/007, S2-SCN-006, S2-MDL-007,
+# Req IDs: APP-002/003/004/005/007, S2-SCN-006, S2-MDL-007/008,
 # S2-SAF-006, S2-HMI-008/011, S2-OBS-001/002.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -69,6 +69,9 @@ grep -Fq 'SMOKING_FAST_MAX_OUTPUT_TOKENS = 24' "$VLLM"
 grep -Fq 'SMOKING_FALLBACK_MAX_OUTPUT_TOKENS = 64' "$VLLM"
 grep -Fq 'SMOKING_FAST_IMAGE_WIDTH = 1_280' "$VLLM"
 grep -Fq 'SMOKING_FAST_IMAGE_HEIGHT = 720' "$VLLM"
+grep -Fq 'schema.add("oneOf", branches)' "$VLLM"
+grep -Fq 'smokingCompactResponseBranch(0, 0, 0, 0, 0, 50, 100)' "$VLLM"
+grep -Fq 'smokingCompactResponseBranch(2, 0, 0, 0, 0, 0, 49)' "$VLLM"
 grep -Fq 'chatTemplateKwargs.addProperty("enable_thinking", false)' "$VLLM"
 grep -Fq 'requiresSmokingFallback' "$VLLM"
 grep -Fq 'Arrays.fill(fastImage, (byte) 0)' "$VLLM"
@@ -98,6 +101,7 @@ printf '%s\n' \
   "smoking_detection_route_deterministic=true" \
   "smoking_detection_output_strict=true" \
   "smoking_detection_fast_path=1280x720_compact_wire_v2" \
+  "smoking_detection_compact_semantic_schema=true" \
   "smoking_detection_fallback=original_image_five_field_v1" \
   "smoking_detection_thinking_enabled=false" \
   "smoking_detection_tool_node_count=0" \

@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-21T01:31:22.636851+00:00",
+  "purpose": "PILOT_CONFIDENCE_CALIBRATION_ONLY",
+  "dataset": {
+    "samples": 200,
+    "manifest_sha256": "d04ab0f8e10580af1d459b5a79bf0089ce5f502ea1d9e673ff608163de761101",
+    "paired_group_split": true,
+    "known_seatbelt_confound": true
+  },
+  "provider": {
+    "model": "Qwen3.5-9B-AWQ",
+    "endpoint_class": "FIXED_TY1100_WSL_BRIDGE",
+    "temperature": 0,
+    "thinking_enabled": false,
+    "token_logprobs_requested": true,
+    "top_logprobs": 5
+  },
+  "splits": {
+    "calibration": {
+      "classification": {
+        "samples": 140,
+        "strict_valid_outputs": 140,
+        "transport_or_contract_errors": 0,
+        "true_positive": 70,
+        "true_negative": 70,
+        "false_positive": 0,
+        "false_negative": 0,
+        "abstain_positive": 0,
+        "abstain_negative": 0,
+        "coverage": 1.0,
+        "terminal_accuracy": 1.0,
+        "all_sample_accuracy_abstain_incorrect": 1.0,
+        "positive_recall": 1.0,
+        "specificity": 1.0,
+        "precision": 1.0
+      },
+      "self_reported_confidence": {
+        "available": true,
+        "count": 140,
+        "correct": 140,
+        "incorrect": 0,
+        "brier": 0.001786,
+        "nll": 0.03671,
+        "ece_10_bin": 0.035786,
+        "auroc": null
+      },
+      "calibrated_confidence": {
+        "available": false,
+        "reason": "NO_CONFIDENCE_VALUES"
+      }
+    },
+    "test": {
+      "classification": {
+        "samples": 60,
+        "strict_valid_outputs": 60,
+        "transport_or_contract_errors": 0,
+        "true_positive": 29,
+        "true_negative": 30,
+        "false_positive": 0,
+        "false_negative": 1,
+        "abstain_positive": 0,
+        "abstain_negative": 0,
+        "coverage": 1.0,
+        "terminal_accuracy": 0.983333,
+        "all_sample_accuracy_abstain_incorrect": 0.983333,
+        "positive_recall": 0.966667,
+        "specificity": 1.0,
+        "precision": 1.0
+      },
+      "self_reported_confidence": {
+        "available": true,
+        "count": 60,
+        "correct": 59,
+        "incorrect": 1,
+        "brier": 0.018377,
+        "nll": 0.265477,
+        "ece_10_bin": 0.017667,
+        "auroc": 0.144068
+      },
+      "calibrated_confidence": {
+        "available": false,
+        "reason": "NO_CONFIDENCE_VALUES"
+      }
+    }
+  },
+  "latency": {
+    "preprocess": {
+      "count": 200,
+      "min_ms": 31.258,
+      "mean_ms": 33.635,
+      "p50_ms": 33.402,
+      "p90_ms": 35.137,
+      "p95_ms": 35.762,
+      "p99_ms": 38.457,
+      "max_ms": 47.808
+    },
+    "request": {
+      "count": 200,
+      "min_ms": 1942.104,
+      "mean_ms": 2589.897,
+      "p50_ms": 2576.948,
+      "p90_ms": 2811.533,
+      "p95_ms": 2899.497,
+      "p99_ms": 3030.189,
+      "max_ms": 3397.393
+    },
+    "end_to_end": {
+      "count": 200,
+      "min_ms": 1980.445,
+      "mean_ms": 2626.383,
+      "p50_ms": 2613.721,
+      "p90_ms": 2849.625,
+      "p95_ms": 2937.615,
+      "p99_ms": 3067.828,
+      "max_ms": 3433.475
+    },
+    "wall_clock_ms": 525288.497
+  },
+  "calibrator": {
+    "fit_failure": "calibration split needs at least 30 terminal decisions and both outcomes",
+    "deployment_ready": false,
+    "decision_rule": "Independent test Brier and ECE must both improve, test must contain incorrect decisions, and every model response must pass strict validation."
+  },
+  "evidence_boundary": {
+    "production_confidence_claim_allowed": false,
+    "android_runtime_inference_included": false,
+    "android_calibrator_deployed": false,
+    "target_camera_validated": false,
+    "target_hardware_validated": false
+  }
+}

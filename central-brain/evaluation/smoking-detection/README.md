@@ -1,4 +1,4 @@
-# 吸烟检测 Agent 100 张阳性图片评测与快速通道优化
+# 吸烟检测 Agent 正反例评测、快速通道与置信度证据
 
 ## 1. 评测目标
 
@@ -131,3 +131,125 @@ python3 tools/evaluate_central_brain_smoking_fast_fallback.py \
 ## 8. 证据边界
 
 本轮通过 WSL 桥接直接访问 TY1100 vLLM，覆盖图片编码、Agent 提示词、OpenAI-compatible 请求、thinking 关闭参数、严格结果解析、原图回退和路由标识。Android 侧相同策略由单元测试和编译验证覆盖，但本轮实测耗时不包含 Android Bitmap 预处理、HMI、Binder、真实摄像头采集、车辆总线或执行器，不能作为目标硬件或量产验收证据。
+
+## 9. 正反例数据准备
+
+新增反例集 `passenger_unbelted_nonsmoking_100/`，共 100 张确定为无吸烟场景的 JPEG。原图均为
+`1448x1086`；归一化前已在仓库外备份为
+`passenger_unbelted_nonsmoking_100-pre-1080p-20260821.tar.gz`，SHA-256 为
+`922c1501de0e1b21385bed77bc2c7101890b3d89800da6dfb0431bed7bbda889`。
+
+归一化使用与正例相同的方法：EXIF 方向校正、Lanczos 等比例缩放、黑色画布居中、不裁切、不拉伸，
+最终以 quality 95、4:4:4 JPEG 覆盖原文件。处理后：
+
+| 数据 | 数量 | 分辨率 | 唯一 SHA-256 | 平均字节 | 平均亮度 |
+| --- | ---: | --- | ---: | ---: | ---: |
+| 吸烟正例 | 100 | 1920x1080 | 100 | 450,202.850 | 62.666 |
+| 无吸烟反例（处理前） | 100 | 1448x1086 | 100 | 189,430.250 | 85.124 |
+| 无吸烟反例（处理后） | 100 | 1920x1080 | 100 | 443,433.740 | 63.875 |
+
+两类数据没有类内或跨类完全重复。每个相同编号的正反例被视为同一 `group_id`，按固定 salt 的哈希排序
+形成 70 组校准数据（140 张）和 30 组独立测试数据（60 张），同组样本不会跨 split。
+
+该数据仍存在明确混杂：反例集同时标注为未系安全带，因此 smoking label 与 seatbelt state 并非独立变量；
+两类原始图片的分辨率、压缩、亮度和生成分布也不同。它只能用于试点评测，不可替代四象限数据
+（吸烟/不吸烟 × 系/不系安全带）、目标摄像头数据或量产分布。
+
+- [成对清单 CSV](datasets/pilot-v1/confidence-pilot-manifest.csv)
+- [数据质量 JSON](datasets/pilot-v1/confidence-pilot-data-quality.json)
+- 数据准备工具：`tools/prepare_central_brain_smoking_confidence_dataset.py`
+
+## 10. 置信度采集方法
+
+快速通道请求保持 `temperature=0`、`max_tokens=24`、`enable_thinking=false`，并增加
+`logprobs=true`、`top_logprobs=5`。工具严格定位数组第一个 `status` token，只接受 `0/1/2` 三个候选
+均存在且有限的响应，再对三个对数概率做归一化。末尾只允许 vLLM 的单个 `<|im_end|>` 控制 token；任何
+其他不可见后缀、缺失候选或无法重构的内容均失败关闭。
+
+评测同时保存两类不同信号：
+
+1. `self_confidence`：模型在数组第四项主动生成的置信度百分比。
+2. `selected_status_probability`：状态 token 在 `0/1/2` 三个候选中的归一化概率。
+
+两者都不是天然的真实正确率。后者通常比固定的自报 0.95/1.00 有更多区分度，但仍受提示词、模型、
+Schema 和约束解码影响，必须通过独立标注数据校准后才能解释为概率。
+
+本轮还发现原快速 Schema 只分别限制四个整数范围，允许模型生成 `[0,0,1,95]` 这类“未吸烟但保留位置”
+的语义非法数组。本次将 Python 和 Android Provider 同步改为三个互斥 `oneOf` 分支：
+
+```text
+[0,0,0,50..100]
+[1,1..2,1..4,50..100]
+[2,0,0,0..49]
+```
+
+Android `SmokingDetectionResult.parseCompactWire()` 的本地二次校验继续保留。
+
+## 11. 200 张平衡评测结果
+
+| 指标 | 校准 split（140） | 独立测试 split（60） |
+| --- | ---: | ---: |
+| 严格有效输出 | 140/140 | 60/60 |
+| 真阳性 | 70 | 29 |
+| 真阴性 | 70 | 30 |
+| 假阳性 | 0 | 0 |
+| 假阴性 | 0 | 1 |
+| 不确定 | 0 | 0 |
+| 终态准确率 | 100.00% | 98.33% |
+| 正类召回率 | 100.00% | 96.67% |
+| 特异度 | 100.00% | 100.00% |
+| Precision | 100.00% | 100.00% |
+
+唯一错误是独立测试样本 `096-positive`：模型输出未吸烟，自报置信度为 `1.00`，但所选状态 token 概率仅为
+`0.444483`。这直接证明自报置信度不能视为真实正确率，也表明 token 分布能够暴露部分自报字段掩盖的
+犹豫。其他低 token 概率样本包括 `077-negative=0.574596`、`017-negative=0.642230` 和
+`097-negative=0.657979`，可作为后续困难样本扩展的种子。
+
+本轮 200 次串行请求的平均端到端耗时为 2,626.383 ms，P95 为 2,937.615 ms，最大值为
+3,433.475 ms；总墙钟时间为 525,288.497 ms。
+
+## 12. 校准器结论
+
+工具实现了带 L2 正则的逻辑校准器，目标是估计 `P_AUTOMATIC_DECISION_CORRECT`，候选特征为：
+
+- 自报置信度的 logit；
+- 所选状态相对最强其他状态的 logprob margin；
+- 当前状态是否为阳性。
+
+校准器只使用 calibration split 拟合，test split 只用于独立验收。启用门槛要求：校准数据至少有 30 个
+终态决策且同时包含正确/错误结果；独立测试必须包含错误；校准后 Brier 和 10-bin ECE 必须同时改善；
+全部响应必须严格有效。
+
+本轮 calibration split 的 140 个决策全部正确，缺少“错误”目标类别，因而无法拟合逻辑校准器。工具按
+设计输出 `PILOT_NOT_DEPLOYABLE`，没有生成系数，也没有修改 Android 接受阈值。独立测试中虽有 1 个错误，
+但不能为了拟合而在观察结果后把它移入 calibration split，否则会产生数据泄漏和乐观偏差。
+
+下一轮至少需要新增成组困难样本，并覆盖吸烟/不吸烟与安全带状态的四象限、遮挡、小目标、无烟雾、
+相似手持物、低照度、运动模糊和目标摄像头视角。只有校准分组和独立测试分组都包含足够错误后，才可判断
+logprob 特征能否稳定改善 Brier/ECE，并考虑版本化接入 Android。
+
+## 13. 复现与结果文件
+
+```bash
+python3 tools/prepare_central_brain_smoking_confidence_dataset.py \
+  --positive-dir passenger_smoking_100 \
+  --negative-dir passenger_unbelted_nonsmoking_100 \
+  --output-dir central-brain/evaluation/smoking-detection/datasets/pilot-v1 \
+  --backup /path/outside/repository/passenger_unbelted_nonsmoking_100-pre-1080p.tar.gz \
+  --normalize-negative-in-place \
+  --calibration-groups 70
+
+python3 tools/evaluate_central_brain_smoking_confidence.py \
+  --manifest central-brain/evaluation/smoking-detection/datasets/pilot-v1/confidence-pilot-manifest.csv \
+  --positive-dir passenger_smoking_100 \
+  --negative-dir passenger_unbelted_nonsmoking_100 \
+  --output-dir outputs/evaluation/smoking-detection/confidence-pilot
+```
+
+- [逐样本 cases CSV](results/2026-08-21-balanced-confidence-pilot/cases.csv)
+- [机器汇总 summary JSON](results/2026-08-21-balanced-confidence-pilot/summary.json)
+- [校准器状态 calibrator JSON](results/2026-08-21-balanced-confidence-pilot/calibrator.json)
+- 置信度评测工具：`tools/evaluate_central_brain_smoking_confidence.py`
+
+本节证据来自唯一原型模型环境，不包含 Android UI、Binder、真实摄像头、生产以太网、车辆通信或目标硬件
+验收。`production_ready=false`、`target_hardware_validated=false`、`calibrator_deployment_ready=false`。

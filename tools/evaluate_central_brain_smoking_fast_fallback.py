@@ -90,16 +90,41 @@ def fast_prompt_material(full_system: str, full_user: str) -> tuple[str, str]:
 
 
 def compact_schema() -> dict[str, Any]:
+    def branch(prefix_items: list[dict[str, Any]]) -> dict[str, Any]:
+        return {
+            "type": "array",
+            "prefixItems": prefix_items,
+            "minItems": 4,
+            "maxItems": 4,
+        }
+
     return {
-        "type": "array",
-        "prefixItems": [
-            {"type": "integer", "minimum": 0, "maximum": 2},
-            {"type": "integer", "minimum": 0, "maximum": 2},
-            {"type": "integer", "minimum": 0, "maximum": 4},
-            {"type": "integer", "minimum": 0, "maximum": 100},
-        ],
-        "minItems": 4,
-        "maxItems": 4,
+        "oneOf": [
+            branch(
+                [
+                    {"const": 0},
+                    {"const": 0},
+                    {"const": 0},
+                    {"type": "integer", "minimum": 50, "maximum": 100},
+                ]
+            ),
+            branch(
+                [
+                    {"const": 1},
+                    {"type": "integer", "minimum": 1, "maximum": 2},
+                    {"type": "integer", "minimum": 1, "maximum": 4},
+                    {"type": "integer", "minimum": 50, "maximum": 100},
+                ]
+            ),
+            branch(
+                [
+                    {"const": 2},
+                    {"const": 0},
+                    {"const": 0},
+                    {"type": "integer", "minimum": 0, "maximum": 49},
+                ]
+            ),
+        ]
     }
 
 

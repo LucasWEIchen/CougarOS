@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-21T01:14:06.534072+00:00",
+  "purpose": "PILOT_CONFIDENCE_CALIBRATION_ONLY",
+  "normalization": {
+    "target_resolution": {
+      "width": 1920,
+      "height": 1080
+    },
+    "method": "EXIF_TRANSPOSE_LANCZOS_ASPECT_FIT_CENTERED_BLACK_CANVAS",
+    "jpeg_quality": 95,
+    "jpeg_subsampling": "4:4:4",
+    "negative_in_place_requested": true
+  },
+  "backup": {
+    "external_to_repository": true,
+    "filename": "passenger_unbelted_nonsmoking_100-pre-1080p-20260821.tar.gz",
+    "bytes": 18896870,
+    "sha256": "922c1501de0e1b21385bed77bc2c7101890b3d89800da6dfb0431bed7bbda889"
+  },
+  "datasets": {
+    "positive": {
+      "count": 100,
+      "unique_sha256": 100,
+      "dimensions": [
+        "1920x1080"
+      ],
+      "mean_bytes": 450202.85,
+      "mean_brightness": 62.666
+    },
+    "negative_before": {
+      "count": 100,
+      "unique_sha256": 100,
+      "dimensions": [
+        "1448x1086"
+      ],
+      "mean_bytes": 189430.25,
+      "mean_brightness": 85.124
+    },
+    "negative_after": {
+      "count": 100,
+      "unique_sha256": 100,
+      "dimensions": [
+        "1920x1080"
+      ],
+      "mean_bytes": 443433.74,
+      "mean_brightness": 63.875
+    },
+    "cross_set_exact_duplicate_count": 0
+  },
+  "split": {
+    "strategy": "PAIRED_GROUP_HASH_RANK",
+    "salt": "central-brain-smoking-confidence-pilot-v1",
+    "calibration_groups": 70,
+    "test_groups": 30,
+    "sample_counts": {
+      "calibration": 140,
+      "test": 60
+    },
+    "pair_leakage_count": 0
+  },
+  "known_biases": [
+    "The negative set is also labelled unbelted, so smoking label and seatbelt state are confounded.",
+    "The two source sets had different resolution, compression, size, and brightness distributions.",
+    "The images are controlled pilot data and are not target-camera or production-distribution evidence."
+  ],
+  "acceptance_boundary": {
+    "calibrator_deployment_ready": false,
+    "production_confidence_claim_allowed": false,
+    "target_hardware_validated": false
+  }
+}

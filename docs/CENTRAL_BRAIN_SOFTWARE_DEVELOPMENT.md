@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件开发文档
 
-版本：2.3
+版本：2.4
 状态：生产软件详设与接口权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-07-29
+更新日期：2026-08-21
 
 `production_document_scope=true`
 `production_development_document=true`
@@ -643,6 +643,25 @@ Protocol: 3
 
 低置信度结果必须使用 `UNKNOWN` 并标明 `uncertain`；未知字段、重复字段、未知座位、阳性但人数为零、阴性
 却保留位置等组合必须拒绝。接受后只允许 `assistant.respond` 投影，不生成 Effect 权限。
+
+当前 vLLM Provider 的 `VllmInferenceEngine.smokingCompactResponseSchema()` 不使用四个相互独立的数值范围，
+而使用三个 `oneOf` 数组分支把状态与其余字段绑定：
+
+```text
+status=0 -> count=0, location=0, confidence=50..100
+status=1 -> count=1..2, location=1..4, confidence=50..100
+status=2 -> count=0, location=0, confidence=0..49
+```
+
+`SmokingDetectionResult.parseCompactWire()` 必须保留完全相同的二次校验，不能因为 Provider 已使用约束解码
+而删除。`requiresSmokingFallback()` 只接受满足既有快速接受策略的阳性结果；阴性、不确定和低分结果继续使用
+原始图像与 `SMOKING_DETECTION_V1` 五字段合同回退。
+
+模型 `confidence` 仅是自报字段，不允许作为真实正确率。未来校准配置必须至少包含：模型 ID、Agent 指令
+SHA-256、路由摘要、wire schema 版本、图片预处理参数、数据清单 SHA-256、特征定义、系数、拟合样本数、
+独立测试 Brier/ECE/覆盖率/混淆矩阵和发布状态。加载时任一摘要不匹配、训练结果只有单一正确性类别、独立
+测试没有错误样本，或 Brier/ECE 未同时优于原始分数，均设置 `deployment_ready=false`，不得改变 Android
+接受阈值。token logprob 可作为校准特征或回退排序信号，但本身不授予任何执行权限。
 
 ## 16. Effect 与 Adapter
 

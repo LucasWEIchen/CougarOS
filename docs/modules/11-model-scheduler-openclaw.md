@@ -1,6 +1,6 @@
 # Model、Scheduler 与 OpenClaw 过渡 Provider 模块详设
 
-版本：1.1
+版本：1.2
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -33,6 +33,7 @@ Effect gate。Provider 失败不能进入车辆执行。
 | `S2-MDL-005` | 不可用、非法、超时和取消失败时阻止 Effect |
 | `S2-MDL-006` | 凭据不进入日志、Event 或 HMI |
 | `S2-MDL-007` | 吸烟检测五字段输出的严格解析和不确定结果规范化 |
+| `S2-MDL-008` | 自报置信度、token 概率和版本化真实正确率校准的边界 |
 | `S2-SAF-006` | 专用检测 Agent 无 Tool、Effect 或业务处置权限 |
 
 ## 3. 源码地图
@@ -125,6 +126,11 @@ Agent 指令，Provider 返回的原始内容先由 `SmokingDetectionResult.pars
 `uncertain`。阳性结果必须有非零人数和确定位置；阴性结果不得保留吸烟位置。通过校验后，Runtime 才把
 紧凑 JSON 放入现有 assistant projection，并固定候选动作为 `assistant.respond`。
 
+快速 wire 的三个互斥 Schema 分支必须分别约束阴性、阳性和不确定状态，避免生成“阴性但保留位置”等
+语义非法组合。`SmokingDetectionResult.parseCompactWire()` 必须执行独立二次校验。模型自报置信度和
+Provider token 概率只能作为未校准信号；生产校准器必须版本化绑定模型、提示词、预处理、Schema 和数据
+摘要，并在独立分组验证后由发布门禁启用。当前没有满足门槛的生产校准器，运行时不得加载试验系数。
+
 ## 5. 接口与数据
 
 多模态请求必须在同一 request ID 下绑定：
@@ -183,6 +189,8 @@ sequenceDiagram
 - [ ] 多模态 text/image/context 绑定同一 request fingerprint。
 - [ ] 输出严格拒绝 unknown field 和 capability/range 越界。
 - [ ] 吸烟检测拒绝重复字段、未知位置、阳性低置信度和未规范化不确定结果。
+- [ ] 快速 wire 的三个条件 Schema 分支与 `parseCompactWire()` 语义一致。
+- [ ] 校准器只在模型/指令/预处理/Schema/清单摘要匹配且独立 Brier、ECE 和分类门槛通过时启用。
 - [ ] 图文 Provider 对吸烟场景声明并满足 `VISION_CLASSIFICATION`。
 - [ ] 凭据不进入日志、Event、HMI、异常和审计。
 - [ ] Provider 失败时 Effect dispatch 保持 false。

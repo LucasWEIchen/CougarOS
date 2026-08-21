@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件架构文档
 
-版本：2.1
+版本：2.2
 状态：生产架构权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-07-29
+更新日期：2026-08-21
 
 `production_document_scope=true`
 `production_architecture_document=true`
@@ -493,6 +493,27 @@ sequenceDiagram
 标准输出只包含 `smoking_detected`、`person_count`、`location`、`confidence` 和 `description`。
 置信度低于 0.5 时必须规范化为 `UNKNOWN` 的不确定结果。场景图只包含 Context、路由、模型、校验和
 结果渲染节点，不包含 Tool、Effect 或业务处置节点。
+
+Provider 内部快速通道使用 `[status,count,location_code,confidence_percent]`。Schema 以三个互斥分支编码
+字段联动：阴性只能为 `[0,0,0,50..100]`，阳性只能为 `[1,1..2,1..4,50..100]`，不确定只能为
+`[2,0,0,0..49]`。解析器仍需二次校验；生成约束不能替代本地失败关闭。快速通道未达到接受条件时使用
+原始图像和五字段合同回退。
+
+```mermaid
+flowchart LR
+    Input["文本 + 同帧图像"] --> Fast["720p 快速推理<br/>互斥条件 Schema"]
+    Fast --> Local["本地语义校验"]
+    Local -->|"已验证接受策略"| Result["五字段规范结果"]
+    Local -->|"阴性 / 不确定 / 低分 / 非法"| Full["原图五字段回退"]
+    Full --> Strict["严格五字段校验"] --> Result
+    Fast -. "自报 confidence + token 概率" .-> Calibration["版本化校准器门禁"]
+    Calibration -. "证据不足或摘要不匹配" .-> Disabled["禁用校准决策"]
+```
+
+模型自报 `confidence` 是生成字段，token 概率是受当前提示词、解码和 Schema 影响的模型分布，二者都不是
+真实正确率。只有绑定模型、Agent 指令、预处理、wire schema 和数据清单摘要的校准器，且在成组隔离的
+独立测试集同时改善 Brier 与 ECE、保留分类质量和覆盖率时，才可参与自动接受策略。缺少有效校准器时，
+系统保留现有失败关闭和原图回退，不把任何分数升级为 Tool、Effect 或安全授权。
 
 当前任意文本链路可输出模型回复和白名单候选动作。只有候选动作成功转换为构建时可审查的 typed Plan，
 并经过 Governance 后，才可进入 Tool 或 Effect；无法编译、未知参数或缺少能力时必须停止在结果投影阶段。

@@ -149,7 +149,11 @@ public final class VllmInferenceEngineTest {
                 "data:image/jpeg;base64,/9j/2Q=="));
         assertFalse(requestJson.contains("uniqueItems"));
         assertTrue(requestJson.contains("central_brain_smoking_wire_v2"));
+        assertTrue(requestJson.contains("\"oneOf\""));
         assertTrue(requestJson.contains("\"prefixItems\""));
+        assertTrue(requestJson.contains("\"const\":0"));
+        assertTrue(requestJson.contains("\"const\":1"));
+        assertTrue(requestJson.contains("\"const\":2"));
         assertTrue(requestJson.contains("四元素JSON数组"));
         assertTrue(requestJson.contains("\"enable_thinking\":false"));
         assertTrue(requestJson.contains("agent.cabin.smoking-detection.v1"));
