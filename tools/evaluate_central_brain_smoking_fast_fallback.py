@@ -136,9 +136,10 @@ def request_body(
     schema_name: str,
     schema: dict[str, Any],
     max_tokens: int,
+    model: str = baseline.MODEL,
 ) -> bytes:
     body = {
-        "model": baseline.MODEL,
+        "model": model,
         "stream": False,
         "temperature": 0,
         "max_tokens": max_tokens,
@@ -193,6 +194,7 @@ def execute_completion(
     endpoint: str,
     timeout: float,
     body: bytes,
+    expected_model: str = baseline.MODEL,
 ) -> tuple[str, dict[str, int], float]:
     started = time.perf_counter_ns()
     request = urllib.request.Request(
@@ -208,7 +210,7 @@ def execute_completion(
     if len(raw) > baseline.MAX_RESPONSE_BYTES:
         raise ValueError("response exceeds size bound")
     envelope = baseline.strict_json(raw)
-    if envelope.get("model") != baseline.MODEL:
+    if envelope.get("model") != expected_model:
         raise ValueError("response model mismatch")
     choices = envelope.get("choices")
     if not isinstance(choices, list) or len(choices) != 1:

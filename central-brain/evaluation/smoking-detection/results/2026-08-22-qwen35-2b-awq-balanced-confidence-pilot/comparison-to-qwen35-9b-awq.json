@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-22T03:10:00+00:00",
+  "purpose": "PROTOTYPE_MODEL_CANDIDATE_COMPARISON_ONLY",
+  "candidate": {
+    "model": "Qwen3.5-2B-AWQ",
+    "summary": "central-brain/evaluation/smoking-detection/results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json"
+  },
+  "baseline": {
+    "model": "Qwen3.5-9B-AWQ",
+    "summary": "central-brain/evaluation/smoking-detection/results/2026-08-21-balanced-confidence-pilot/summary.json"
+  },
+  "controlled_inputs": {
+    "same_ty1100_hardware": true,
+    "same_manifest": true,
+    "manifest_sha256": "d04ab0f8e10580af1d459b5a79bf0089ce5f502ea1d9e673ff608163de761101",
+    "same_preprocessing": true,
+    "same_prompt_and_schema": true,
+    "temperature": 0,
+    "thinking_enabled": false,
+    "serial_requests": true,
+    "sample_count": 200
+  },
+  "classification": {
+    "candidate_test_accuracy": 0.983333,
+    "baseline_test_accuracy": 0.983333,
+    "candidate_test_positive_recall": 0.966667,
+    "baseline_test_positive_recall": 0.966667,
+    "candidate_test_specificity": 1.0,
+    "baseline_test_specificity": 1.0,
+    "per_sample_status_mismatch_count": 0,
+    "per_sample_prediction_mismatch_count": 0,
+    "shared_false_negative_sample": "096-positive",
+    "transport_or_contract_error_count": 0
+  },
+  "latency_ms": {
+    "candidate": {
+      "mean": 1346.056,
+      "p50": 1243.867,
+      "p90": 1700.382,
+      "p95": 2208.778,
+      "p99": 2418.779,
+      "max": 2430.836,
+      "wall_clock": 269220.725
+    },
+    "baseline": {
+      "mean": 2626.383,
+      "p50": 2613.721,
+      "p90": 2849.625,
+      "p95": 2937.615,
+      "p99": 3067.828,
+      "max": 3433.475,
+      "wall_clock": 525288.497
+    },
+    "candidate_reduction_percent": {
+      "mean": 48.748678,
+      "p50": 52.410108,
+      "p90": 40.329622,
+      "p95": 24.810501,
+      "p99": 21.156629,
+      "max": 29.201873,
+      "wall_clock": 48.748026
+    }
+  },
+  "throughput_images_per_minute": {
+    "candidate": 44.573091,
+    "baseline": 22.844589,
+    "candidate_to_baseline_ratio": 1.951144
+  },
+  "cold_start_observation": {
+    "candidate_first_request_ms": 32388.244,
+    "candidate_immediate_warm_repeat_request_ms": 1072.263,
+    "candidate_immediate_warm_repeat_end_to_end_ms": 1105.404,
+    "included_in_200_sample_warm_comparison": false,
+    "matched_baseline_cold_start_available": false
+  },
+  "confidence_observation": {
+    "candidate_self_reported_confidence_unique_values": [
+      1.0
+    ],
+    "candidate_calibrator_fitted": false,
+    "candidate_calibrator_deployment_ready": false,
+    "interpretation": "The candidate self-confidence is not a calibrated probability of correctness."
+  },
+  "evidence_boundary": {
+    "candidate_selected_for_android_runtime": false,
+    "production_ready": false,
+    "target_camera_validated": false,
+    "target_hardware_validated": false,
+    "generalization_claim_allowed": false
+  }
+}

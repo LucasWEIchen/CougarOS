@@ -22,6 +22,20 @@ import evaluate_central_brain_smoking_fast_fallback as fast
 
 
 TOP_LOGPROBS = 5
+MODEL_PROFILES = {
+    "qwen35-9b-awq": {
+        "model": "Qwen3.5-9B-AWQ",
+        "endpoint": "http://127.0.0.1:10030",
+        "port": 10030,
+        "endpoint_class": "FIXED_TY1100_WSL_BRIDGE_9B",
+    },
+    "qwen35-2b-awq": {
+        "model": "Qwen3.5-2B-AWQ",
+        "endpoint": "http://127.0.0.1:10031",
+        "port": 10031,
+        "endpoint_class": "FIXED_TY1100_WSL_BRIDGE_2B",
+    },
+}
 FEATURE_NAMES = (
     "self_confidence_logit",
     "selected_status_logprob_margin",
@@ -62,10 +76,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--positive-dir", type=Path, required=True)
     parser.add_argument("--negative-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--endpoint", default="http://127.0.0.1:10030")
+    parser.add_argument(
+        "--model-profile",
+        choices=tuple(MODEL_PROFILES),
+        default="qwen35-9b-awq",
+    )
+    parser.add_argument("--endpoint")
     parser.add_argument("--timeout-seconds", type=float, default=120.0)
     parser.add_argument("--limit", type=int, default=0)
     return parser.parse_args()
+
+
+def resolve_model_profile(name: str, endpoint: str | None = None) -> dict[str, Any]:
+    profile = dict(MODEL_PROFILES[name])
+    profile["endpoint"] = baseline.require_fixed_endpoint(
+        endpoint or str(profile["endpoint"]), int(profile["port"])
+    )
+    return profile
 
 
 def strict_float(value: Any, label: str) -> float:
@@ -140,7 +167,7 @@ def request_with_logprobs(body: bytes) -> bytes:
 
 
 def execute_completion(
-    endpoint: str, timeout: float, body: bytes
+    endpoint: str, timeout: float, body: bytes, expected_model: str
 ) -> tuple[str, list[dict[str, Any]], dict[str, int], float]:
     started = time.perf_counter_ns()
     request = urllib.request.Request(
@@ -156,7 +183,7 @@ def execute_completion(
     if len(raw) > baseline.MAX_RESPONSE_BYTES:
         raise ValueError("response exceeds size bound")
     envelope = baseline.strict_json(raw)
-    if not isinstance(envelope, dict) or envelope.get("model") != baseline.MODEL:
+    if not isinstance(envelope, dict) or envelope.get("model") != expected_model:
         raise ValueError("response model mismatch")
     choices = envelope.get("choices")
     if not isinstance(choices, list) or len(choices) != 1:
@@ -458,7 +485,9 @@ def classification_metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "abstain_negative": abstain_negative,
         "coverage": round(terminal / len(valid), 6) if valid else None,
         "terminal_accuracy": round((tp + tn) / terminal, 6) if terminal else None,
-        "all_sample_accuracy_abstain_incorrect": round((tp + tn) / len(rows), 6),
+        "all_sample_accuracy_abstain_incorrect": round((tp + tn) / len(rows), 6)
+        if rows
+        else None,
         "positive_recall": round(tp / (tp + fn + abstain_positive), 6)
         if tp + fn + abstain_positive
         else None,
@@ -476,6 +505,7 @@ def evaluate_case(
     timeout: float,
     system: str,
     user: str,
+    model: str,
 ) -> dict[str, Any]:
     started = time.perf_counter_ns()
     row: dict[str, Any] = {field: "" for field in CASE_FIELDS}
@@ -504,9 +534,12 @@ def evaluate_case(
                 "central_brain_smoking_wire_v2_confidence",
                 fast.compact_schema(),
                 fast.FAST_MAX_TOKENS,
+                model,
             )
         )
-        content, logprobs, usage, request_ms = execute_completion(endpoint, timeout, body)
+        content, logprobs, usage, request_ms = execute_completion(
+            endpoint, timeout, body, model
+        )
         result, classification = fast.compact_result(content)
         compact = baseline.strict_json(content)
         status = compact[0]
@@ -557,7 +590,9 @@ def main() -> int:
     args = parse_args()
     if args.timeout_seconds <= 0:
         raise SystemExit("--timeout-seconds must be positive")
-    endpoint = baseline.require_fixed_endpoint(args.endpoint)
+    profile = resolve_model_profile(args.model_profile, args.endpoint)
+    endpoint = str(profile["endpoint"])
+    model = str(profile["model"])
     manifest_rows = load_manifest(args.manifest)
     if args.limit > 0:
         manifest_rows = manifest_rows[: args.limit]
@@ -577,12 +612,14 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     full_system, full_user, agent_sha256 = baseline.prompt_material(root)
     system, user = fast.fast_prompt_material(full_system, full_user)
-    baseline.preflight(endpoint, min(args.timeout_seconds, 10.0))
+    baseline.preflight(endpoint, min(args.timeout_seconds, 10.0), model)
 
     rows: list[dict[str, Any]] = []
     wall_started = time.perf_counter_ns()
     for index, (manifest_row, path) in enumerate(resolved, start=1):
-        row = evaluate_case(manifest_row, path, endpoint, args.timeout_seconds, system, user)
+        row = evaluate_case(
+            manifest_row, path, endpoint, args.timeout_seconds, system, user, model
+        )
         rows.append(row)
         print(
             f"case={index}/{len(resolved)} sample={row['sample_id']} "
@@ -637,7 +674,7 @@ def main() -> int:
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             "status": "PILOT_VALIDATED" if deployment_ready else "PILOT_NOT_DEPLOYABLE",
             "deployment_ready": deployment_ready,
-            "model": baseline.MODEL,
+            "model": model,
             "agent_instruction_sha256": agent_sha256,
             "manifest_sha256": hashlib.sha256(args.manifest.read_bytes()).hexdigest(),
             "route_digest": baseline.route_digest(),
@@ -665,8 +702,9 @@ def main() -> int:
             "known_seatbelt_confound": True,
         },
         "provider": {
-            "model": baseline.MODEL,
-            "endpoint_class": "FIXED_TY1100_WSL_BRIDGE",
+            "model": model,
+            "model_profile": args.model_profile,
+            "endpoint_class": profile["endpoint_class"],
             "temperature": 0,
             "thinking_enabled": False,
             "token_logprobs_requested": True,

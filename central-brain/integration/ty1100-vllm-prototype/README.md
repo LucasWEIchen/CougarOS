@@ -5,6 +5,10 @@
 服务，取代 WSL 内的 Ollama。此配置只用于 Debug 原型验证，不改变生产
 Release 中的 OpenClaw 配置。
 
+`Qwen3.5-9B-AWQ` 仍是 Android 原型默认模型。`Qwen3.5-2B-AWQ` 只作为临时性能候选在同一
+TY1100 上完成离线对比，未接入 Android Runtime；测试后已恢复 9B 服务。结果见
+[吸烟检测评测第 14 节](../../evaluation/smoking-detection/README.md#14-qwen35-2b-awq-小模型候选测试)。
+
 ## 固定拓扑
 
 ```mermaid
@@ -103,3 +107,7 @@ Release 仍保留：
 
 证据等级是 Android 实机 + 外部算力设备原型验证。尚未验证 Android 直连以太网、
 车身执行、生产 Release 或目标量产验收。
+
+2026-08-22 还完成了 2B AWQ 候选的 200 张离线平衡集评测：逐样本判定与 9B 基线一致，平均端到端
+耗时降低 48.75%，串行吞吐达到 1.951 倍。该结果不包含 Android Runtime，也不构成替换默认模型或量产
+准入结论；模型自报置信度全部为 1.0，校准器继续保持不可部署。

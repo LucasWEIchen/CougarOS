@@ -84,12 +84,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def require_fixed_endpoint(value: str) -> str:
+def require_fixed_endpoint(value: str, expected_port: int = 10030) -> str:
+    if expected_port not in (10030, 10031):
+        raise ValueError("endpoint port is not an allowlisted TY1100 bridge")
     parsed = urllib.parse.urlparse(value)
     if (parsed.scheme, parsed.hostname, parsed.port, parsed.path.rstrip("/")) != (
         "http",
         "127.0.0.1",
-        10030,
+        expected_port,
         "",
     ):
         raise ValueError("endpoint must be the fixed TY1100 WSL bridge")
@@ -289,9 +291,10 @@ def request_body(
     system: str,
     user: str,
     max_tokens: int,
+    model: str = MODEL,
 ) -> bytes:
     body = {
-        "model": MODEL,
+        "model": model,
         "stream": False,
         "temperature": 0,
         "max_tokens": max_tokens,
@@ -327,14 +330,14 @@ def request_body(
     return json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 
-def preflight(endpoint: str, timeout: float) -> None:
+def preflight(endpoint: str, timeout: float, expected_model: str = MODEL) -> None:
     with urllib.request.urlopen(endpoint + "/health", timeout=timeout) as response:
         if response.status != 200:
             raise RuntimeError("vLLM health check failed")
     with urllib.request.urlopen(endpoint + "/v1/models", timeout=timeout) as response:
         catalog = strict_json(response.read(MAX_RESPONSE_BYTES + 1))
     models = [item.get("id") for item in catalog.get("data", [])]
-    if models != [MODEL]:
+    if models != [expected_model]:
         raise RuntimeError(f"unexpected model catalog: {models}")
 
 
@@ -345,6 +348,7 @@ def evaluate_case(
     max_tokens: int,
     system: str,
     user: str,
+    expected_model: str = MODEL,
 ) -> dict[str, Any]:
     started = time.perf_counter_ns()
     row: dict[str, Any] = {field: "" for field in CSV_FIELDS}
@@ -357,7 +361,7 @@ def evaluate_case(
         mime = image_mime(image)
         row["sha256"] = hashlib.sha256(image).hexdigest()
         row["bytes"] = len(image)
-        body = request_body(image, mime, system, user, max_tokens)
+        body = request_body(image, mime, system, user, max_tokens, expected_model)
         row["encode_ms"] = elapsed_ms(encode_started)
 
         request_started = time.perf_counter_ns()
@@ -376,7 +380,7 @@ def evaluate_case(
 
         validate_started = time.perf_counter_ns()
         envelope = strict_json(raw)
-        if envelope.get("model") != MODEL:
+        if envelope.get("model") != expected_model:
             raise ValueError("response model mismatch")
         choices = envelope.get("choices")
         if not isinstance(choices, list) or len(choices) != 1:

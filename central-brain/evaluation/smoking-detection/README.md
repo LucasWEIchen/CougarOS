@@ -253,3 +253,68 @@ python3 tools/evaluate_central_brain_smoking_confidence.py \
 
 本节证据来自唯一原型模型环境，不包含 Android UI、Binder、真实摄像头、生产以太网、车辆通信或目标硬件
 验收。`production_ready=false`、`target_hardware_validated=false`、`calibrator_deployment_ready=false`。
+
+## 14. Qwen3.5-2B-AWQ 小模型候选测试
+
+### 14.1 模型来源与运行方式
+
+候选模型从 ModelScope 的 `tclf90/Qwen3.5-2B-AWQ` 获取，固定源码提交为
+`9ed8d11f8742918db7c7946ff592db1a66f67a31`。模型为
+`Qwen3_5ForConditionalGeneration`，模型仓库声明 `Apache-2.0` 许可，权重采用 4-bit AWQ、
+group size 128；两片权重的大小和 SHA-256
+记录在 [模型来源清单](qwen35-2b-awq-model-source.json) 中。模型权重约 3.1 GB，不提交到 CougarOS
+仓库，只提交可复核的来源、提交号、大小与哈希。
+
+本次在同一台 TY1100-NX-PRO 上临时停止 9B 基线容器，以 vLLM 0.17.0 的 AWQ-Marlin 内核启动
+2B 候选。候选固定使用 `127.0.0.1:10031`，9B 基线继续固定使用 `127.0.0.1:10030`；评测工具按
+profile 同时锁定端口与模型 ID，禁止将候选结果误记到基线。测试结束后已删除候选容器，并恢复 9B
+容器及 `restart=always` 策略。生产配置未修改。
+
+### 14.2 同条件对比结果
+
+两次评测使用同一 TY1100、同一 200 张成对清单、同一图像预处理、Agent 指令、条件 Schema、
+`temperature=0`、请求级关闭 thinking 和串行请求。逐样本 `status`、预测标签、正确性与失败码均无差异；
+两个模型都只在独立测试集的 `096-positive` 上产生 1 个假阴性。
+
+| 指标 | 9B AWQ 基线 | 2B AWQ 候选 | 2B 相对变化 |
+| --- | ---: | ---: | ---: |
+| 独立测试准确率 | 98.33% | 98.33% | 相同 |
+| 正类召回率 | 96.67% | 96.67% | 相同 |
+| 特异度 | 100.00% | 100.00% | 相同 |
+| 端到端平均耗时 | 2,626.383 ms | 1,346.056 ms | 降低 48.75% |
+| 端到端 P50 | 2,613.721 ms | 1,243.867 ms | 降低 52.41% |
+| 端到端 P95 | 2,937.615 ms | 2,208.778 ms | 降低 24.81% |
+| 端到端 P99 | 3,067.828 ms | 2,418.779 ms | 降低 21.16% |
+| 总墙钟时间 | 525,288.497 ms | 269,220.725 ms | 降低 48.75% |
+| 串行吞吐 | 22.845 张/分钟 | 44.573 张/分钟 | 1.951 倍 |
+
+候选服务就绪后的首次真实请求耗时为 `32,388.244 ms`，紧接的同样本热请求为 `1,072.263 ms`，
+端到端为 `1,105.404 ms`。200 张对比不包含该冷请求，且没有同条件 9B 冷启动数据，因此只能把冷启动
+记录为风险，不能据此比较两模型冷启动性能。
+
+2B 在 200 次响应中自报置信度全部为 `1.0`，包括错误样本。这比 9B 更明确地说明自报值不是正确率。
+校准 split 仍然没有错误样本，校准器未拟合且不可部署。
+
+### 14.3 复现和证据边界
+
+候选服务只允许通过固定管理脚本临时启动，并必须在测试后恢复基线：
+
+```bash
+bash tools/manage_central_brain_ty1100_qwen35_2b_benchmark.sh start
+python3 tools/evaluate_central_brain_smoking_confidence.py \
+  --model-profile qwen35-2b-awq \
+  --manifest central-brain/evaluation/smoking-detection/datasets/pilot-v1/confidence-pilot-manifest.csv \
+  --positive-dir passenger_smoking_100 \
+  --negative-dir passenger_unbelted_nonsmoking_100 \
+  --output-dir outputs/evaluation/smoking-detection/qwen35-2b-awq
+bash tools/manage_central_brain_ty1100_qwen35_2b_benchmark.sh restore
+```
+
+- [2B 逐样本 cases CSV](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/cases.csv)
+- [2B 汇总 summary JSON](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json)
+- [2B 校准器状态 calibrator JSON](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/calibrator.json)
+- [2B 与 9B 机器可读对比](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/comparison-to-qwen35-9b-awq.json)
+
+结论仅适用于当前固定数据和 TY1100 原型链路。数据仍存在安全带状态与类别相关的已知混杂，未覆盖目标摄像头、
+Android 实时采集、并发、长稳、生产以太网或量产硬件。2B 当前是性能候选，不替换 Android 默认模型，
+`production_ready=false`、`target_hardware_validated=false`。

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "model": "Qwen3.5-2B-AWQ",
+  "source": {
+    "provider": "ModelScope",
+    "repository": "https://www.modelscope.cn/tclf90/Qwen3.5-2B-AWQ.git",
+    "commit": "9ed8d11f8742918db7c7946ff592db1a66f67a31",
+    "license": "Apache-2.0",
+    "license_file_verified": true
+  },
+  "architecture": "Qwen3_5ForConditionalGeneration",
+  "quantization": {
+    "method": "awq",
+    "bits": 4,
+    "group_size": 128,
+    "version": "gemm",
+    "zero_point": true
+  },
+  "weights": [
+    {
+      "file": "model-00001-of-00002.safetensors",
+      "bytes": 2999012368,
+      "sha256": "06274f082d2a49f87ad9e21fe6002997445d74cfaea1004be03b2e8f83b57848"
+    },
+    {
+      "file": "model-00002-of-00002.safetensors",
+      "bytes": 263851904,
+      "sha256": "52767e7e0e561b81c14acee624ade25ec3e8aefe911310a588861a4a99d34489"
+    }
+  ],
+  "download": {
+    "method": "git clone plus Git LFS pull",
+    "workspace_model_path_committed": false,
+    "source_commit_verified": true,
+    "weight_hashes_verified": true
+  },
+  "prototype_runtime": {
+    "hardware": "TY1100-NX-PRO",
+    "model_path": "/opt/models/Qwen3.5-2B-AWQ",
+    "vllm_version": "0.17.0",
+    "quantization_kernel": "awq_marlin",
+    "temporary_endpoint": "http://127.0.0.1:10031",
+    "baseline_restored_after_test": true,
+    "result": "results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json"
+  },
+  "evidence_boundary": {
+    "vllm_compatibility_verified": true,
+    "inference_executed": true,
+    "android_runtime_inference_included": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}
