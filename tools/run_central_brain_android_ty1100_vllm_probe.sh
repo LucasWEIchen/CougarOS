@@ -25,7 +25,7 @@ adb=("${adb_base[@]}" -s "$DEVICE_SERIAL")
 
 CENTRAL_BRAIN_ANDROID_SERIAL="$DEVICE_SERIAL" \
   ADB_SERVER_PORT="$ADB_SERVER_PORT_VALUE" \
-  "$ROOT/tools/manage_central_brain_ty1100_vllm_bridge.sh" start >/dev/null
+  "$ROOT/tools/manage_central_brain_ty1100_routed_vllm.sh" start >/dev/null
 
 if [[ "${CENTRAL_BRAIN_SKIP_ANDROID_BUILD:-false}" != "true" ]]; then
   CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE=development_ty1100_vllm \
@@ -48,8 +48,12 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
     if printf '%s\n' "$logs" \
         | grep -q "nonce=$nonce vllm_prototype_probe_complete=true"; then
       printf '%s\n' \
-        'prototype_provider=ty1100-vllm' \
+        'prototype_provider=ty1100-routed-vllm' \
+        'model_profile_route=GENERAL_COCKPIT' \
         'model=Qwen3.5-9B-AWQ' \
+        'model_context_tokens=8192' \
+        'smoking_model_resident=Qwen3.5-2B-AWQ' \
+        'smoking_model_context_tokens=4096' \
         'android13_arm64_verified=true' \
         'android_to_host_transport=ADB_REVERSE' \
         'host_to_ai_transport=ETHERNET_SSH_TUNNEL' \

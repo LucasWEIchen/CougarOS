@@ -116,7 +116,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | Req ID | 需求 |
 | --- | --- |
 | `S2-MDL-001` | ModelProvider 必须支持描述、健康、预热、推理、流式输出、取消、指标和故障查询。 |
-| `S2-MDL-002` | PolicyAwareModelRouter 必须按场景、模态、资源、健康和 assurance 选择 Provider。 |
+| `S2-MDL-002` | 模型路由必须分两级：`PolicyAwareModelRouter` 按场景、模态、隐私、资源、健康和 assurance 选择 Provider，`ModelProfileRouter` 再在已准入 Provider 内按场景选择固定模型 Profile。路由必须绑定模型身份、上下文上限和新鲜健康快照；专用 Profile 不可用时按请求合同失败关闭，禁止静默切换到通用模型。 |
 | `S2-MDL-003` | 当前生产版本通过车载以太网访问外部 OpenClaw，后续可替换为 Ollama Provider。 |
 | `S2-MDL-004` | 模型输出必须通过结构化 Schema、字段长度、枚举和能力白名单校验。 |
 | `S2-MDL-005` | Provider 不可用、输出非法、超时或取消失败时不得进入车辆执行阶段。 |
@@ -354,7 +354,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `SCOPE-05` Unconfirmed protocol binding | 在未取得独立批准和明确接口基线前，项目不得实现或推断“Unconfirmed protocol binding”。 | 用户批准的范围约束。 | 项目治理；不分配实现模块。 | 通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 SUSPENDED。 | `挂起` |
 | `P4-R7` 双屏渲染、动态 HVAC 与车模触摸交互 | 生产 HMI 必须保持原版 Client/Client2/RenderService 的双屏会话、渲染质量和车模触摸交互；连续温度不得以破坏厂商资源或输入链为代价。 | S2-HMI-006, S2-HMI-007, S2-ADP-003 | Client2 座舱 HMI、RenderService 集成层 | RenderScale、TuanjieView listener 和 Addressables 重写已撤回；原生动态 HVAC 转为 OEM 源码级接口事项。 | `原版架构恢复/物理触摸待验收` |
 | `P4-R8` 双入口与任意文本 AIOS 任务 | 导航入口承载固定场景任务，电话入口承载任意自然语言输入；输入必须进入 Session、座舱上下文、模型、结构化校验和白名单候选动作链路。 | APP-001/003/004/006, S2-HMI-006/010, S2-MDL-004/005, S2-OBS-001/002, S2-SAF-004 | Client2 座舱 HMI、Central Brain SDK、Scenario 与 Model Runtime | Draft 实现必须证明双入口互斥、1..1024 字符边界、一次消费、实际模型回复和候选动作投影；动态 Tool/Effect 计划与车辆执行继续失败关闭。 | `设计完成/实现待合并` |
-| `P4-R9` 座舱吸烟合规多 Agent 场景 | 新增“检测吸烟”入口；图文输入经合规 Triage、确定性 Router、专用 SmokingDetectionAgent 和严格五字段校验后投影结果，场景不得包含 Tool 或 Effect 节点。 | APP-002/003/004/005/007, S2-PER-001, S2-SCN-001/002/004/006, S2-MDL-001/002/004/005/007/008, S2-SAF-004/005/006, S2-HMI-008/011, S2-OBS-001/002 | Client2 HMI、Scenario Catalog、Agent Router、Ollama/OpenClaw Provider、模型输出校验 | Draft 实现必须证明显式路由不由模型选择、单图与文本同请求、五字段严格校验、低置信度失败关闭、UI 实时显示且 `effect.execute` 数量为 0；目标摄像头和无文字水印样本仍需独立验收。 | `设计完成/实现待合并` |
+| `P4-R9` 座舱吸烟合规多 Agent 场景 | 新增“检测吸烟”入口；图文输入经合规 Triage、确定性 Agent Router、吸烟专用 Model Profile、SmokingDetectionAgent 和严格五字段校验后投影结果，场景不得包含 Tool 或 Effect 节点。 | APP-002/003/004/005/007, S2-PER-001, S2-SCN-001/002/004/006, S2-MDL-001/002/004/005/007/008, S2-SAF-004/005/006, S2-HMI-008/011, S2-OBS-001/002 | Client2 HMI、Scenario Catalog、Agent Router、Model Profile Router、Model Provider、模型输出校验 | 软件必须证明显式路由不由模型选择、单图与文本同请求、专用模型身份与上下文合同、无静默 fallback、预热和健康失败关闭、五字段严格校验、UI 实时显示且 `effect.execute` 数量为 0；生产 Provider 准入、目标摄像头和无文字水印样本仍需独立验收。 | `原型实现/生产外部阻塞` |
 | `P4-R11` 厂商三 APK 架构恢复 | Client 必须保持原版泊车/行车显示；Client2 在 AIOS 浮层关闭时必须保持原版 View 层级、车模触摸和按钮行为；共享 RenderService 必须与批准的原版 APK 字节一致。 | APP-001/004, S2-HMI-001/003/004/006, S2-UX-002, DEL-004 | Client 原版 APK、Client2 overlay、RenderService vendor baseline、部署门禁 | Client 和 RenderService 使用批准 SHA-256；Client2 禁止 `setRenderScale`、额外 `TuanjieView` listener、反射式 `c2sSendMessage` 和 Unity bundle 依赖；物理旋转必须在有真实触摸 event 的生产硬件复验。 | `应用修复完成/物理触摸待验收` |
 | `P4-R12` 吸烟判定置信度校准 | 生产接受策略必须区分模型自报置信度、状态 token 概率和经标注数据拟合的真实正确率估计；任何校准器必须绑定模型、Agent 指令、wire schema、预处理和数据清单摘要。 | S2-MDL-004/005/007/008, S2-OBS-001/002 | Model Provider、SmokingDetectionResult、校准配置与发布门禁 | 条件 JSON Schema 已阻止状态/人数/位置/置信度的语义非法组合；平衡试点评测已证明自报置信度失真，但校准分组缺少错误结果，校准器保持未拟合。补充成组困难正反例并通过独立 Brier/ECE/分类门槛后方可启用。 | `部分实现/校准数据阻塞` |
 

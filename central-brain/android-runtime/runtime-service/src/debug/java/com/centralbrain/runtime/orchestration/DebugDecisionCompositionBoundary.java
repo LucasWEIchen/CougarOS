@@ -18,6 +18,7 @@ import com.centralbrain.runtime.model.CockpitModelPrompt;
 import com.centralbrain.runtime.model.DevelopmentModelInputStore;
 import com.centralbrain.runtime.model.LocalModelProvider;
 import com.centralbrain.runtime.model.ModelContractV2;
+import com.centralbrain.runtime.model.ModelProfileRouter;
 import com.centralbrain.runtime.model.ModelProvider;
 import com.centralbrain.runtime.model.ModelProviderRegistry;
 import com.centralbrain.runtime.model.OpenClawEndpointConfig;
@@ -87,8 +88,11 @@ final class DebugDecisionCompositionBoundary {
     private final ManualExecutor modelExecutor = new ManualExecutor();
     private final ModelProvider.ModelSpec modelSpec;
     private final ModelProvider modelProvider;
-    private final TestOnlyModelRouter modelRouter;
+    private final ModelProvider.ModelSpec smokingModelSpec;
+    private final ModelProvider smokingModelProvider;
+    private final TestOnlyModelRouter testModelRouter;
     private final VllmInferenceEngine vllmEngine;
+    private final VllmInferenceEngine smokingVllmEngine;
     private final OpenClawInferenceEngine openClawEngine;
     private final NetworkModelMode networkModelMode;
     private final BoundedEventRuntime events;
@@ -139,26 +143,46 @@ final class DebugDecisionCompositionBoundary {
                 (mutation, evidence) -> ProactiveConsentPolicy.AuthorityDecision.DENIED);
         modelRegistry = ModelProviderRegistry.createForContractTest();
         if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
-            VllmEndpointConfig endpoint = VllmEndpointConfig
-                    .ty1100EthernetViaAdbReverse();
+            VllmEndpointConfig endpoint =
+                    VllmEndpointConfig.ty1100General9bViaAdbReverse();
+            VllmEndpointConfig smokingEndpoint =
+                    VllmEndpointConfig.ty1100Smoking2bViaAdbReverse();
             vllmEngine = new VllmInferenceEngine(endpoint);
+            smokingVllmEngine = new VllmInferenceEngine(smokingEndpoint);
             openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
-                    "central-intent-v0",
-                    "vllm-qwen3.5-9b-awq-v1",
-                    digest("vllm-model-spec", endpoint.getModelName()));
+                    "central-intent-general-v1",
+                    "vllm-qwen3.5-9b-awq-ctx8192-v2",
+                    digest(
+                            "vllm-model-spec-v2",
+                            endpoint.getModelName(),
+                            Integer.toString(endpoint.getMaximumContextTokens())));
             modelProvider = LocalModelProvider.createForDevelopment(
                     modelSpec,
                     vllmEngine,
                     modelExecutor,
                     clock::nowMs,
                     LocalModelProvider.StreamLimits.defaults());
-            modelRouter = null;
+            smokingModelSpec = new ModelProvider.ModelSpec(
+                    "central-vision-smoking-v1",
+                    "vllm-qwen3.5-2b-awq-ctx4096-v1",
+                    digest(
+                            "vllm-model-spec-v2",
+                            smokingEndpoint.getModelName(),
+                            Integer.toString(smokingEndpoint.getMaximumContextTokens())));
+            smokingModelProvider = LocalModelProvider.createForDevelopment(
+                    smokingModelSpec,
+                    smokingVllmEngine,
+                    modelExecutor,
+                    clock::nowMs,
+                    LocalModelProvider.StreamLimits.defaults());
+            testModelRouter = null;
         } else if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
             OpenClawEndpointConfig endpoint =
                     OpenClawEndpointConfig.targetProductionTransitional();
             openClawEngine = new OpenClawInferenceEngine(endpoint);
             vllmEngine = null;
+            smokingVllmEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0",
                     "openclaw-ws-v3",
@@ -169,15 +193,20 @@ final class DebugDecisionCompositionBoundary {
                             modelExecutor,
                             clock::nowMs,
                             LocalModelProvider.StreamLimits.defaults());
-            modelRouter = null;
+            smokingModelSpec = null;
+            smokingModelProvider = null;
+            testModelRouter = null;
         } else {
             vllmEngine = null;
+            smokingVllmEngine = null;
             openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0", "1", MODEL_DIGEST);
             modelProvider = new DeterministicStubModelProvider(
                     modelSpec, modelExecutor, clock::nowMs);
-            modelRouter = TestOnlyModelRouter.createForContractTest(
+            smokingModelSpec = null;
+            smokingModelProvider = null;
+            testModelRouter = TestOnlyModelRouter.createForContractTest(
                     new InferenceResourceScheduler(
                             new InferenceResourceScheduler.Limits(8, 4, 2, 1, 10_000),
                             clock::nowMs,
@@ -187,7 +216,15 @@ final class DebugDecisionCompositionBoundary {
                                             modelProvider))),
                     modelProvider);
         }
-        modelProvider.warmup(modelSpec);
+        if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
+            if (!warmupWithoutFallback(modelProvider, modelSpec)
+                    || !warmupWithoutFallback(smokingModelProvider, smokingModelSpec)) {
+                throw new IllegalStateException(
+                        "all routed vLLM model profiles must pass prewarm");
+            }
+        } else {
+            modelProvider.warmup(modelSpec);
+        }
         events = BoundedEventRuntime.createForContractTest(
                 new BoundedEventRuntime.Limits(32, MAX_SESSIONS, 4, 8, 8),
                 clock::nowMs,
@@ -248,6 +285,8 @@ final class DebugDecisionCompositionBoundary {
                 consentDecision.getCode().name(),
                 modelEvidence.routeDigest,
                 modelEvidence.outputDigest,
+                modelEvidence.profileId,
+                modelEvidence.modelId,
                 String.join("|", modelEvidence.admittedActions),
                 eventEvidence.digest);
         Evidence evidence = new Evidence(
@@ -263,6 +302,8 @@ final class DebugDecisionCompositionBoundary {
                 modelEvidence.networkAccessed,
                 modelEvidence.assistantDisplayText,
                 modelEvidence.providerId,
+                modelEvidence.profileId,
+                modelEvidence.modelId,
                 modelEvidence.latencyMs,
                 modelEvidence.inputAggregateDigest,
                 modelEvidence.imageConsumed,
@@ -298,12 +339,17 @@ final class DebugDecisionCompositionBoundary {
                 bySession.size(),
                 completed,
                 triggers.snapshot().getSuggestionCount(),
-                modelProvider.metrics().getCompletedCount(),
+                modelProvider.metrics().getCompletedCount()
+                        + (smokingModelProvider == null
+                                ? 0L : smokingModelProvider.metrics().getCompletedCount()),
                 events.snapshot().getActiveSubscriptionCount());
     }
 
     synchronized void close() {
         modelProvider.close();
+        if (smokingModelProvider != null) {
+            smokingModelProvider.close();
+        }
         for (Entry entry : bySession.values()) {
             entry.completed = true;
         }
@@ -333,7 +379,21 @@ final class DebugDecisionCompositionBoundary {
                 || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
                 || !"development_ty1100_vllm".equals(BuildConfig.MODEL_GATEWAY_PROFILE)
                 || !"http://127.0.0.1:10030".equals(BuildConfig.VLLM_BASE_URL)
-                || !VllmEndpointConfig.EXPECTED_MODEL.equals(BuildConfig.VLLM_MODEL)) {
+                || !VllmEndpointConfig.EXPECTED_MODEL.equals(BuildConfig.VLLM_MODEL)
+                || !BuildConfig.VLLM_MODEL_ROUTING_ENABLED
+                || !BuildConfig.VLLM_PREWARM_REQUIRED
+                || !"http://127.0.0.1:10030".equals(
+                        BuildConfig.VLLM_GENERAL_BASE_URL)
+                || !VllmEndpointConfig.GENERAL_MODEL.equals(
+                        BuildConfig.VLLM_GENERAL_MODEL)
+                || BuildConfig.VLLM_GENERAL_CONTEXT_TOKENS
+                        != ModelProfileRouter.GENERAL_MAX_CONTEXT_TOKENS
+                || !"http://127.0.0.1:10031".equals(
+                        BuildConfig.VLLM_SMOKING_BASE_URL)
+                || !VllmEndpointConfig.SMOKING_MODEL.equals(
+                        BuildConfig.VLLM_SMOKING_MODEL)
+                || BuildConfig.VLLM_SMOKING_CONTEXT_TOKENS
+                        != ModelProfileRouter.SMOKING_MAX_CONTEXT_TOKENS) {
             throw new IllegalStateException("debug TY1100 vLLM build configuration is invalid");
         }
         return NetworkModelMode.VLLM_DEVELOPMENT;
@@ -459,20 +519,6 @@ final class DebugDecisionCompositionBoundary {
             healthSource = ModelProviderRegistry.HealthSource.CONTRACT_TEST;
             routeMode = PolicyAwareModelRouter.RouteMode.CONTRACT_TEST;
         }
-        String healthEvidence = digest("model-health", requestDigest);
-        ModelProviderRegistry.PublishResult health = modelRegistry.publishHealth(
-                new ModelProviderRegistry.HealthReport(
-                        providerId,
-                        healthSource,
-                        ModelProviderRegistry.HealthState.HEALTHY,
-                        ++modelHealthRevision,
-                        now,
-                        now + MODEL_HEALTH_WINDOW_MS,
-                        healthEvidence),
-                now);
-        if (health.getCode() != ModelProviderRegistry.PublishCode.UPDATED) {
-            throw violation("model health publication failed closed");
-        }
         DevelopmentModelInputReceipt stagedInput = null;
         byte[] stagedImage = null;
         boolean stagedImagePresent = false;
@@ -537,6 +583,38 @@ final class DebugDecisionCompositionBoundary {
                 ModelContractV2.FallbackPolicy.NO_FALLBACK,
                 digest("model-trace", session.getSessionId(), requestDigest),
                 inputDigest);
+        SelectedModel selectedModel = new SelectedModel(
+                "model.default.v1", modelSpec, modelProvider, vllmEngine);
+        ModelProfileRouter.RouteDecision profileRoute = null;
+        boolean providerSetReady = networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT
+                ? isProviderReady(modelProvider) || isProviderReady(smokingModelProvider)
+                : isProviderReady(selectedModel.provider);
+        if (!providerSetReady) {
+            throw violation("selected model provider is not ready");
+        }
+        String healthEvidence = digest(
+                "model-health",
+                requestDigest,
+                providerId,
+                networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT
+                        ? digest(
+                                "model-profile-set-v1",
+                                modelSpec.getArtifactDigest(),
+                                smokingModelSpec.getArtifactDigest())
+                        : selectedModel.spec.getArtifactDigest());
+        ModelProviderRegistry.PublishResult health = modelRegistry.publishHealth(
+                new ModelProviderRegistry.HealthReport(
+                        providerId,
+                        healthSource,
+                        ModelProviderRegistry.HealthState.HEALTHY,
+                        ++modelHealthRevision,
+                        now,
+                        now + MODEL_HEALTH_WINDOW_MS,
+                        healthEvidence),
+                now);
+        if (health.getCode() != ModelProviderRegistry.PublishCode.UPDATED) {
+            throw violation("model health publication failed closed");
+        }
         PolicyAwareModelRouter.RouteDecision route = PolicyAwareModelRouter.decide(
                 modelRequest,
                 new PolicyAwareModelRouter.PolicySnapshot(
@@ -562,6 +640,51 @@ final class DebugDecisionCompositionBoundary {
                 || route.isEffectDispatchRequested()) {
             throw violation("model policy route failed closed");
         }
+        if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
+            ModelProfileRouter.TargetHealth generalHealth = targetHealth(
+                    ModelProfileRouter.GENERAL_PROFILE_ID,
+                    modelSpec,
+                    VllmEndpointConfig.ty1100General9bViaAdbReverse(),
+                    modelProvider,
+                    modelHealthRevision,
+                    now,
+                    requestDigest);
+            ModelProfileRouter.TargetHealth smokingHealth = targetHealth(
+                    ModelProfileRouter.SMOKING_PROFILE_ID,
+                    smokingModelSpec,
+                    VllmEndpointConfig.ty1100Smoking2bViaAdbReverse(),
+                    smokingModelProvider,
+                    modelHealthRevision,
+                    now,
+                    requestDigest);
+            profileRoute = ModelProfileRouter.decide(
+                    scenarioId, modelRequest, generalHealth, smokingHealth, now);
+            boolean smokingWorkload = CabinComplianceAgentRouter.SMOKING_SCENARIO_ID
+                    .equals(scenarioId);
+            ModelProvider selectedProvider = smokingWorkload
+                    ? smokingModelProvider : modelProvider;
+            ModelProvider.ModelSpec selectedSpec = smokingWorkload
+                    ? smokingModelSpec : modelSpec;
+            VllmInferenceEngine selectedEngine = smokingWorkload
+                    ? smokingVllmEngine : vllmEngine;
+            if (profileRoute.getCode() != ModelProfileRouter.DecisionCode.SELECTED
+                    || !selectedSpec.getModelId().equals(profileRoute.getModelId())
+                    || profileRoute.isFallbackSelected()
+                    || profileRoute.isActionAuthorizationGranted()
+                    || profileRoute.isEffectDispatchRequested()) {
+                throw violation(
+                        "model profile route failed closed: "
+                                + profileRoute.getRejectionReason().name());
+            }
+            selectedModel = new SelectedModel(
+                    profileRoute.getProfileId(),
+                    selectedSpec,
+                    selectedProvider,
+                    selectedEngine);
+        }
+        if (!isProviderReady(selectedModel.provider)) {
+            throw violation("selected model profile provider is not ready");
+        }
         RecordingObserver observer = new RecordingObserver();
         if (networkModel) {
             if (isOpenClawMode(networkModelMode)) {
@@ -578,10 +701,10 @@ final class DebugDecisionCompositionBoundary {
                     }
                 }
             } else {
-                vllmEngine.registerPrompt(prompt);
+                selectedModel.vllmEngine.registerPrompt(prompt);
                 if (stagedImagePresent) {
                     try {
-                        vllmEngine.registerScenarioImageAttachment(
+                        selectedModel.vllmEngine.registerScenarioImageAttachment(
                                 inputDigest,
                                 stagedInput.imageMimeType,
                                 stagedInput.imageFileName,
@@ -591,10 +714,10 @@ final class DebugDecisionCompositionBoundary {
                     }
                 }
             }
-            ModelProvider.InferenceHandle handle = modelProvider.infer(
+            ModelProvider.InferenceHandle handle = selectedModel.provider.infer(
                     new ModelProvider.InferenceRequest(
                             modelRequest.getRequestId(),
-                            modelSpec.getModelId(),
+                            selectedModel.spec.getModelId(),
                             inputDigest,
                             now + MODEL_INFERENCE_TIMEOUT_MS,
                             true),
@@ -603,7 +726,7 @@ final class DebugDecisionCompositionBoundary {
                 throw violation("development model provider identity mismatch");
             }
         } else {
-            TestOnlyModelRouter.SubmitResult submitted = modelRouter.submit(
+            TestOnlyModelRouter.SubmitResult submitted = testModelRouter.submit(
                     TestOnlyModelRouter.TrustedRouteRequest.fromRuntimePolicy(
                             modelRequest.getRequestId(),
                             session.getOwnerFingerprint(),
@@ -625,25 +748,34 @@ final class DebugDecisionCompositionBoundary {
                 || observer.chunkCount < 1) {
             String failureCode = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getLastFailureCode()
-                    : "";
+                    : networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT
+                            ? selectedModel.vllmEngine.snapshot().getLastFailureCode()
+                            : "";
             throw violation("model inference did not complete"
                     + (failureCode.isEmpty() ? "" : ": " + failureCode));
         }
         if (networkModel) {
             long latencyMs = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getLastLatencyMs()
-                    : vllmEngine.snapshot().getLastLatencyMs();
+                    : selectedModel.vllmEngine.snapshot().getLastLatencyMs();
             long completedCount = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getCompletedCount()
-                    : vllmEngine.snapshot().getCompletedCount();
+                    : selectedModel.vllmEngine.snapshot().getCompletedCount();
             ModelProjection projection = parseModelProjection(
                     observer.contentBytes(), prompt, completedCount, latencyMs);
-            String admittedRouteDigest = specialistRoute == null
-                    ? route.getDecisionDigest()
-                    : digest(
-                            "model-specialist-route-v1",
-                            route.getDecisionDigest(),
-                            specialistRoute.getRouteDigest());
+            String admittedRouteDigest = route.getDecisionDigest();
+            if (profileRoute != null) {
+                admittedRouteDigest = digest(
+                        "model-profile-route-v1",
+                        admittedRouteDigest,
+                        profileRoute.getDecisionDigest());
+            }
+            if (specialistRoute != null) {
+                admittedRouteDigest = digest(
+                        "model-specialist-route-v1",
+                        admittedRouteDigest,
+                        specialistRoute.getRouteDigest());
+            }
             return new ModelEvidence(
                     admittedRouteDigest,
                     observer.terminal.getOutputDigest(),
@@ -651,6 +783,8 @@ final class DebugDecisionCompositionBoundary {
                     true,
                     projection.assistantDisplayText,
                     providerId,
+                    selectedModel.profileId,
+                    selectedModel.spec.getModelId(),
                     projection.latencyMs,
                     inputAggregateDigest,
                     stagedImagePresent,
@@ -663,6 +797,8 @@ final class DebugDecisionCompositionBoundary {
                 false,
                 "",
                 "",
+                "",
+                "",
                 0L,
                 inputAggregateDigest,
                 false,
@@ -672,6 +808,59 @@ final class DebugDecisionCompositionBoundary {
                 Arrays.fill(stagedImage, (byte) 0);
             }
         }
+    }
+
+    private static boolean warmupWithoutFallback(
+            ModelProvider provider,
+            ModelProvider.ModelSpec spec) {
+        Objects.requireNonNull(provider, "provider");
+        Objects.requireNonNull(spec, "spec");
+        if (isProviderReady(provider)) {
+            return true;
+        }
+        try {
+            provider.warmup(spec);
+            return isProviderReady(provider);
+        } catch (LocalModelProvider.ProviderUnavailableException unavailable) {
+            return false;
+        }
+    }
+
+    private static boolean isProviderReady(ModelProvider provider) {
+        ModelProvider.Snapshot snapshot = Objects.requireNonNull(
+                provider, "provider").snapshot();
+        return snapshot.getLifecycleState() == ModelProvider.LifecycleState.READY
+                && snapshot.getHealthState() == ModelProvider.HealthState.HEALTHY
+                && snapshot.getLoadedModelCount() == 1;
+    }
+
+    private static ModelProfileRouter.TargetHealth targetHealth(
+            String profileId,
+            ModelProvider.ModelSpec spec,
+            VllmEndpointConfig endpoint,
+            ModelProvider provider,
+            long revision,
+            long now,
+            String requestDigest) {
+        ModelProvider.Snapshot snapshot = provider.snapshot();
+        return new ModelProfileRouter.TargetHealth(
+                profileId,
+                spec.getModelId(),
+                endpoint.getModelName(),
+                endpoint.getMaximumContextTokens(),
+                isProviderReady(provider),
+                revision,
+                now,
+                now + MODEL_HEALTH_WINDOW_MS,
+                digest(
+                        "model-profile-health-v1",
+                        requestDigest,
+                        profileId,
+                        spec.getArtifactDigest(),
+                        endpoint.getModelName(),
+                        snapshot.getLifecycleState().name(),
+                        snapshot.getHealthState().name(),
+                        snapshot.getDetailCode()));
     }
 
     private static ModelProjection parseModelProjection(
@@ -964,6 +1153,8 @@ final class DebugDecisionCompositionBoundary {
         private final boolean networkAccessed;
         private final String assistantDisplayText;
         private final String modelProviderId;
+        private final String modelProfileId;
+        private final String modelId;
         private final long modelLatencyMs;
         private final String inputAggregateDigest;
         private final boolean imageConsumed;
@@ -982,6 +1173,8 @@ final class DebugDecisionCompositionBoundary {
                 boolean networkAccessed,
                 String assistantDisplayText,
                 String modelProviderId,
+                String modelProfileId,
+                String modelId,
                 long modelLatencyMs,
                 String inputAggregateDigest,
                 boolean imageConsumed,
@@ -998,6 +1191,8 @@ final class DebugDecisionCompositionBoundary {
             this.networkAccessed = networkAccessed;
             this.assistantDisplayText = assistantDisplayText;
             this.modelProviderId = modelProviderId;
+            this.modelProfileId = modelProfileId;
+            this.modelId = modelId;
             this.modelLatencyMs = modelLatencyMs;
             this.inputAggregateDigest = inputAggregateDigest;
             this.imageConsumed = imageConsumed;
@@ -1020,6 +1215,8 @@ final class DebugDecisionCompositionBoundary {
         boolean isNetworkAccessed() { return networkAccessed; }
         String getAssistantDisplayText() { return assistantDisplayText; }
         String getModelProviderId() { return modelProviderId; }
+        String getModelProfileId() { return modelProfileId; }
+        String getModelId() { return modelId; }
         long getModelLatencyMs() { return modelLatencyMs; }
         String getInputAggregateDigest() { return inputAggregateDigest; }
         boolean isImageConsumed() { return imageConsumed; }
@@ -1076,6 +1273,24 @@ final class DebugDecisionCompositionBoundary {
         }
     }
 
+    private static final class SelectedModel {
+        private final String profileId;
+        private final ModelProvider.ModelSpec spec;
+        private final ModelProvider provider;
+        private final VllmInferenceEngine vllmEngine;
+
+        private SelectedModel(
+                String profileId,
+                ModelProvider.ModelSpec spec,
+                ModelProvider provider,
+                VllmInferenceEngine vllmEngine) {
+            this.profileId = Objects.requireNonNull(profileId, "profileId");
+            this.spec = Objects.requireNonNull(spec, "spec");
+            this.provider = Objects.requireNonNull(provider, "provider");
+            this.vllmEngine = vllmEngine;
+        }
+    }
+
     private static final class ModelEvidence {
         private final String routeDigest;
         private final String outputDigest;
@@ -1083,6 +1298,8 @@ final class DebugDecisionCompositionBoundary {
         private final boolean networkAccessed;
         private final String assistantDisplayText;
         private final String providerId;
+        private final String profileId;
+        private final String modelId;
         private final long latencyMs;
         private final String inputAggregateDigest;
         private final boolean imageConsumed;
@@ -1095,6 +1312,8 @@ final class DebugDecisionCompositionBoundary {
                 boolean networkAccessed,
                 String assistantDisplayText,
                 String providerId,
+                String profileId,
+                String modelId,
                 long latencyMs,
                 String inputAggregateDigest,
                 boolean imageConsumed,
@@ -1105,6 +1324,8 @@ final class DebugDecisionCompositionBoundary {
             this.networkAccessed = networkAccessed;
             this.assistantDisplayText = assistantDisplayText;
             this.providerId = providerId;
+            this.profileId = profileId;
+            this.modelId = modelId;
             this.latencyMs = latencyMs;
             this.inputAggregateDigest = inputAggregateDigest;
             this.imageConsumed = imageConsumed;

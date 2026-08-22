@@ -265,10 +265,10 @@ group size 128；两片权重的大小和 SHA-256
 记录在 [模型来源清单](qwen35-2b-awq-model-source.json) 中。模型权重约 3.1 GB，不提交到 CougarOS
 仓库，只提交可复核的来源、提交号、大小与哈希。
 
-本次在同一台 TY1100-NX-PRO 上临时停止 9B 基线容器，以 vLLM 0.17.0 的 AWQ-Marlin 内核启动
-2B 候选。候选固定使用 `127.0.0.1:10031`，9B 基线继续固定使用 `127.0.0.1:10030`；评测工具按
-profile 同时锁定端口与模型 ID，禁止将候选结果误记到基线。测试结束后已删除候选容器，并恢复 9B
-容器及 `restart=always` 策略。生产配置未修改。
+首次对比在同一台 TY1100-NX-PRO 上临时停止 9B 基线容器，以 vLLM 0.17.0 的 AWQ-Marlin 内核启动
+2B 候选。评测确认结果无回退后，Debug 原型升级为单卡双模型常驻：9B 固定使用
+`127.0.0.1:10030` 和 8192 token 上限，2B 固定使用 `127.0.0.1:10031` 和 4096 token 上限。
+评测工具按 profile 同时锁定端口与模型 ID，禁止将候选结果误记到基线。生产配置未修改。
 
 ### 14.2 同条件对比结果
 
@@ -297,24 +297,32 @@ profile 同时锁定端口与模型 ID，禁止将候选结果误记到基线。
 
 ### 14.3 复现和证据边界
 
-候选服务只允许通过固定管理脚本临时启动，并必须在测试后恢复基线：
+双模型服务只允许通过固定管理脚本启动；脚本验证两模型身份、上下文、常驻状态并执行真实预热：
 
 ```bash
-bash tools/manage_central_brain_ty1100_qwen35_2b_benchmark.sh start
+bash tools/manage_central_brain_ty1100_routed_vllm.sh start
 python3 tools/evaluate_central_brain_smoking_confidence.py \
   --model-profile qwen35-2b-awq \
   --manifest central-brain/evaluation/smoking-detection/datasets/pilot-v1/confidence-pilot-manifest.csv \
   --positive-dir passenger_smoking_100 \
   --negative-dir passenger_unbelted_nonsmoking_100 \
   --output-dir outputs/evaluation/smoking-detection/qwen35-2b-awq
-bash tools/manage_central_brain_ty1100_qwen35_2b_benchmark.sh restore
 ```
 
 - [2B 逐样本 cases CSV](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/cases.csv)
 - [2B 汇总 summary JSON](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json)
 - [2B 校准器状态 calibrator JSON](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/calibrator.json)
 - [2B 与 9B 机器可读对比](results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/comparison-to-qwen35-9b-awq.json)
+- [路由、常驻、预热后的逐样本回归](results/2026-08-22-qwen35-2b-awq-routed-resident-regression/cases.csv)
+- [路由、常驻、预热后的机器汇总](results/2026-08-22-qwen35-2b-awq-routed-resident-regression/summary.json)
+- [路由前后机器可读对比](results/2026-08-22-qwen35-2b-awq-routed-resident-regression/comparison-to-before-routing.json)
+
+路由启用后的 200 例回归仍只在 `096-positive` 上产生一个假阴性，独立测试准确率
+`98.33%`；端到端均值 `1360.964 ms`、P95 `2211.615 ms`。相对路由前 2B
+基线的均值 `1346.056 ms`、P95 `2208.778 ms`，变化约为 `+1.11%` 和
+`+0.13%`，没有观察到路由、常驻和上下文裁剪导致的实质性能回退。
 
 结论仅适用于当前固定数据和 TY1100 原型链路。数据仍存在安全带状态与类别相关的已知混杂，未覆盖目标摄像头、
-Android 实时采集、并发、长稳、生产以太网或量产硬件。2B 当前是性能候选，不替换 Android 默认模型，
-`production_ready=false`、`target_hardware_validated=false`。
+Android 实时采集、并发、长稳、生产以太网或量产硬件。2B 仅替换 Debug 原型中吸烟合规场景的模型，
+通用座舱场景仍使用 9B；生产路由没有激活，`production_ready=false`、
+`target_hardware_validated=false`。

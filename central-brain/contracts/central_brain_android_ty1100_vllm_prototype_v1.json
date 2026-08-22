@@ -18,21 +18,63 @@
   "prototype_provider": {
     "provider_id": "android.vllm.prototype",
     "backend_kind": "VLLM_OPENAI_COMPATIBLE",
-    "model": "Qwen3.5-9B-AWQ",
-    "android_base_url": "http://127.0.0.1:10030",
     "chat_path": "/v1/chat/completions",
     "models_path": "/v1/models",
     "health_path": "/health",
     "debug_build_only": true,
     "only_selectable_prototype_network_provider": true,
-    "arbitrary_endpoint_override_allowed": false
+    "arbitrary_endpoint_override_allowed": false,
+    "model_profiles": [
+      {
+        "profile_id": "model.general-cockpit.9b.v1",
+        "workload_class": "GENERAL_COCKPIT",
+        "model_id": "central-intent-general-v1",
+        "model": "Qwen3.5-9B-AWQ",
+        "android_base_url": "http://127.0.0.1:10030",
+        "maximum_context_tokens": 8192
+      },
+      {
+        "profile_id": "model.cabin-smoking.2b.v1",
+        "workload_class": "CABIN_SMOKING_COMPLIANCE",
+        "model_id": "central-vision-smoking-v1",
+        "model": "Qwen3.5-2B-AWQ",
+        "android_base_url": "http://127.0.0.1:10031",
+        "maximum_context_tokens": 4096
+      }
+    ]
+  },
+  "model_profile_routing": {
+    "enabled_in_debug": true,
+    "provider_route_precedes_profile_route": true,
+    "smoking_scenario_id": "scene.cabin.compliance.smoking.v1",
+    "smoking_requires_capability": "VISION_CLASSIFICATION",
+    "smoking_scenario_profile_id": "model.cabin-smoking.2b.v1",
+    "all_other_scenarios_profile_id": "model.general-cockpit.9b.v1",
+    "fallback_policy": "NO_FALLBACK",
+    "health_freshness_required": true,
+    "model_identity_required": true,
+    "route_grants_action_authority": false,
+    "route_requests_effect_dispatch": false
+  },
+  "residency_and_prewarm": {
+    "both_models_resident": true,
+    "container_restart_policy": "always",
+    "prewarm_required": true,
+    "health_and_model_catalog_verified_before_inference": true,
+    "thinking_enabled": false
   },
   "validation_topology": {
     "android_device": "testboard",
-    "android_to_wsl": "ADB_REVERSE_TCP_10030",
-    "wsl_to_ai_device": "SSH_LOCAL_FORWARD_OVER_ETHERNET",
+    "android_to_wsl": [
+      "ADB_REVERSE_TCP_10030",
+      "ADB_REVERSE_TCP_10031"
+    ],
+    "wsl_to_ai_device": "DUAL_SSH_LOCAL_FORWARD_OVER_ETHERNET",
     "ai_device_ipv4": "192.168.250.100",
-    "ai_device_vllm_bind": "127.0.0.1:10030",
+    "ai_device_vllm_bind": [
+      "127.0.0.1:10030",
+      "127.0.0.1:10031"
+    ],
     "ai_device_service_modified": false,
     "direct_android_to_ai_ethernet_validated": false
   },
@@ -51,7 +93,7 @@
     "duplicate_actions_rejected_locally": true
   },
   "android13_arm64_evidence": {
-    "evidence_date": "2026-08-13",
+    "evidence_date": "2026-08-22",
     "android_api": 33,
     "abi": "arm64-v8a",
     "display": "1920x1080",
@@ -60,10 +102,14 @@
     "structured_text_verified": true,
     "structured_image_verified": true,
     "runtime_probe_verified": true,
-    "runtime_probe_latency_ms": 3566,
+    "runtime_probe_latency_ms": 3519,
+    "runtime_probe_model_profile_id": "model.general-cockpit.9b.v1",
+    "runtime_probe_model": "Qwen3.5-9B-AWQ",
     "client2_smoking_route_verified": true,
     "client2_image_consumed": true,
-    "client2_model_latency_ms": 4246,
+    "client2_model_latency_ms": 1155,
+    "client2_model_profile_id": "model.cabin-smoking.2b.v1",
+    "client2_model": "Qwen3.5-2B-AWQ",
     "client2_image_sha256": "fc561d2870d467da910353e6623ab39f056641bf4169083953b9d3c9c82f10a7",
     "raw_prompt_logged": false,
     "raw_response_logged": false,
@@ -82,6 +128,9 @@
     "ty1100_vllm_prototype_implemented": true,
     "android13_arm64_text_verified": true,
     "android13_arm64_image_verified": true,
+    "debug_model_profile_routing_verified": true,
+    "dual_model_residency_verified": true,
+    "prewarm_verified": true,
     "external_compute_accessed": true,
     "direct_android_ethernet_validated": false,
     "direct_npu_api_accessed": false,

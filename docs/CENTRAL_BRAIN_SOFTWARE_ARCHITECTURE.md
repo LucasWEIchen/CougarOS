@@ -319,33 +319,46 @@ Event Broker 传递 Observation、Action、Runtime 和 Message 事件。生产�
 
 ### 5.11 Model Runtime
 
-Model Runtime 由 `ModelProviderRegistry`、`PolicyAwareModelRouter`、`InferenceResourceScheduler` 和
-Provider 构成。当前生产目标使用 OpenClaw 过渡 Provider；Ollama 是后续可替换 Provider。
+Model Runtime 由 `ModelProviderRegistry`、`PolicyAwareModelRouter`、`ModelProfileRouter`、
+`InferenceResourceScheduler` 和 Provider 构成。Provider 路由解决“使用哪个模型服务”，Profile
+路由解决“已选服务中使用哪个模型及上下文预算”，两者不可合并为由模型自行判断的自由路由。
+当前生产目标使用 OpenClaw 过渡 Provider；Ollama 或 Vendor NPU 是后续可替换 Provider。
 
 ```mermaid
 flowchart LR
     Request["ModelRequest"]
     Admission["Resource Admission"]
     Registry["Provider Registry"]
-    Router["Policy-aware Router"]
+    ProviderRouter["Policy-aware Provider Router"]
+    ProfileRouter["Deterministic Model Profile Router"]
+    Lifecycle["Model Lifecycle<br/>load / health / prewarm / resident"]
     OpenClaw["OpenClaw Provider"]
     Ollama["Ollama Provider"]
     Vendor["Vendor NPU Provider"]
     Stream["Stream Observer"]
     Validate["Structured Output Validator"]
 
-    Request --> Admission --> Router
-    Registry --> Router
-    Router --> OpenClaw
-    Router -. "后续替换" .-> Ollama
-    Router -. "厂商接口就绪后" .-> Vendor
+    Request --> Admission --> ProviderRouter --> ProfileRouter
+    Registry --> ProviderRouter
+    ProfileRouter --> Lifecycle
+    Lifecycle --> OpenClaw
+    Lifecycle -. "后续替换" .-> Ollama
+    Lifecycle -. "厂商接口就绪后" .-> Vendor
     OpenClaw --> Stream --> Validate
     Ollama --> Stream
     Vendor --> Stream
 ```
 
-Router 依据 assurance、健康、模态、并发、热状态和场景策略选择 Provider。过渡 Provider 未达到
-production assurance 前，全局 `production_ready` 保持 false。
+第一级 Router 依据 assurance、隐私、网络、健康、模态、并发和热状态选择 Provider；第二级 Router
+依据确定性场景策略选择构建时登记的模型 Profile，并把 `profileId`、`modelId`、served model、最大上下文、
+健康 revision 和路由摘要写入证据。吸烟合规图像固定进入专用视觉 Profile，其余场景进入通用座舱 Profile。
+专用目标未就绪、身份不匹配或健康过期时失败关闭，不回退到通用模型。
+
+生产运行时必须在接收业务请求前完成目标模型身份检查和真实预热，并按资源预算维持必要模型常驻。
+上下文上限是 Profile 合同而非调用方参数：专用检测 Profile 使用较小预算，通用座舱 Profile 使用较大预算；
+请求还需按 system instruction、当前输入、安全上下文、会话摘要和历史优先级做二次裁剪。任何裁剪不得删除
+安全边界、输出 Schema 或当前图文输入。过渡 Provider 未达到 production assurance 前，全局
+`production_ready` 保持 false。
 
 ### 5.12 Effect 与 Vehicle Adapter
 

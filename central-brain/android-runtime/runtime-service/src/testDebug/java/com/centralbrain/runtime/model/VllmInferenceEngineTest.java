@@ -325,6 +325,47 @@ public final class VllmInferenceEngineTest {
                 model(), request(INPUT_DIGEST), neverCancelled()));
     }
 
+    @Test
+    public void firstInferenceRequiresEndpointIdentityProbeOffServiceStartupPath() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicInteger probes = new AtomicInteger();
+        VllmInferenceEngine verified = new VllmInferenceEngine(
+                VllmEndpointConfig.ty1100Smoking2bViaAdbReverse(),
+                request -> envelopeForModel(
+                        "Qwen3.5-2B-AWQ",
+                        "[1,1,4,95]".getBytes(StandardCharsets.UTF_8)),
+                clock::get,
+                (source, mimeType, maximumWidth, maximumHeight, jpegQuality) ->
+                        new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xd9},
+                endpoint -> {
+                    assertEquals("Qwen3.5-2B-AWQ", endpoint.getModelName());
+                    assertEquals(4_096, endpoint.getMaximumContextTokens());
+                    probes.incrementAndGet();
+                });
+
+        verified.warmup(model());
+        assertEquals(0, probes.get());
+        verified.registerPrompt(smokingPrompt());
+        verified.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "fixture.png", fixturePng());
+        verified.infer(model(), request(INPUT_DIGEST), neverCancelled());
+        assertEquals(1, probes.get());
+
+        VllmInferenceEngine rejected = new VllmInferenceEngine(
+                VllmEndpointConfig.ty1100General9bViaAdbReverse(),
+                request -> response(
+                        "scene.comfort.cold.v1", "unused", "hvac.warm_cabin"),
+                clock::get,
+                (source, mimeType, maximumWidth, maximumHeight, jpegQuality) -> source,
+                endpoint -> {
+                    throw new IllegalStateException("catalog identity mismatch");
+                });
+        rejected.warmup(model());
+        rejected.registerScenarioPrompt(INPUT_DIGEST, "scene.comfort.cold.v1");
+        assertThrows(IllegalStateException.class, () -> rejected.infer(
+                model(), request(INPUT_DIGEST), neverCancelled()));
+    }
+
     private static VllmInferenceEngine engine(
             AtomicLong clock,
             VllmInferenceEngine.Transport transport) {
@@ -414,8 +455,14 @@ public final class VllmInferenceEngineTest {
     }
 
     private static VllmInferenceEngine.Response envelope(byte[] content) {
+        return envelopeForModel(MODEL, content);
+    }
+
+    private static VllmInferenceEngine.Response envelopeForModel(
+            String model,
+            byte[] content) {
         String body = new String(content, StandardCharsets.UTF_8);
-        String envelope = openAiEnvelope(body);
+        String envelope = openAiEnvelope(model, body);
         return new VllmInferenceEngine.Response(
                 200, envelope.getBytes(StandardCharsets.UTF_8));
     }
@@ -427,7 +474,11 @@ public final class VllmInferenceEngineTest {
     }
 
     private static String openAiEnvelope(String content) {
-        return "{\"model\":\"" + MODEL
+        return openAiEnvelope(MODEL, content);
+    }
+
+    private static String openAiEnvelope(String model, String content) {
+        return "{\"model\":\"" + model
                 + "\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\","
                 + "\"content\":" + quote(content)
                 + "},\"finish_reason\":\"stop\"}]}";

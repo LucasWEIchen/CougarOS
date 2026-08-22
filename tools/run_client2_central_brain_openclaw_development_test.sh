@@ -148,7 +148,7 @@ esac
 if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
   CENTRAL_BRAIN_ANDROID_SERIAL="${ANDROID_SERIAL:-testboard}" \
     ADB_SERVER_PORT="${ADB_SERVER_PORT:-5038}" \
-    "$ROOT/tools/manage_central_brain_ty1100_vllm_bridge.sh" start >/dev/null
+    "$ROOT/tools/manage_central_brain_ty1100_routed_vllm.sh" start >/dev/null
 elif [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
   bridge_env=()
   [[ -n "${ANDROID_TRANSPORT_ID:-}" ]] \
@@ -254,9 +254,15 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
   fi
   model_completed=false
   if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
-    printf '%s\n' "$logs" | grep -q \
-      'vllm_inference_completed=true endpoint_profile=ty1100_ethernet_via_adb_reverse model=Qwen3.5-9B-AWQ' \
-      && model_completed=true
+    if [[ "$SCENARIO" == "smoking" ]]; then
+      printf '%s\n' "$logs" | grep -q \
+        'vllm_inference_completed=true endpoint_profile=ty1100_smoking_2b_via_adb_reverse model=Qwen3.5-2B-AWQ' \
+        && model_completed=true
+    else
+      printf '%s\n' "$logs" | grep -q \
+        'vllm_inference_completed=true endpoint_profile=ty1100_general_9b_via_adb_reverse model=Qwen3.5-9B-AWQ' \
+        && model_completed=true
+    fi
   else
     printf '%s\n' "$logs" | grep -q \
       "openclaw_inference_completed=true endpoint_profile=${MODEL_ROUTE} protocol=${expected_protocol}" \

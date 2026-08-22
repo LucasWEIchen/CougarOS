@@ -1,6 +1,6 @@
 # Model、Scheduler 与 OpenClaw 过渡 Provider 模块详设
 
-版本：1.2
+版本：1.3
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -27,7 +27,7 @@ Effect gate。Provider 失败不能进入车辆执行。
 | `APP-006` | 任意文本绑定座舱上下文并产生有界回复与候选动作 |
 | `APP-007` | 吸烟场景文本与同帧图像进入专用 Agent |
 | `S2-MDL-001` | Provider 描述、健康、预热、推理、流式、取消、指标和故障 |
-| `S2-MDL-002` | 按模态、资源、健康和 assurance 路由 |
+| `S2-MDL-002` | 先按策略选择 Provider，再按场景确定性选择模型 Profile；绑定身份、上下文和健康且禁止静默回退 |
 | `S2-MDL-003` | 当前 OpenClaw 过渡接口与后续 Provider 替换 |
 | `S2-MDL-004` | 严格结构化输出和 capability 白名单 |
 | `S2-MDL-005` | 不可用、非法、超时和取消失败时阻止 Effect |
@@ -44,6 +44,7 @@ Effect gate。Provider 失败不能进入车辆执行。
 | [ModelContractV2.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelContractV2.java) | `ModelRequest`、`ModelResult`、budgets | 上层模型合同 |
 | [ModelProviderRegistry.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderRegistry.java) | fixed catalog、health publish、snapshot | Provider 目录与健康 |
 | [PolicyAwareModelRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/PolicyAwareModelRouter.java) | policy snapshot、route decision | assurance/资源/网络路由 |
+| [ModelProfileRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProfileRouter.java) | `TargetHealth`、`RouteDecision`、`decide` | Provider 内确定性模型 Profile 路由和失败关闭 |
 | [InferenceResourceScheduler.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scheduler/InferenceResourceScheduler.java) | `admit`、`claimNext`、`cancelOwned`、`settle` | queue/slot/deadline |
 | [ModelResourceAdmission.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scheduler/ModelResourceAdmission.java) | `admit` | Router 与 Scheduler 准入组合 |
 | [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forScenario`、`forFreeform`、`forMultimodal` | 固定座舱 system/user instruction 与动作白名单 |
@@ -86,15 +87,32 @@ allowed/required actions。
 回复、座舱温控、座椅、媒体和休息区导航能力集合。`validateActions()` 拒绝未知动作、重复动作、
 超过四个动作或缺失必要动作。该校验只产生候选集合，不授予 Tool 或 Effect 权限。
 
-### 4.3 调度与路由
+### 4.3 两级调度与路由
 
 `PolicyAwareModelRouter` 先检查 privacy、network、thermal、health、capability 和 assurance；
 `ModelResourceAdmission` 计算有效 token、deadline、queue wait 和 priority；`InferenceResourceScheduler`
 再执行 global/owner/provider 容量和 deadline 排队。
 
-Provider 不可用时 fallback 必须由请求和 privacy policy 显式允许，不能静默切换到更低 assurance。
+Provider 选定后，`ModelProfileRouter` 根据 canonical scenario ID、required capability、fallback policy 和
+带有效期的 `TargetHealth` 选择模型 Profile。吸烟合规视觉场景选择专用 Profile，其余场景选择通用 Profile。
+Profile ID、内部 model ID、served model、最大上下文和健康摘要都进入 route digest。
 
-### 4.4 OpenClaw 过渡边界
+Provider 不可用时 fallback 必须由请求和 privacy policy 显式允许，不能静默切换到更低 assurance。
+专用 Model Profile 不可用时必须失败关闭，不能回退到通用 Profile。两级 Router 和 Agent Router 都只产生
+路由证据，不调用模型，也不授予 Tool 或 Effect 权限。
+
+### 4.4 常驻、预热与上下文裁剪
+
+Provider 在发布 route-ready 前必须完成 `/health` 等价健康检查、模型目录身份检查和真实预热。文字 Profile
+使用带结构化输出约束的文字预热；视觉 Profile 使用一张有界图像和文字共同预热，避免只初始化文本通道。
+需要满足低时延目标的 Profile 由资源计划常驻；任何进程退出、模型身份漂移、上下文上限变化或健康过期都会
+撤销可路由状态。
+
+每个 Profile 的最大上下文是构建时合同。组装器先保留 system/safety/Schema、当前图文输入和车辆安全
+Context，再放入活动计划和会话摘要，最后放入较旧历史。超限时从最低优先级历史开始裁剪；不得删除当前图像、
+输出 Schema、安全约束或请求 fingerprint 所覆盖的内容。
+
+### 4.5 OpenClaw 过渡边界
 
 `OpenClawEndpointConfig.targetProductionTransitional()` 固定生产 link-local host、协议版本、连接和读取超时，
 并构造 WebSocket/控制 URI。凭据封装在配置对象中，但不得出现在日志、Event、HMI、异常或文档。
@@ -105,7 +123,7 @@ Provider 不可用时 fallback 必须由请求和 privacy policy 显式允许，
 当前 `release` 源集尚无实现 `ModelProvider` 的 OpenClaw 网络执行器，也未把该 Provider 装配到
 production router。因此配置与合同已存在，但生产推理尚未激活。
 
-### 4.5 结构化输出
+### 4.6 结构化输出
 
 `StructuredModelOutput.validate()` 严格解析 UTF-8 JSON，拒绝 unknown field、重复参数、超限、非法 enum、
 scenario/catalog/capability digest 不匹配和超出 `TargetRange` 的参数。接受结果仍设置
@@ -152,25 +170,29 @@ Provider token 概率只能作为未校准信号；生产校准器必须版本�
 ```mermaid
 sequenceDiagram
     participant G as Graph
-    participant R as Policy Router
+    participant P1 as Provider Router
+    participant P2 as Profile Router
     participant S as Resource Scheduler
     participant P as OpenClaw Provider
     participant V as Output Validator
     participant A as Governance
-    G->>R: ModelRequest + prompt metadata
-    R->>S: admitted route target
-    S-->>R: lease
-    R->>P: text + image + context
-    P-->>R: ordered chunks + terminal
-    R->>V: bounded output bytes
-    V-->>R: accepted candidate / rejection
-    R->>A: candidate actions
+    G->>P1: ModelRequest + policy snapshot
+    P1->>P2: admitted Provider + scenario + target health
+    P2->>S: fixed Profile + context budget
+    S-->>P2: lease
+    P2->>P: text + image + bounded context
+    P-->>P2: ordered chunks + terminal
+    P2->>V: bounded output bytes
+    V-->>P2: accepted candidate / rejection
+    P2->>A: candidate actions
     A-->>G: allow / approval / deny
 ```
 
 ## 7. 失败关闭与并发
 
 - Provider health stale/unhealthy、assurance 不足或 capability 不符时不调用网络。
+- Model Profile 身份、上下文或健康不匹配时不得调用 Provider，且不得静默选择通用 Profile。
+- 未完成真实预热或常驻目标已退出时撤销 route-ready。
 - queue wait 和 task deadline 任一到期即终止。
 - chunk 超限、乱序、重复 terminal 或 request ID 不匹配均隔离 Provider fault。
 - image/text/context 必须共享 request fingerprint。
@@ -183,6 +205,10 @@ sequenceDiagram
 - [ ] Provider 实现覆盖 SPI 全生命周期。
 - [ ] descriptor assurance 与实际 transport/硬件证据一致。
 - [ ] Router 顺序检查 privacy、network、thermal、health、capability。
+- [ ] Provider Router 与 Model Profile Router 分层，route digest 可追踪且无模型自选路径。
+- [ ] 专用 Profile 不可用时失败关闭，不回退到通用模型。
+- [ ] route-ready 前完成模型身份、上下文、文字/视觉真实预热检查。
+- [ ] 上下文裁剪保留 safety、Schema、当前图文输入和当前车辆 Context。
 - [ ] Scheduler 限制 global/owner/provider 并发和 deadline。
 - [ ] prompt 含座舱角色、服务目标、白名单和禁止自证执行。
 - [ ] 任意文本只产生结构化回复和最多四个白名单候选动作。

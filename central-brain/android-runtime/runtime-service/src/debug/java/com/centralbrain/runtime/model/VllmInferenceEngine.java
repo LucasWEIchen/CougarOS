@@ -74,6 +74,10 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                 int jpegQuality);
     }
 
+    interface WarmupProbe {
+        void verify(VllmEndpointConfig endpoint);
+    }
+
     private static final class AndroidImagePreprocessor implements ImagePreprocessor {
         @Override
         public byte[] prepareFastJpeg(
@@ -220,22 +224,26 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
     private final Transport transport;
     private final ElapsedClock clock;
     private final ImagePreprocessor imagePreprocessor;
+    private final WarmupProbe warmupProbe;
     private final Map<String, CockpitModelPrompt> pending = new LinkedHashMap<>();
     private final Map<String, ImageAttachment> pendingImages = new LinkedHashMap<>();
     private int pendingImageBytes;
     private ModelProvider.ModelSpec warmedModel;
+    private boolean endpointIdentityVerified;
     private boolean closed;
     private long invocationCount;
     private long completedCount;
     private long failureCount;
     private long lastLatencyMs;
+    private String lastFailureCode = "";
 
     public VllmInferenceEngine(VllmEndpointConfig endpoint) {
         this(
                 endpoint,
                 new UrlConnectionTransport(),
                 SystemClock::elapsedRealtime,
-                new AndroidImagePreprocessor());
+                new AndroidImagePreprocessor(),
+                new UrlConnectionWarmupProbe());
     }
 
     VllmInferenceEngine(VllmEndpointConfig endpoint, Transport transport) {
@@ -243,14 +251,15 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                 endpoint,
                 transport,
                 SystemClock::elapsedRealtime,
-                new AndroidImagePreprocessor());
+                new AndroidImagePreprocessor(),
+                ignored -> { });
     }
 
     VllmInferenceEngine(
             VllmEndpointConfig endpoint,
             Transport transport,
             ElapsedClock clock) {
-        this(endpoint, transport, clock, new AndroidImagePreprocessor());
+        this(endpoint, transport, clock, new AndroidImagePreprocessor(), ignored -> { });
     }
 
     VllmInferenceEngine(
@@ -258,9 +267,20 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
             Transport transport,
             ElapsedClock clock,
             ImagePreprocessor imagePreprocessor) {
+        this(endpoint, transport, clock, imagePreprocessor, ignored -> { });
+    }
+
+    VllmInferenceEngine(
+            VllmEndpointConfig endpoint,
+            Transport transport,
+            ElapsedClock clock,
+            ImagePreprocessor imagePreprocessor,
+            WarmupProbe warmupProbe) {
         this.endpoint = Objects.requireNonNull(endpoint, "endpoint");
         if (endpoint.getProfile()
-                != VllmEndpointConfig.Profile.TY1100_ETHERNET_VIA_ADB_REVERSE) {
+                        != VllmEndpointConfig.Profile.TY1100_GENERAL_9B_VIA_ADB_REVERSE
+                && endpoint.getProfile()
+                        != VllmEndpointConfig.Profile.TY1100_SMOKING_2B_VIA_ADB_REVERSE) {
             throw new IllegalArgumentException(
                     "debug vLLM engine accepts only the TY1100 prototype profile");
         }
@@ -268,6 +288,7 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         this.clock = Objects.requireNonNull(clock, "clock");
         this.imagePreprocessor = Objects.requireNonNull(
                 imagePreprocessor, "imagePreprocessor");
+        this.warmupProbe = Objects.requireNonNull(warmupProbe, "warmupProbe");
     }
 
     public synchronized void registerScenarioPrompt(String inputDigest, String scenarioId) {
@@ -319,9 +340,13 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
     }
 
     @Override
-    public synchronized void warmup(ModelProvider.ModelSpec modelSpec) {
-        requireOpen();
-        warmedModel = Objects.requireNonNull(modelSpec, "modelSpec");
+    public void warmup(ModelProvider.ModelSpec modelSpec) {
+        ModelProvider.ModelSpec requested = Objects.requireNonNull(modelSpec, "modelSpec");
+        synchronized (this) {
+            requireOpen();
+            warmedModel = requested;
+            endpointIdentityVerified = false;
+        }
     }
 
     @Override
@@ -363,6 +388,7 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                 throw new IllegalStateException(
                         "Vllm request was cancelled before transport");
             }
+            verifyEndpointIdentityOnInferenceWorker();
             if (prompt.getOutputContract()
                             == CockpitModelPrompt.OutputContract.SMOKING_DETECTION_V1
                     && imageAttachment == null) {
@@ -425,9 +451,11 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
             synchronized (this) {
                 completedCount++;
                 lastLatencyMs = latencyMs;
+                lastFailureCode = "";
             }
             logInfo("vllm_inference_completed=true"
-                    + " endpoint_profile=ty1100_ethernet_via_adb_reverse"
+                    + " endpoint_profile="
+                    + safeToken(endpoint.getProfile().name().toLowerCase())
                     + " model=" + safeToken(endpoint.getModelName())
                     + " image_present=" + (imageAttachment != null)
                     + " image_bytes="
@@ -447,13 +475,16 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                     + " raw_response_logged=false");
             return LocalModelProvider.EngineOutput.of(canonical);
         } catch (RuntimeException failure) {
+            String failureCode = safeFailureCode(failure);
             synchronized (this) {
                 failureCount++;
                 lastLatencyMs = Math.max(0L, clock.nowMs() - startedAt);
+                lastFailureCode = failureCode;
             }
             logError("vllm_inference_completed=false"
-                    + " endpoint_profile=ty1100_ethernet_via_adb_reverse"
-                    + " failure_code=" + safeFailureCode(failure)
+                    + " endpoint_profile="
+                    + safeToken(endpoint.getProfile().name().toLowerCase())
+                    + " failure_code=" + failureCode
                     + " network_accessed=" + networkAccessed
                     + " raw_prompt_logged=false"
                     + " raw_response_logged=false");
@@ -462,6 +493,20 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
             if (imageAttachment != null) {
                 imageAttachment.clear();
             }
+        }
+    }
+
+    private void verifyEndpointIdentityOnInferenceWorker() {
+        synchronized (this) {
+            requireOpen();
+            if (endpointIdentityVerified) {
+                return;
+            }
+        }
+        warmupProbe.verify(endpoint);
+        synchronized (this) {
+            requireOpen();
+            endpointIdentityVerified = true;
         }
     }
 
@@ -510,7 +555,8 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
                 completedCount,
                 failureCount,
                 pending.size(),
-                lastLatencyMs);
+                lastLatencyMs,
+                lastFailureCode);
     }
 
     private int remainingDeadlineMs(ModelProvider.InferenceRequest request) {
@@ -1074,18 +1120,22 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         private final long failureCount;
         private final int pendingPromptCount;
         private final long lastLatencyMs;
+        private final String lastFailureCode;
 
         Snapshot(
                 long invocationCount,
                 long completedCount,
                 long failureCount,
                 int pendingPromptCount,
-                long lastLatencyMs) {
+                long lastLatencyMs,
+                String lastFailureCode) {
             this.invocationCount = invocationCount;
             this.completedCount = completedCount;
             this.failureCount = failureCount;
             this.pendingPromptCount = pendingPromptCount;
             this.lastLatencyMs = lastLatencyMs;
+            this.lastFailureCode = Objects.requireNonNull(
+                    lastFailureCode, "lastFailureCode");
         }
 
         public long getInvocationCount() { return invocationCount; }
@@ -1093,6 +1143,78 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         public long getFailureCount() { return failureCount; }
         public int getPendingPromptCount() { return pendingPromptCount; }
         public long getLastLatencyMs() { return lastLatencyMs; }
+        public String getLastFailureCode() { return lastFailureCode; }
+    }
+
+    private static final class UrlConnectionWarmupProbe implements WarmupProbe {
+        @Override
+        public void verify(VllmEndpointConfig endpoint) {
+            Response health = executeGet(
+                    endpoint.getHealthUri(),
+                    endpoint.getConnectTimeoutMs(),
+                    Math.min(endpoint.getReadTimeoutMs(), 10_000),
+                    VllmEndpointConfig.MAX_RESPONSE_BYTES);
+            if (health.statusCode != 200) {
+                throw new IllegalStateException(
+                        "Vllm warmup health returned HTTP " + health.statusCode);
+            }
+            Response models = executeGet(
+                    endpoint.getModelsUri(),
+                    endpoint.getConnectTimeoutMs(),
+                    Math.min(endpoint.getReadTimeoutMs(), 10_000),
+                    VllmEndpointConfig.MAX_RESPONSE_BYTES);
+            if (models.statusCode != 200) {
+                throw new IllegalStateException(
+                        "Vllm warmup models returned HTTP " + models.statusCode);
+            }
+            try {
+                JsonObject catalog = JsonParser.parseString(
+                        decodeUtf8(models.body)).getAsJsonObject();
+                JsonArray data = catalog.getAsJsonArray("data");
+                if (data == null
+                        || data.size() != 1
+                        || !endpoint.getModelName().equals(
+                                requiredString(data.get(0).getAsJsonObject(), "id"))) {
+                    throw new IllegalStateException(
+                            "Vllm warmup model catalog does not match");
+                }
+            } catch (RuntimeException failure) {
+                if (failure instanceof IllegalStateException
+                        && failure.getMessage() != null
+                        && failure.getMessage().startsWith("Vllm warmup")) {
+                    throw failure;
+                }
+                throw new IllegalStateException(
+                        "Vllm warmup model catalog is invalid", failure);
+            }
+        }
+
+        private static Response executeGet(
+                URI uri,
+                int connectTimeoutMs,
+                int readTimeoutMs,
+                int maximumBytes) {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) uri.toURL().openConnection();
+                connection.setRequestMethod("GET");
+                connection.setInstanceFollowRedirects(false);
+                connection.setDoOutput(false);
+                connection.setConnectTimeout(connectTimeoutMs);
+                connection.setReadTimeout(readTimeoutMs);
+                connection.setRequestProperty("Accept", "application/json");
+                int status = connection.getResponseCode();
+                InputStream stream = status >= 200 && status < 400
+                        ? connection.getInputStream() : connection.getErrorStream();
+                return new Response(status, readBounded(stream, maximumBytes));
+            } catch (IOException failure) {
+                throw new IllegalStateException("Vllm warmup probe failed", failure);
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }
     }
 
     private static final class UrlConnectionTransport implements Transport {
@@ -1125,23 +1247,24 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
             }
         }
 
-        private static byte[] readBounded(InputStream stream, int maximumBytes)
-                throws IOException {
-            if (stream == null) {
-                return new byte[0];
-            }
-            try (InputStream input = stream;
-                    ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[4_096];
-                int count;
-                while ((count = input.read(buffer)) != -1) {
-                    if (output.size() + count > maximumBytes) {
-                        throw new IOException("Vllm response exceeds maximum bytes");
-                    }
-                    output.write(buffer, 0, count);
+    }
+
+    private static byte[] readBounded(InputStream stream, int maximumBytes)
+            throws IOException {
+        if (stream == null) {
+            return new byte[0];
+        }
+        try (InputStream input = stream;
+                ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[4_096];
+            int count;
+            while ((count = input.read(buffer)) != -1) {
+                if (output.size() + count > maximumBytes) {
+                    throw new IOException("Vllm response exceeds maximum bytes");
                 }
-                return output.toByteArray();
+                output.write(buffer, 0, count);
             }
+            return output.toByteArray();
         }
     }
 }

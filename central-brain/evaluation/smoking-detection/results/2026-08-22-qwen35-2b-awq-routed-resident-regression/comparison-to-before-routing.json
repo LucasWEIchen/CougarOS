@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "comparison_purpose": "ROUTING_RESIDENCY_PREWARM_REGRESSION",
+  "baseline_summary": "../2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json",
+  "candidate_summary": "summary.json",
+  "controlled_conditions": {
+    "model": "Qwen3.5-2B-AWQ",
+    "manifest_sha256": "d04ab0f8e10580af1d459b5a79bf0089ce5f502ea1d9e673ff608163de761101",
+    "samples": 200,
+    "temperature": 0,
+    "thinking_enabled": false,
+    "preprocessing_unchanged": true,
+    "agent_instruction_unchanged": true,
+    "wire_schema_unchanged": true
+  },
+  "classification": {
+    "baseline_test_accuracy": 0.983333,
+    "candidate_test_accuracy": 0.983333,
+    "baseline_false_negative": 1,
+    "candidate_false_negative": 1,
+    "mismatched_case": "096-positive",
+    "regression_detected": false
+  },
+  "latency": {
+    "baseline_end_to_end_mean_ms": 1346.056,
+    "candidate_end_to_end_mean_ms": 1360.964,
+    "mean_change_percent": 1.1075,
+    "baseline_end_to_end_p95_ms": 2208.778,
+    "candidate_end_to_end_p95_ms": 2211.615,
+    "p95_change_percent": 0.1284
+  },
+  "evidence_boundary": {
+    "android_runtime_inference_included": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

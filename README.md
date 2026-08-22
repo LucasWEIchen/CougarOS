@@ -44,9 +44,9 @@ flowchart LR
 | P4-R7/P4-R8/P4-R9/P4-R10/P4-R11 HMI 与模型链路 | 当前 Draft 分支已包含厂商三 APK 架构恢复、双入口、任意文本、吸烟合规多 Agent 与 TY1100 vLLM 链路；RenderService 已回到原版只读基线，物理触摸旋转仍需目标硬件复验 |
 | Client2 集成合同 | `0.23.0`，保留 P4-R9 “检测吸烟”图文入口并完成 P4-R11 厂商渲染边界恢复 |
 | Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
-| 唯一原型模型环境 | [TY1100 vLLM 原型说明](central-brain/integration/ty1100-vllm-prototype/README.md)：Android 实机经受控桥接访问 `Qwen3.5-9B-AWQ`，文字和单图已验证；9B 仍是默认模型，2B AWQ 仅完成同硬件离线候选评测，WSL Ollama 不再用于后续原型验收 |
+| 唯一原型模型环境 | [TY1100 vLLM 原型说明](central-brain/integration/ty1100-vllm-prototype/README.md)：Debug 原型在单卡常驻 9B/2B，先选 Provider、再按场景选模型 Profile；吸烟视觉场景使用 2B/4096 token，其余场景使用 9B/8192 token，启动时强制预热且不静默 fallback |
 | Model Prompt API | vLLM Debug Provider 与生产 OpenClaw 路径接收受控 `CockpitModelPrompt`，Provider 不获得执行权限 |
-| 座舱吸烟合规 Agent | 确定性 Router、版本化 Agent 指令、五字段严格校验和三分支条件 Schema 已形成；[正反例平衡评测、置信度与 2B 候选对比](central-brain/evaluation/smoking-detection/README.md)覆盖 200 张。2B 与 9B 逐样本判定一致，平均端到端耗时降低 48.75%，但模型自报置信度仍失真，校准器保持 `PILOT_NOT_DEPLOYABLE`，目标摄像头验收待完成 |
+| 座舱吸烟合规 Agent | 确定性 Agent Router 与 Model Profile Router、版本化指令、五字段严格校验和三分支条件 Schema 已形成；[正反例平衡评测与路由回归](central-brain/evaluation/smoking-detection/README.md)覆盖 200 张。常驻 2B 路由回归测试准确率 98.33%、端到端均值 1361 ms，但模型自报置信度仍失真，校准器保持 `PILOT_NOT_DEPLOYABLE`，目标摄像头验收待完成 |
 | 任意文本动作权限 | 当前仅投影模型回复与白名单候选，动态 Tool/Effect 编译保持关闭 |
 | OpenClaw 生产以太网文字/图片接口 | [客户 ETH 联调说明与 Java/Python 示例](central-brain/integration/openclaw-eth-client/README.md)已形成，release Provider 待实现与准入 |
 | 生产配置隔离 | Release 仍为 `target_openclaw_transitional`、`ws://169.254.208.110:18789`、协议 3、路由禁用；本次未修改 |

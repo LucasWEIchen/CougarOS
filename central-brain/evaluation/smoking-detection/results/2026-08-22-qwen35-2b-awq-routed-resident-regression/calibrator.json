@@ -1,0 +1,24 @@
+{
+  "type": "NOT_FITTED",
+  "target": "P_AUTOMATIC_DECISION_CORRECT",
+  "reason": "calibration split needs at least 30 terminal decisions and both outcomes",
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-22T04:46:58.484920+00:00",
+  "status": "PILOT_NOT_DEPLOYABLE",
+  "deployment_ready": false,
+  "model": "Qwen3.5-2B-AWQ",
+  "agent_instruction_sha256": "b769af4f42bcfe0bbfc45cf0625aab78ad5b19782efa9e604f4ac9fc7447ef6b",
+  "manifest_sha256": "d04ab0f8e10580af1d459b5a79bf0089ce5f502ea1d9e673ff608163de761101",
+  "route_digest": "096e1a54356dc4fc4c38cfcfcb3e439137f6a350bc75977556b9f65681486796",
+  "preprocessing": {
+    "source_resolution": "1920x1080",
+    "fast_image_maximum": "1280x720",
+    "fast_jpeg_quality": 85
+  },
+  "wire": {
+    "schema": "[status,count,location_code,confidence_percent]",
+    "logprobs": true,
+    "top_logprobs": 5,
+    "thinking_enabled": false
+  }
+}

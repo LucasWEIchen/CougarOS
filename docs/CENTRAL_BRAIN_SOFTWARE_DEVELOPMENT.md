@@ -557,9 +557,9 @@ void close();
 Provider assurance 为 `EMPTY / TEST_ONLY / DEBUG_ONLY / TARGET_INTEGRATION / PRODUCTION`。只有
 `PRODUCTION` 可以设置 `productionEligible=true`。
 
-### 15.3 Provider 选择
+### 15.3 两级模型路由
 
-`PolicyAwareModelRouter` 输入：
+第一级 `PolicyAwareModelRouter` 输入：
 
 - required capability 和模态。
 - privacy class。
@@ -570,7 +570,37 @@ Provider assurance 为 `EMPTY / TEST_ONLY / DEBUG_ONLY / TARGET_INTEGRATION / PR
 
 选择结果必须记录 provider ID 和决策摘要。`NO_FALLBACK` 不得路由到第二 Provider。
 
-### 15.4 OpenClaw 过渡 Provider
+第二级 `ModelProfileRouter` 只在第一级已准入的 Provider 内运行，输入为：
+
+- canonical scenario ID 与 `requiredCapability`。
+- `ModelRequest.requestFingerprint` 和 fallback policy。
+- 每个候选 Profile 的 `profileId`、`modelId`、served model、最大上下文。
+- 带 revision、采集时刻、有效期和摘要的健康快照。
+
+构建时路由表至少包含通用座舱 Profile 与吸烟合规视觉 Profile。吸烟场景必须同时要求
+`VISION_CLASSIFICATION`；其他场景不得误入专用 Profile。选中结果必须生成独立 route digest，随后与
+Provider route digest、专用 Agent route digest 组合为本次推理的 admitted route。Profile Router
+不调用模型、不授予动作权限、不请求 Effect dispatch。
+
+Profile 身份不匹配、目标未就绪、健康快照来自未来或已过期、请求允许 fallback 等不符合当前专用合同的
+情况必须失败关闭。禁止为了提高可用率把吸烟任务静默发送给通用模型。
+
+### 15.4 模型常驻、预热与上下文预算
+
+生产 Provider 生命周期按以下顺序执行：
+
+1. 加载构建时登记的模型 Profile，校验模型工件身份和最大上下文。
+2. 发布带有效期的健康快照。
+3. 对每个 Profile 执行与真实输入模态一致的预热请求；文字 Profile 使用结构化文字，视觉 Profile 使用图文。
+4. 预热成功后才将 Profile 标记为 route-ready；必要模型按资源计划常驻。
+5. 运行期持续检查进程、模型身份、资源水位和健康新鲜度；异常即撤销 route-ready。
+
+上下文预算由 Profile 给出硬上限，`ModelResourceAdmission` 再结合请求 deadline 和资源状态计算有效预算。
+上下文组装顺序固定为：不可删除的 system/safety/Schema、当前文字与图像、当前车辆 Context、活动 Plan 摘要、
+近期会话摘要、较旧历史。超限时从末尾按优先级裁剪，不得截断 UTF-8、JSON Schema、图像摘要或安全约束。
+调用方不能通过请求覆盖 Profile 上限。
+
+### 15.5 OpenClaw 过渡 Provider
 
 上层应用、Binder V2、图片 FD、车载以太网、WebSocket frame、流式回复和错误映射的字段级设计见
 2.1 节索引的“OpenClaw 生产以太网 API”模块详设。
@@ -608,7 +638,7 @@ Protocol: 3
 当前过渡 Provider 尚未达到 `PRODUCTION` assurance，因此 release 路由必须保持关闭，直到实现进入生产
 源集并完成凭据、故障恢复、资源、隐私和目标验收。
 
-### 15.5 `StructuredModelOutput`
+### 15.6 `StructuredModelOutput`
 
 输出 schema 只允许：
 
@@ -629,7 +659,7 @@ Protocol: 3
 未知字段、重复字段、未知场景、未知能力、错误类型、越界值或超过 16 KiB 必须拒绝。
 `AcceptedOutput.isActionAuthorizationGranted()` 永远返回 false。
 
-### 15.6 吸烟检测 Agent 输出
+### 15.7 吸烟检测 Agent 输出
 
 `CockpitModelPrompt.forSmokingDetection()` 绑定 `scene.cabin.compliance.smoking.v1`、专用 Agent ID、版本化
 指令和 `SMOKING_DETECTION_V1` 输出合同。Provider 必须具备 `VISION_CLASSIFICATION`，并把一张 PNG/JPEG

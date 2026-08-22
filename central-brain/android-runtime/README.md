@@ -1811,26 +1811,33 @@ model failure, missing HMI result or hardware-authority claim is observed.
 
 ## P4-R10-VLLM TY1100 prototype provider
 
-The default debug profile is `development_ty1100_vllm`. Android calls the fixed
-`http://127.0.0.1:10030/v1/chat/completions` endpoint through ADB reverse; WSL forwards that
-port over Ethernet and SSH to the TY1100 AI device's loopback-only vLLM service. The only admitted
-model identity is `Qwen3.5-9B-AWQ`. WSL Ollama and WSL OpenClaw are no longer valid prototype
-acceptance providers.
+The default debug profile is `development_ty1100_vllm`. It admits one fixed Provider and then
+uses `ModelProfileRouter` to select between two resident TY1100 vLLM targets. General cockpit
+workloads use `Qwen3.5-9B-AWQ` on Android loopback port 10030 with an 8192-token context ceiling;
+the smoking-compliance vision workload uses `Qwen3.5-2B-AWQ` on port 10031 with a 4096-token
+ceiling. Both ports traverse the bounded prototype bridge. WSL Ollama and WSL OpenClaw are no
+longer valid prototype acceptance providers.
 
 The OpenAI-compatible engine supports structured text and one digest-bound PNG/JPEG Data URL.
 Every output is parsed locally, rebound to the scenario, checked against required actions and the
-action allowlist, and denied all Tool, Safety, Effect and vehicle authority. The production Release
-OpenClaw endpoint, protocol and disabled routing state are unchanged.
+action allowlist, and denied all Tool, Safety, Effect and vehicle authority. Provider routing,
+model-profile routing and specialist-Agent routing each emit a digest. There is no fallback from
+the smoking profile to the general profile. Both model identities are checked and prewarmed before
+the route becomes usable. Android service creation performs no network I/O; the engine repeats the
+health and model-identity preflight on its inference worker before the first request. The production
+Release OpenClaw endpoint, protocol and disabled routing state are unchanged.
 
 ```bash
-tools/manage_central_brain_ty1100_vllm_bridge.sh start
+tools/manage_central_brain_ty1100_routed_vllm.sh start
 tools/run_central_brain_android_ty1100_vllm_probe.sh
 CENTRAL_BRAIN_CLIENT2_SCENARIO=smoking \
   tools/run_client2_central_brain_ty1100_vllm_test.sh
 ```
 
-Android 13 ARM64 passed both the structured text probe and Client2 smoking image route on
-2026-08-13. See `central-brain/integration/ty1100-vllm-prototype/README.md` and
+Android 13 ARM64 passed the general 9B structured-text route and Client2 smoking 2B image route on
+2026-08-22. A 200-case post-routing smoking regression retained 98.33% independent-test accuracy
+with 1360.964 ms mean and 2211.615 ms P95 end-to-end latency. See
+`central-brain/integration/ty1100-vllm-prototype/README.md` and
 `central-brain/contracts/central_brain_android_ty1100_vllm_prototype_v1.json`.
 `direct_android_ethernet_validated=false`, `vehicle_effect_hardware_accessed=false`,
 `production_configuration_changed=false`, `production_ready=false`,

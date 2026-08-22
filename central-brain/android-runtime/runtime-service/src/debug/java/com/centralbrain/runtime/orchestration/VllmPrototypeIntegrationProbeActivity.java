@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.centralbrain.runtime.BuildConfig;
 import com.centralbrain.runtime.model.ModelProviderRegistry;
+import com.centralbrain.runtime.model.ModelProfileRouter;
 import com.centralbrain.runtime.model.VllmEndpointConfig;
 import com.centralbrain.runtime.scenario.ScenarioCatalog;
 
@@ -61,6 +62,9 @@ public final class VllmPrototypeIntegrationProbeActivity extends Activity {
                     && evidence.getAssistantDisplayText().length() <= 256
                     && ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID.equals(
                             evidence.getModelProviderId())
+                    && ModelProfileRouter.GENERAL_PROFILE_ID.equals(
+                            evidence.getModelProfileId())
+                    && "central-intent-general-v1".equals(evidence.getModelId())
                     && evidence.getModelLatencyMs() >= 0L
                     && evidence.getModelLatencyMs() <= 120_000L;
             boolean authorityClosed = !evidence.isAutoExecutionAuthorized()
@@ -79,10 +83,15 @@ public final class VllmPrototypeIntegrationProbeActivity extends Activity {
             Log.i(TAG, "nonce=" + nonce
                     + " vllm_prototype_probe_complete=" + complete
                     + " provider_id=" + evidence.getModelProviderId()
+                    + " model_profile_id=" + evidence.getModelProfileId()
+                    + " model_id=" + evidence.getModelId()
                     + " model_latency_ms=" + evidence.getModelLatencyMs()
                     + " response_chars=" + evidence.getAssistantDisplayText().length()
-                    + " endpoint_profile=ty1100_ethernet_via_adb_reverse"
-                    + " model=" + VllmEndpointConfig.EXPECTED_MODEL
+                    + " endpoint_profile=ty1100_general_9b_via_adb_reverse"
+                    + " model=" + VllmEndpointConfig.GENERAL_MODEL
+                    + " context_tokens="
+                    + VllmEndpointConfig.GENERAL_MAX_CONTEXT_TOKENS
+                    + " model_routing_enabled=true"
                     + " android_transport=ADB_REVERSE"
                     + " ai_transport=ETHERNET_SSH_TUNNEL"
                     + " network_accessed=" + evidence.isNetworkAccessed()
@@ -127,7 +136,21 @@ public final class VllmPrototypeIntegrationProbeActivity extends Activity {
                 || !"development_ty1100_vllm".equals(
                         BuildConfig.MODEL_GATEWAY_PROFILE)
                 || !"http://127.0.0.1:10030".equals(BuildConfig.VLLM_BASE_URL)
-                || !VllmEndpointConfig.EXPECTED_MODEL.equals(BuildConfig.VLLM_MODEL)) {
+                || !VllmEndpointConfig.EXPECTED_MODEL.equals(BuildConfig.VLLM_MODEL)
+                || !BuildConfig.VLLM_MODEL_ROUTING_ENABLED
+                || !BuildConfig.VLLM_PREWARM_REQUIRED
+                || !"http://127.0.0.1:10030".equals(
+                        BuildConfig.VLLM_GENERAL_BASE_URL)
+                || !VllmEndpointConfig.GENERAL_MODEL.equals(
+                        BuildConfig.VLLM_GENERAL_MODEL)
+                || BuildConfig.VLLM_GENERAL_CONTEXT_TOKENS
+                        != ModelProfileRouter.GENERAL_MAX_CONTEXT_TOKENS
+                || !"http://127.0.0.1:10031".equals(
+                        BuildConfig.VLLM_SMOKING_BASE_URL)
+                || !VllmEndpointConfig.SMOKING_MODEL.equals(
+                        BuildConfig.VLLM_SMOKING_MODEL)
+                || BuildConfig.VLLM_SMOKING_CONTEXT_TOKENS
+                        != ModelProfileRouter.SMOKING_MAX_CONTEXT_TOKENS) {
             throw new IllegalStateException("TY1100 vLLM prototype profile disabled");
         }
     }
