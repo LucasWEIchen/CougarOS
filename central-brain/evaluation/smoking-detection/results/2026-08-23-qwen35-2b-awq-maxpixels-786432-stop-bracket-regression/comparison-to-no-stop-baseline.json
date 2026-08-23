@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "comparison_purpose": "QWEN35_2B_COMPACT_STOP_SEQUENCE_REGRESSION",
+  "baseline_summary": "../2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/summary.json",
+  "candidate_summary": "summary.json",
+  "controlled_conditions": {
+    "model": "Qwen3.5-2B-AWQ",
+    "manifest_sha256": "d04ab0f8e10580af1d459b5a79bf0089ce5f502ea1d9e673ff608163de761101",
+    "samples": 200,
+    "processor_longest_edge": 786432,
+    "prompt_tokens_per_request": 1450,
+    "temperature": 0,
+    "thinking_enabled": false,
+    "max_output_tokens": 24,
+    "agent_instruction_unchanged": true,
+    "wire_schema_unchanged": true,
+    "prefix_caching_enabled": false
+  },
+  "termination": {
+    "baseline_stop": null,
+    "candidate_stop": [
+      "]"
+    ],
+    "candidate_include_stop_str_in_output": true,
+    "baseline_completion_tokens_per_request": 12,
+    "candidate_completion_tokens_per_request": 11,
+    "completion_token_change_percent": -8.3333
+  },
+  "classification": {
+    "baseline_test_accuracy": 1.0,
+    "candidate_test_accuracy": 1.0,
+    "baseline_false_negative": 0,
+    "candidate_false_negative": 0,
+    "baseline_contract_or_transport_errors": 0,
+    "candidate_contract_or_transport_errors": 0,
+    "quality_regression_observed": false
+  },
+  "latency": {
+    "baseline_end_to_end_mean_ms": 1574.73,
+    "candidate_end_to_end_mean_ms": 1406.801,
+    "mean_change_percent": -10.664,
+    "baseline_end_to_end_p50_ms": 1474.101,
+    "candidate_end_to_end_p50_ms": 1374.285,
+    "p50_change_percent": -6.7713,
+    "baseline_end_to_end_p95_ms": 2523.892,
+    "candidate_end_to_end_p95_ms": 1897.756,
+    "p95_change_percent": -24.8084,
+    "baseline_end_to_end_p99_ms": 2817.936,
+    "candidate_end_to_end_p99_ms": 2620.562,
+    "p99_change_percent": -7.0042,
+    "baseline_images_per_minute": 38.1018,
+    "candidate_images_per_minute": 42.65,
+    "throughput_change_percent": 11.9369,
+    "latency_improvement_observed": true
+  },
+  "engine_stage_change": {
+    "baseline_prefill_mean_ms": 332.458618,
+    "candidate_prefill_mean_ms": 333.199513,
+    "prefill_change_percent": 0.2229,
+    "baseline_decode_mean_ms": 874.30129,
+    "candidate_decode_mean_ms": 794.8908,
+    "decode_change_percent": -9.0827,
+    "baseline_engine_end_to_end_mean_ms": 1367.82811,
+    "candidate_engine_end_to_end_mean_ms": 1263.535812,
+    "engine_end_to_end_change_percent": -7.6247
+  },
+  "interpretation": {
+    "result": "The retained closing-bracket stop sequence removed one generation token without changing compact output content.",
+    "causal_support": "A 40-pair alternating same-session pilot produced identical outputs and a 105.65 ms lower candidate mean; the separate 200-sample regression confirmed the direction.",
+    "scope": "Fixed TY1100 debug vLLM provider only; this is a vLLM request extension, not a production OpenAI compatibility claim."
+  },
+  "evidence_boundary": {
+    "android_runtime_inference_included": false,
+    "production_configuration_changed": false,
+    "production_ready": false,
+    "target_camera_validated": false,
+    "target_hardware_validated": false
+  }
+}

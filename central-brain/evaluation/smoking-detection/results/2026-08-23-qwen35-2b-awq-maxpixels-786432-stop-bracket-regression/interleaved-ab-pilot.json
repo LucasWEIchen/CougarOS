@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "purpose": "SAME_SESSION_STOP_SEQUENCE_LATENCY_PROBE",
+  "model": "Qwen3.5-2B-AWQ",
+  "pairs": 40,
+  "request_order": "alternating control-first and candidate-first",
+  "logprobs_requested": false,
+  "outputs_equal": 40,
+  "classification_correct": {
+    "control": 40,
+    "candidate": 40
+  },
+  "completion_tokens": {
+    "control": 12,
+    "candidate": 11
+  },
+  "latency_ms": {
+    "control": {
+      "mean": 1286.371,
+      "p50": 1212.932,
+      "p95": 1474.436
+    },
+    "candidate": {
+      "mean": 1180.721,
+      "p50": 1117.742,
+      "p95": 1348.93
+    }
+  },
+  "paired_candidate_minus_control_ms": {
+    "mean": -105.65,
+    "median": -120.411,
+    "candidate_faster_pairs": 21
+  },
+  "evidence_boundary": {
+    "pilot_only": true,
+    "android_runtime_inference_included": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

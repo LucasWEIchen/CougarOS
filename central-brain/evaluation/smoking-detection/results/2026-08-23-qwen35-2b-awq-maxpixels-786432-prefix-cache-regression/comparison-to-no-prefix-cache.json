@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "comparison_purpose": "QWEN35_2B_PREFIX_CACHE_REGRESSION",
+  "baseline_summary": "../2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/summary.json",
+  "candidate_summary": "summary.json",
+  "classification": {
+    "baseline_test_accuracy": 1.0,
+    "candidate_test_accuracy": 1.0,
+    "candidate_contract_or_transport_errors": 0
+  },
+  "cache": {
+    "queried_tokens": 290000,
+    "hit_tokens": 0,
+    "hit_rate": 0.0,
+    "cause": "Each multimodal request places a different image inside the prefix, so no complete reusable block was observed."
+  },
+  "latency": {
+    "baseline_end_to_end_mean_ms": 1574.73,
+    "candidate_end_to_end_mean_ms": 1662.815,
+    "mean_change_percent": 5.5937,
+    "baseline_end_to_end_p50_ms": 1474.101,
+    "candidate_end_to_end_p50_ms": 1576.305,
+    "p50_change_percent": 6.9333,
+    "baseline_end_to_end_p95_ms": 2523.892,
+    "candidate_end_to_end_p95_ms": 2076.821,
+    "p95_change_percent": -17.7136,
+    "baseline_end_to_end_p99_ms": 2817.936,
+    "candidate_end_to_end_p99_ms": 2991.315,
+    "p99_change_percent": 6.1527
+  },
+  "decision": {
+    "accepted": false,
+    "reason": "No cache hits were observed and mean, P50, P99, and wall-clock latency regressed.",
+    "runtime_restored_to_prefix_caching_enabled": false
+  },
+  "evidence_boundary": {
+    "android_runtime_inference_included": false,
+    "production_configuration_changed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

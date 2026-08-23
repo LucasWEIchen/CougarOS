@@ -379,3 +379,67 @@ vLLM 计数器在正式 200 请求窗口内给出的均值为：queue `0.541 ms`
 
 该结果只证明 TY1100 原型链路上的一次固定数据回归，不包含 Android Runtime、生产以太网、真实摄像头、
 并发或长稳验收。`production_ready=false`、`target_hardware_validated=false`。
+
+## 16. 紧凑输出终止优化
+
+### 16.1 被拒绝的候选
+
+2026-08-23 先验证了两项候选，但均未进入交付配置：
+
+| 候选 | 观察 | 决策 |
+| --- | --- | --- |
+| 六位整数打包 wire | 正例 `001` 被判为阴性，反例 `001` 被判为不确定；prompt 还从 1450 增至 1560 token | 质量门失败，未集成 |
+| vLLM prefix caching | 200 请求查询 290,000 token、命中 0 token；端到端均值和 P50 分别回退 5.59% 和 6.93% | 已关闭并重建无缓存服务 |
+
+prefix caching 的正式窗口没有命中，是因为每次多模态请求都在可缓存前缀中包含不同图片，无法形成完整的
+重复 block。该结果不证明 prefix caching 对纯文本或重新设计过消息顺序的请求无效，只证明它不适合当前
+吸烟检测请求。回滚后运行指标为 `enable_prefix_caching=False`，9B/2B 双模型仍保持常驻和两轮预热。
+
+- [整数打包探针](results/2026-08-23-rejected-packed-wire-probe.json)
+- [prefix caching 逐样本结果](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-prefix-cache-regression/cases.csv)
+- [prefix caching 引擎指标](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-prefix-cache-regression/engine-metrics-delta.json)
+- [prefix caching 决策对比](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-prefix-cache-regression/comparison-to-no-prefix-cache.json)
+
+### 16.2 保留闭括号的 stop 策略
+
+紧凑数组的 200 个基线响应均消耗 12 个 completion token，其中最后一个是 JSON 完成后的 EOS。TY1100
+Debug vLLM 请求现只在 `SMOKING_FAST` 通道增加：
+
+```json
+{"stop":["]"],"include_stop_str_in_output":true}
+```
+
+服务在生成 `]` 后结束并保留该字符，因此 Provider 仍收到完整四元素 JSON，`finish_reason` 仍为 `stop`，
+严格 Schema 和 `SmokingDetectionResult.parseCompactWire()` 均未放宽。通用座舱请求和五字段原图回退请求
+不发送这两个 vLLM 扩展字段。
+
+40 对同会话交错 A/B 中，控制与候选输出 40/40 完全相同，两组分类均 40/40 正确；候选 completion 从
+12 降到 11 token，均值降低 105.650 ms。随后固定 200 张正式回归结果为：
+
+| 指标 | 无 stop 基线 | 保留 `]` 的 stop | 变化 |
+| --- | ---: | ---: | ---: |
+| Completion token/请求 | 12 | 11 | -8.33% |
+| 测试集准确率 | 100.00% | 100.00% | 相同 |
+| 合同或传输错误 | 0 | 0 | 相同 |
+| 端到端平均耗时 | 1,574.730 ms | 1,406.801 ms | -10.66% |
+| 端到端 P50 | 1,474.101 ms | 1,374.285 ms | -6.77% |
+| 端到端 P95 | 2,523.892 ms | 1,897.756 ms | -24.81% |
+| 端到端 P99 | 2,817.936 ms | 2,620.562 ms | -7.00% |
+| 串行吞吐 | 38.102 张/分钟 | 42.650 张/分钟 | +11.94% |
+
+引擎 prefill 均值基本不变：`332.459 → 333.200 ms`；decode 从 `874.301` 降至
+`794.891 ms`，引擎内部端到端从 `1367.828` 降至 `1263.536 ms`。因此收益方向与减少一个解码步一致。
+尾延迟仍有 2.6 秒级峰值，需要作为独立问题继续分析。
+
+- [同会话交错 A/B](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-stop-bracket-regression/interleaved-ab-pilot.json)
+- [逐样本结果](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-stop-bracket-regression/cases.csv)
+- [机器汇总](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-stop-bracket-regression/summary.json)
+- [vLLM 分阶段指标](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-stop-bracket-regression/engine-metrics-delta.json)
+- [与无 stop 基线对比](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-stop-bracket-regression/comparison-to-no-stop-baseline.json)
+- [Android testboard 单场景链路验证](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-stop-bracket-regression/android-testboard-smoke.json)
+
+更新后的 Runtime APK 已在 Android 13 `testboard` 上完成一次真实 Client2 吸烟场景链路验证：固定图片经
+Android Runtime 调用 TY1100 2B，单次 Runtime 延迟 `1073 ms`，快速通道一次完成且 HMI 投影成功。
+该单次 ADB reverse 结果不构成 Android 性能分布、生产直连以太网或目标摄像头验收。stop 字段仍只是固定
+TY1100 vLLM Debug Provider 扩展，不构成生产 OpenAI API 兼容性声明；并发和长稳也未覆盖。
+`production_ready=false`、`target_hardware_validated=false`。

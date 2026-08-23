@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "purpose": "PACKED_INTEGER_WIRE_QUALITY_PROBE",
+  "encoding": "(status+1)*100000 + count*10000 + location*1000 + confidence_percent",
+  "model": "Qwen3.5-2B-AWQ",
+  "prompt_tokens_per_request": 1560,
+  "completion_tokens_per_request": 7,
+  "cases": [
+    {
+      "sample": "001-positive",
+      "expected_status": 1,
+      "raw_output": 100095,
+      "decoded_status": 0,
+      "quality_gate_passed": false
+    },
+    {
+      "sample": "001-negative",
+      "expected_status": 0,
+      "raw_output": 300049,
+      "decoded_status": 2,
+      "quality_gate_passed": false
+    }
+  ],
+  "decision": {
+    "accepted": false,
+    "reason": "Both positive and negative probes failed the expected terminal classification, and the encoding instructions increased prompt tokens."
+  },
+  "evidence_boundary": {
+    "probe_only": true,
+    "android_runtime_inference_included": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

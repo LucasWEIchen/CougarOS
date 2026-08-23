@@ -27,6 +27,7 @@ FAST_WIDTH = 1280
 FAST_HEIGHT = 720
 FAST_JPEG_QUALITY = 85
 FAST_MAX_TOKENS = 24
+FAST_STOP_SEQUENCE = "]"
 FALLBACK_MAX_TOKENS = 64
 FAST_ACCEPT_CONFIDENCE = 0.80
 
@@ -137,6 +138,7 @@ def request_body(
     schema: dict[str, Any],
     max_tokens: int,
     model: str = baseline.MODEL,
+    stop_on_closing_bracket: bool = False,
 ) -> bytes:
     body = {
         "model": model,
@@ -172,6 +174,9 @@ def request_body(
             },
         },
     }
+    if stop_on_closing_bracket:
+        body["stop"] = [FAST_STOP_SEQUENCE]
+        body["include_stop_str_in_output"] = True
     return json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode(
         "utf-8"
     )
@@ -332,6 +337,7 @@ def evaluate_case(
                 "central_brain_smoking_wire_v2",
                 compact_schema(),
                 FAST_MAX_TOKENS,
+                stop_on_closing_bracket=True,
             ),
         )
         row["pass_count"] = 1
@@ -428,6 +434,8 @@ def summarize(
             "fast_jpeg_quality": FAST_JPEG_QUALITY,
             "fast_wire": "[status,count,location_code,confidence_percent]",
             "fast_max_tokens": FAST_MAX_TOKENS,
+            "fast_stop": [FAST_STOP_SEQUENCE],
+            "include_stop_str_in_output": True,
             "fast_accept_confidence": FAST_ACCEPT_CONFIDENCE,
             "fallback_image": "ORIGINAL_1920x1080",
             "fallback_contract": "FIVE_FIELD_V1",

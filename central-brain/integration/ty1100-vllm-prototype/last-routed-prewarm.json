@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-08-22T05:05:30.604940+00:00",
+  "generated_at_utc": "2026-08-23T09:46:12.087557+00:00",
   "profile": "ty1100-routed-dual-model-v1",
   "targets": [
     {
@@ -21,13 +21,13 @@
   "passes": [
     {
       "pass": 1,
-      "general_9b_ms": 4666.593,
-      "smoking_2b_ms": 1303.213
+      "general_9b_ms": 5305.517,
+      "smoking_2b_ms": 1428.976
     },
     {
       "pass": 2,
-      "general_9b_ms": 4632.581,
-      "smoking_2b_ms": 1174.737
+      "general_9b_ms": 5199.754,
+      "smoking_2b_ms": 1374.545
     }
   ],
   "evidence_boundary": {

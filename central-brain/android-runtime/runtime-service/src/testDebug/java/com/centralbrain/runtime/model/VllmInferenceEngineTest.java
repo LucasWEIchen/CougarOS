@@ -49,6 +49,7 @@ public final class VllmInferenceEngineTest {
         assertTrue(requestJson.contains("\"response_format\""));
         assertTrue(requestJson.contains("\"json_schema\""));
         assertTrue(requestJson.contains("\"max_tokens\":192"));
+        assertFalse(requestJson.contains("\"include_stop_str_in_output\""));
         assertTrue(requestJson.contains("scene.comfort.cold.v1"));
         assertTrue(requestJson.contains("键名scenario_id、reply、actions必须完全一致"));
         assertTrue(requestJson.contains("actions的每一项必须是可用动作中的字符串"));
@@ -145,6 +146,8 @@ public final class VllmInferenceEngineTest {
         assertTrue(requestJson.contains(
                 "\"max_tokens\":"
                         + VllmInferenceEngine.SMOKING_FAST_MAX_OUTPUT_TOKENS));
+        assertTrue(requestJson.contains("\"stop\":[\"]\"]"));
+        assertTrue(requestJson.contains("\"include_stop_str_in_output\":true"));
         assertTrue(requestJson.contains(
                 "data:image/jpeg;base64,/9j/2Q=="));
         assertFalse(requestJson.contains("uniqueItems"));
@@ -193,10 +196,14 @@ public final class VllmInferenceEngineTest {
         assertTrue(fastRequest.contains(
                 "\"max_tokens\":"
                         + VllmInferenceEngine.SMOKING_FAST_MAX_OUTPUT_TOKENS));
+        assertTrue(fastRequest.contains("\"stop\":[\"]\"]"));
+        assertTrue(fastRequest.contains("\"include_stop_str_in_output\":true"));
         assertTrue(fastRequest.contains("central_brain_smoking_wire_v2"));
         assertTrue(fallbackRequest.contains(
                 "\"max_tokens\":"
                         + VllmInferenceEngine.SMOKING_FALLBACK_MAX_OUTPUT_TOKENS));
+        assertFalse(fallbackRequest.contains("\"stop\""));
+        assertFalse(fallbackRequest.contains("\"include_stop_str_in_output\""));
         assertTrue(fallbackRequest.contains("central_brain_smoking_detection_v1"));
         assertTrue(fallbackRequest.contains("data:image/png;base64,iVBORw0KGgo="));
         assertTrue(fallbackRequest.contains("\"enable_thinking\":false"));

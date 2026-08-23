@@ -50,11 +50,30 @@ class SmokingConfidenceEvaluationTest(unittest.TestCase):
             confidence.fast.compact_schema(),
             confidence.fast.FAST_MAX_TOKENS,
             "Qwen3.5-2B-AWQ",
+            stop_on_closing_bracket=True,
         )
 
         payload = confidence.baseline.strict_json(body)
         self.assertEqual("Qwen3.5-2B-AWQ", payload["model"])
         self.assertFalse(payload["chat_template_kwargs"]["enable_thinking"])
+        self.assertEqual(["]"], payload["stop"])
+        self.assertTrue(payload["include_stop_str_in_output"])
+
+    def test_fallback_request_does_not_use_compact_stop_extension(self) -> None:
+        body = confidence.fast.request_body(
+            b"jpeg",
+            "image/jpeg",
+            "system",
+            "user",
+            "schema",
+            {"type": "object"},
+            confidence.fast.FALLBACK_MAX_TOKENS,
+            "Qwen3.5-2B-AWQ",
+        )
+
+        payload = confidence.baseline.strict_json(body)
+        self.assertNotIn("stop", payload)
+        self.assertNotIn("include_stop_str_in_output", payload)
 
     def test_classification_metrics_accept_empty_split(self) -> None:
         metrics = confidence.classification_metrics([])

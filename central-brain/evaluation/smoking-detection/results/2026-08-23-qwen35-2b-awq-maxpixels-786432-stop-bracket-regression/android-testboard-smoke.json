@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-23T09:46:44Z",
+  "purpose": "ANDROID_RUNTIME_SINGLE_SCENARIO_SMOKE",
+  "device": {
+    "alias": "testboard",
+    "android_api": 33,
+    "abi": "arm64",
+    "display": "1920x1080"
+  },
+  "transport": {
+    "class": "ADB_REVERSE_AND_ETHERNET_SSH_TUNNEL",
+    "android_endpoint": "http://127.0.0.1:10031",
+    "direct_android_ethernet_validated": false
+  },
+  "model": {
+    "endpoint_profile": "ty1100_smoking_2b_via_adb_reverse",
+    "name": "Qwen3.5-2B-AWQ",
+    "thinking_enabled": false,
+    "prefix_caching_enabled": false,
+    "preprocessor_longest_edge": 786432
+  },
+  "input": {
+    "image_present": true,
+    "image_bytes": 206611,
+    "image_sha256": "fc561d2870d467da910353e6623ab39f056641bf4169083953b9d3c9c82f10a7",
+    "fast_image_bytes": 29904
+  },
+  "result": {
+    "runtime_latency_ms": 1073,
+    "pass_count": 1,
+    "fallback_used": false,
+    "client2_orchestration_state": 5,
+    "model_projection_available": true,
+    "response_only_hmi_projection_verified": true,
+    "effect_count": 0,
+    "raw_prompt_logged": false,
+    "raw_response_logged": false
+  },
+  "evidence_boundary": {
+    "single_request_only": true,
+    "production_configuration_changed": false,
+    "vehicle_effect_hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

@@ -535,6 +535,7 @@ def evaluate_case(
                 fast.compact_schema(),
                 fast.FAST_MAX_TOKENS,
                 model,
+                stop_on_closing_bracket=True,
             )
         )
         content, logprobs, usage, request_ms = execute_completion(
@@ -688,6 +689,8 @@ def main() -> int:
                 "logprobs": True,
                 "top_logprobs": TOP_LOGPROBS,
                 "thinking_enabled": False,
+                "stop": [fast.FAST_STOP_SEQUENCE],
+                "include_stop_str_in_output": True,
             },
         }
     )
@@ -709,6 +712,8 @@ def main() -> int:
             "thinking_enabled": False,
             "token_logprobs_requested": True,
             "top_logprobs": TOP_LOGPROBS,
+            "stop": [fast.FAST_STOP_SEQUENCE],
+            "include_stop_str_in_output": True,
         },
         "splits": by_split,
         "latency": {

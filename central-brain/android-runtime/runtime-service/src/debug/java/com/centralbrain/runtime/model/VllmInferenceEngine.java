@@ -591,6 +591,12 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
             maximumOutputTokens = SMOKING_FALLBACK_MAX_OUTPUT_TOKENS;
         }
         root.addProperty("max_tokens", maximumOutputTokens);
+        if (profile == RequestProfile.SMOKING_FAST) {
+            JsonArray stop = new JsonArray();
+            stop.add("]");
+            root.add("stop", stop);
+            root.addProperty("include_stop_str_in_output", true);
+        }
         JsonObject chatTemplateKwargs = new JsonObject();
         chatTemplateKwargs.addProperty("enable_thinking", false);
         root.add("chat_template_kwargs", chatTemplateKwargs);

@@ -46,7 +46,7 @@ flowchart LR
 | Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
 | 唯一原型模型环境 | [TY1100 vLLM 原型说明](central-brain/integration/ty1100-vllm-prototype/README.md)：Debug 原型在单卡常驻 9B/2B，先选 Provider、再按场景选模型 Profile；吸烟视觉场景使用 2B/4096 token，其余场景使用 9B/8192 token，启动时强制预热且不静默 fallback |
 | Model Prompt API | vLLM Debug Provider 与生产 OpenClaw 路径接收受控 `CockpitModelPrompt`，Provider 不获得执行权限 |
-| 座舱吸烟合规 Agent | 确定性 Agent Router 与 Model Profile Router、版本化指令、五字段严格校验和三分支条件 Schema 已形成；[正反例平衡评测、路由回归及像素上限实验](central-brain/evaluation/smoking-detection/README.md)覆盖固定 200 张。TY1100 2B 原型当前使用 `longest_edge=786432`：prompt token 降至 1450，本轮测试集准确率 100%，但端到端均值 1575 ms、P95 2524 ms，未观察到加速；模型自报置信度仍不可校准，目标摄像头验收待完成 |
+| 座舱吸烟合规 Agent | 确定性 Agent Router、Model Profile Router、版本化指令、五字段严格校验和三分支条件 Schema 已形成；[正反例平衡评测及逐项优化证据](central-brain/evaluation/smoking-detection/README.md)覆盖固定 200 张。TY1100 2B 原型保持 `longest_edge=786432`，prefix caching 因 0 命中已关闭；快速通道用保留 `]` 的 stop 扩展把 completion 从 12 降到 11 token，测试集准确率仍为 100%，端到端均值 1407 ms、P95 1898 ms。Android 13 `testboard` 单场景实链路为 1073 ms；模型自报置信度仍不可校准，目标摄像头、并发和长稳验收待完成 |
 | 任意文本动作权限 | 当前仅投影模型回复与白名单候选，动态 Tool/Effect 编译保持关闭 |
 | OpenClaw 生产以太网文字/图片接口 | [客户 ETH 联调说明与 Java/Python 示例](central-brain/integration/openclaw-eth-client/README.md)已形成，release Provider 待实现与准入 |
 | 生产配置隔离 | Release 仍为 `target_openclaw_transitional`、`ws://169.254.208.110:18789`、协议 3、路由禁用；本次未修改 |
