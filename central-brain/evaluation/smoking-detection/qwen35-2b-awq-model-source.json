@@ -40,8 +40,19 @@
     "vllm_version": "0.17.0",
     "quantization_kernel": "awq_marlin",
     "temporary_endpoint": "http://127.0.0.1:10031",
-    "baseline_restored_after_test": true,
-    "result": "results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json"
+    "baseline_restored_after_initial_test": true,
+    "active_preprocessor_override": {
+      "scope": "TY1100_PROTOTYPE_ONLY",
+      "applied_at_utc": "2026-08-23T08:38:49Z",
+      "file": "/opt/models/Qwen3.5-2B-AWQ/preprocessor_config.json",
+      "shortest_edge": 65536,
+      "longest_edge": 786432,
+      "before_sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "after_sha256": "2334948ed5ca254f673c9b39d3a8f41ebf901f2930c65f12c48365147f46117b",
+      "backup": "/opt/models/Qwen3.5-2B-AWQ/preprocessor_config.json.before-maxpixels-786432-20260823T083849Z"
+    },
+    "prior_result": "results/2026-08-22-qwen35-2b-awq-balanced-confidence-pilot/summary.json",
+    "active_result": "results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/summary.json"
   },
   "evidence_boundary": {
     "vllm_compatibility_verified": true,

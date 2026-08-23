@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "comparison_purpose": "QWEN35_2B_IMAGE_MAX_PIXELS_REGRESSION",
+  "baseline_summary": "../2026-08-22-qwen35-2b-awq-routed-resident-regression/summary.json",
+  "candidate_summary": "summary.json",
+  "configuration": {
+    "file": "/opt/models/Qwen3.5-2B-AWQ/preprocessor_config.json",
+    "shortest_edge_before": 65536,
+    "shortest_edge_after": 65536,
+    "longest_edge_before": 16777216,
+    "longest_edge_after": 786432,
+    "before_sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "after_sha256": "2334948ed5ca254f673c9b39d3a8f41ebf901f2930c65f12c48365147f46117b",
+    "backup": "/opt/models/Qwen3.5-2B-AWQ/preprocessor_config.json.before-maxpixels-786432-20260823T083849Z"
+  },
+  "controlled_conditions": {
+    "model": "Qwen3.5-2B-AWQ",
+    "manifest_sha256": "d04ab0f8e10580af1d459b5a79bf0089ce5f502ea1d9e673ff608163de761101",
+    "samples": 200,
+    "source_resolution": "1920x1080",
+    "android_equivalent_fast_image_maximum": "1280x720",
+    "fast_jpeg_quality": 85,
+    "temperature": 0,
+    "thinking_enabled": false,
+    "max_output_tokens": 24,
+    "request_order": "manifest order, serial",
+    "agent_instruction_unchanged": true,
+    "wire_schema_unchanged": true
+  },
+  "vision_input": {
+    "processor_size_before": "1280x704",
+    "processor_size_after": "1152x640",
+    "merged_visual_tokens_before": 880,
+    "merged_visual_tokens_after": 720,
+    "merged_visual_tokens_change_percent": -18.1818,
+    "prompt_tokens_before": 1610.0,
+    "prompt_tokens_after": 1450.0,
+    "prompt_tokens_change_percent": -9.9379
+  },
+  "classification": {
+    "baseline_test_accuracy": 0.983333,
+    "candidate_test_accuracy": 1.0,
+    "baseline_false_negative": 1,
+    "candidate_false_negative": 0,
+    "baseline_mismatched_case": "096-positive",
+    "candidate_mismatched_cases": [],
+    "quality_regression_observed": false,
+    "quality_improvement_claim_allowed": false
+  },
+  "latency": {
+    "baseline_end_to_end_mean_ms": 1360.964,
+    "candidate_end_to_end_mean_ms": 1574.73,
+    "mean_change_percent": 15.707,
+    "baseline_end_to_end_p50_ms": 1269.028,
+    "candidate_end_to_end_p50_ms": 1474.101,
+    "p50_change_percent": 16.1598,
+    "baseline_end_to_end_p95_ms": 2211.615,
+    "candidate_end_to_end_p95_ms": 2523.892,
+    "p95_change_percent": 14.1199,
+    "baseline_end_to_end_p99_ms": 2410.32,
+    "candidate_end_to_end_p99_ms": 2817.936,
+    "p99_change_percent": 16.9113,
+    "baseline_images_per_minute": 44.0849,
+    "candidate_images_per_minute": 38.1002,
+    "throughput_change_percent": -13.5754,
+    "latency_improvement_observed": false
+  },
+  "cold_and_warm_probe": {
+    "first_smoking_request_ms": 19049.761,
+    "second_smoking_request_ms": 1360.035,
+    "cold_request_included_in_evaluation": false
+  },
+  "interpretation": {
+    "result": "The reduced pixel cap lowered prompt tokens but did not lower wall-clock latency in this run.",
+    "causal_limit": "The baseline and candidate were measured in separate run windows rather than an interleaved same-session A/B test.",
+    "decision": "Keep the user-directed prototype override active and do not claim latency improvement."
+  },
+  "evidence_boundary": {
+    "android_runtime_inference_included": false,
+    "production_configuration_changed": false,
+    "production_ready": false,
+    "target_camera_validated": false,
+    "target_hardware_validated": false
+  }
+}

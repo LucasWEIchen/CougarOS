@@ -326,3 +326,56 @@ python3 tools/evaluate_central_brain_smoking_confidence.py \
 Android 实时采集、并发、长稳、生产以太网或量产硬件。2B 仅替换 Debug 原型中吸烟合规场景的模型，
 通用座舱场景仍使用 9B；生产路由没有激活，`production_ready=false`、
 `target_hardware_validated=false`。
+
+## 15. TY1100 视觉最大像素上限调整
+
+### 15.1 配置变更
+
+2026-08-23 按原型测试要求，仅修改 TY1100 上 2B 吸烟检测模型的
+`/opt/models/Qwen3.5-2B-AWQ/preprocessor_config.json`。`size.longest_edge` 从官方默认值
+`16777216` 调整为 `786432`；`size.shortest_edge=65536`、`patch_size=16`、
+`temporal_patch_size=2`、`merge_size=2` 和处理器类型均保持不变。9B 通用模型和生产配置未修改。
+
+原文件 SHA-256 为 `27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516`，
+调整后为 `2334948ed5ca254f673c9b39d3a8f41ebf901f2930c65f12c48365147f46117b`。TY1100 上的回退文件为
+`preprocessor_config.json.before-maxpixels-786432-20260823T083849Z`。
+
+对于客户端快速路径的 1280x720 图片，运行中的 Transformers 4.57.6 将模型输入从原配置下的
+1280x704 调整为 1152x640。合并后视觉 token 从 880 降至 720；完整请求的 prompt token 从
+1610 降至 1450。
+
+### 15.2 200 样本回归结果
+
+候选评测沿用第 14 节的同一模型、同一 manifest、同一 200 张图片、同一 Agent 指令、同一条件
+Schema、相同 JPEG 预处理、`temperature=0`、thinking 关闭、`max_tokens=24` 和串行顺序。两轮真实
+视觉预热后开始计时，19,049.761 ms 的首次冷请求不计入正式统计。
+
+| 指标 | 原配置基线 | `longest_edge=786432` | 变化 |
+| --- | ---: | ---: | ---: |
+| Prompt token/请求 | 1610 | 1450 | -9.94% |
+| 测试集准确率 | 98.33% | 100.00% | +1.67 个百分点 |
+| 假阴性 | 1 | 0 | -1 |
+| 端到端平均耗时 | 1,360.964 ms | 1,574.730 ms | +15.71% |
+| 端到端 P50 | 1,269.028 ms | 1,474.101 ms | +16.16% |
+| 端到端 P95 | 2,211.615 ms | 2,523.892 ms | +14.12% |
+| 端到端 P99 | 2,410.320 ms | 2,817.936 ms | +16.91% |
+| 串行吞吐 | 44.085 张/分钟 | 38.100 张/分钟 | -13.58% |
+
+本轮 200 个响应全部通过严格合同校验，没有超时、错误或弃权；旧基线中的 `096-positive` 假阴性本轮
+未复现。固定数据存在已知安全带混杂，且基线与候选不是同一时段交错 A/B，因此不能据此声称准确率已经
+提升。更重要的是，减少视觉 token 在本轮没有转化为墙钟加速；当前配置保持为用户指定的 TY1100 原型
+配置，但不得记录为性能优化成功。
+
+vLLM 计数器在正式 200 请求窗口内给出的均值为：queue `0.541 ms`、prefill `332.459 ms`、decode
+`874.301 ms`、TTFT `493.797 ms`、引擎内部端到端 `1367.828 ms`。结果说明视觉 prefill 已收缩，
+但 decode、HTTP/多模态处理开销及设备侧尾延迟仍主导最终墙钟时间。
+
+- [配置调整前](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/preprocessor-config-before.json)
+- [配置调整后](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/preprocessor-config-after.json)
+- [逐样本结果](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/cases.csv)
+- [机器汇总](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/summary.json)
+- [vLLM 分阶段指标](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/engine-metrics-delta.json)
+- [与原配置基线对比](results/2026-08-23-qwen35-2b-awq-maxpixels-786432-regression/comparison-to-routed-resident-baseline.json)
+
+该结果只证明 TY1100 原型链路上的一次固定数据回归，不包含 Android Runtime、生产以太网、真实摄像头、
+并发或长稳验收。`production_ready=false`、`target_hardware_validated=false`。

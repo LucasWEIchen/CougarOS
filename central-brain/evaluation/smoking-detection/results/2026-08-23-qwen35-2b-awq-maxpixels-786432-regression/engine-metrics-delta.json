@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "measurement_scope": "200 serial evaluation requests after two prewarm passes",
+  "model": "Qwen3.5-2B-AWQ",
+  "requests": 200,
+  "prompt_tokens": {
+    "total": 290000,
+    "mean_per_request": 1450.0
+  },
+  "generation_tokens": {
+    "total": 2400,
+    "mean_per_request": 12.0
+  },
+  "vllm_stage_mean_ms": {
+    "queue": 0.541487,
+    "prefill": 332.458618,
+    "decode": 874.30129,
+    "time_to_first_token": 493.797417,
+    "engine_end_to_end": 1367.82811
+  },
+  "source": {
+    "before": "uncommitted outputs metrics-before.prom",
+    "after": "uncommitted outputs metrics-after.prom",
+    "calculation": "after counter minus before counter, divided by 200"
+  },
+  "evidence_boundary": {
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

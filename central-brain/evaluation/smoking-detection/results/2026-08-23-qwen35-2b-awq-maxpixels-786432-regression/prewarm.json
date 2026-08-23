@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-23T08:43:09.468818+00:00",
+  "profile": "ty1100-routed-dual-model-v1",
+  "targets": [
+    {
+      "route": "GENERAL_COCKPIT",
+      "model": "Qwen3.5-9B-AWQ",
+      "context_tokens": 8192,
+      "endpoint": "http://127.0.0.1:10030"
+    },
+    {
+      "route": "CABIN_SMOKING_COMPLIANCE",
+      "model": "Qwen3.5-2B-AWQ",
+      "context_tokens": 4096,
+      "endpoint": "http://127.0.0.1:10031"
+    }
+  ],
+  "thinking_enabled": false,
+  "both_models_resident_and_ready": true,
+  "passes": [
+    {
+      "pass": 1,
+      "general_9b_ms": 5505.335,
+      "smoking_2b_ms": 19049.761
+    },
+    {
+      "pass": 2,
+      "general_9b_ms": 5463.715,
+      "smoking_2b_ms": 1360.035
+    }
+  ],
+  "evidence_boundary": {
+    "android_runtime_included": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}
