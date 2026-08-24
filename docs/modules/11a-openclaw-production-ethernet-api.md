@@ -1,10 +1,15 @@
 # 上层应用经车载以太网调用 OpenClaw 文字与图片接口详设
 
+> 历史过渡设计：OpenClaw 已退出当前模型调用链路。现行生产目标接口见
+> [Android 直连 TY1100 vLLM 生产以太网 API 详设](11b-vllm-production-ethernet-api.md)。本文仅用于迁移追溯，
+> 不得作为新版本实现或验收依据。
+
 版本：1.0
-适用范围：Android 13 生产软件
+适用范围：历史迁移追溯
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
-`production_document_scope=true`
+`production_document_scope=false`
+`current_production_interface=false`
 `module_detailed_design=true`
 `production_ready=false`
 `target_hardware_validated=false`

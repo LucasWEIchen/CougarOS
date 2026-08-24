@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件架构文档
 
-版本：2.2
+版本：2.3
 状态：生产架构权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-08-21
+更新日期：2026-08-24
 
 `production_document_scope=true`
 `production_architecture_document=true`
@@ -37,7 +37,7 @@ flowchart LR
     Driver["驾驶员 / 乘员"]
     Cabin["座舱传感输入<br/>语音、图像、车辆状态"]
     Brain["Central Brain<br/>Android 13"]
-    AI["外部 AI 算力基座<br/>OpenClaw 过渡 Provider"]
+    AI["TY1100 AI 算力基座<br/>OpenAI-compatible vLLM"]
     Vehicle["车辆能力域<br/>HVAC、座椅、导航、媒体、购物"]
     HMI["Client2 座舱 HMI"]
     OEM["OEM / Vendor 平台接口"]
@@ -322,7 +322,8 @@ Event Broker 传递 Observation、Action、Runtime 和 Message 事件。生产�
 Model Runtime 由 `ModelProviderRegistry`、`PolicyAwareModelRouter`、`ModelProfileRouter`、
 `InferenceResourceScheduler` 和 Provider 构成。Provider 路由解决“使用哪个模型服务”，Profile
 路由解决“已选服务中使用哪个模型及上下文预算”，两者不可合并为由模型自行判断的自由路由。
-当前生产目标使用 OpenClaw 过渡 Provider；Ollama 或 Vendor NPU 是后续可替换 Provider。
+当前生产目标通过车载以太网直连 TY1100 上的 OpenAI-compatible vLLM 服务；其他模型服务或 Vendor NPU
+仍是可替换 Provider。目标集成 profile 不等于已通过量产 assurance 的 release Provider。
 
 ```mermaid
 flowchart LR
@@ -332,8 +333,8 @@ flowchart LR
     ProviderRouter["Policy-aware Provider Router"]
     ProfileRouter["Deterministic Model Profile Router"]
     Lifecycle["Model Lifecycle<br/>load / health / prewarm / resident"]
-    OpenClaw["OpenClaw Provider"]
-    Ollama["Ollama Provider"]
+    Vllm["TY1100 vLLM Provider"]
+    Other["其他模型 Provider"]
     Vendor["Vendor NPU Provider"]
     Stream["Stream Observer"]
     Validate["Structured Output Validator"]
@@ -341,11 +342,11 @@ flowchart LR
     Request --> Admission --> ProviderRouter --> ProfileRouter
     Registry --> ProviderRouter
     ProfileRouter --> Lifecycle
-    Lifecycle --> OpenClaw
-    Lifecycle -. "后续替换" .-> Ollama
+    Lifecycle --> Vllm
+    Lifecycle -. "后续替换" .-> Other
     Lifecycle -. "厂商接口就绪后" .-> Vendor
-    OpenClaw --> Stream --> Validate
-    Ollama --> Stream
+    Vllm --> Stream --> Validate
+    Other --> Stream
     Vendor --> Stream
 ```
 
@@ -357,7 +358,7 @@ flowchart LR
 生产运行时必须在接收业务请求前完成目标模型身份检查和真实预热，并按资源预算维持必要模型常驻。
 上下文上限是 Profile 合同而非调用方参数：专用检测 Profile 使用较小预算，通用座舱 Profile 使用较大预算；
 请求还需按 system instruction、当前输入、安全上下文、会话摘要和历史优先级做二次裁剪。任何裁剪不得删除
-安全边界、输出 Schema 或当前图文输入。过渡 Provider 未达到 production assurance 前，全局
+安全边界、输出 Schema 或当前图文输入。直连 vLLM Provider 未达到 production assurance 前，全局
 `production_ready` 保持 false。
 
 ### 5.12 Effect 与 Vehicle Adapter
@@ -655,7 +656,7 @@ readback 和最终投影分别测量。任何目标值只有在量产硬件和�
 | --- | --- |
 | 真实 Vehicle property/service 未确认 | 保留 canonical Adapter；运行时返回 unavailable |
 | NPU ABI 未确认 | 保留 `ModelProvider` 与 C ABI；Vendor Provider 不注册 |
-| OpenClaw assurance 未达量产 | 作为过渡 Provider，限制权限并保持全局未就绪 |
+| 直连 vLLM release assurance 未达量产 | 当前仅按 target integration 权限运行并保持全局未就绪 |
 | 可信车速/档位/DMS 未接入 | 高风险动作失败关闭 |
 | 生产签名/OTA/回滚未确认 | Release Admission 拒绝发布 |
 | 隐私 owner 策略未批准 | Profile/Episodic 写入和导出关闭 |

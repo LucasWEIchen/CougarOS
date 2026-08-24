@@ -1842,3 +1842,33 @@ with 1360.964 ms mean and 2211.615 ms P95 end-to-end latency. See
 `direct_android_ethernet_validated=false`, `vehicle_effect_hardware_accessed=false`,
 `production_configuration_changed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P4-R10-VLLM`.
+
+## P4-R13-TY1100-ETH Android target direct Ethernet provider
+
+The target-integration profile `target_ty1100_vllm_ethernet` connects from Android `eth0` directly
+to the fixed OpenAI-compatible vLLM service at `http://169.254.202.110:8000`. The target currently
+serves only `Qwen3.5-2B-AWQ`, so general and smoking logical routes share the physical service while
+retaining separate profile IDs and 8192/4096-token Android request ceilings. The target profile is
+mutually exclusive with OpenClaw and removes any ADB reverse dependency.
+
+```bash
+CENTRAL_BRAIN_ANDROID_SERIAL=0123456789ABCDEF \
+CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE=target_ty1100_vllm_ethernet \
+  tools/run_central_brain_android_ty1100_vllm_probe.sh
+
+CENTRAL_BRAIN_CLIENT2_SCENARIO=smoking \
+  tools/run_client2_central_brain_ty1100_ethernet_test.sh
+```
+
+On 2026-08-24, Runtime `0.5.0-b5` and Client2 were installed on the API 33 ARM64 production board.
+The model catalog, structured text, freeform, fatigue, smoking multimodal and cabin multimodal paths
+all returned real model terminals. Client, Client2, RenderService and Runtime remained active at
+1920x1080. Installed APK hashes matched the local artifacts; ADB reverse was empty and no TY1100
+configuration was changed. See
+`central-brain/contracts/central_brain_android_ty1100_ethernet_target_v1.json` and
+`docs/modules/11b-vllm-production-ethernet-api.md`.
+
+This is target model-integration evidence, not a production release acceptance. Vehicle effects are
+still simulated and production signing, transport assurance, privacy/security, fault recovery,
+long-run evidence and release Provider activation remain open. `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P4-R13-TY1100-ETH`.

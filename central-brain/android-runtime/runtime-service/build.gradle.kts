@@ -5,6 +5,31 @@ plugins {
 val targetOpenClaw = providers.gradleProperty("centralBrainTargetOpenClaw")
     .map { it.equals("true", ignoreCase = true) }
     .getOrElse(false)
+val targetTy1100Ethernet = providers.gradleProperty("centralBrainTargetTy1100Ethernet")
+    .map { it.equals("true", ignoreCase = true) }
+    .getOrElse(false)
+
+require(!(targetOpenClaw && targetTy1100Ethernet)) {
+    "OpenClaw and direct TY1100 Ethernet profiles are mutually exclusive"
+}
+
+val ty1100Host = "169.254.202.110"
+val ty1100TargetBaseUrl = "http://$ty1100Host:8000"
+val vllmGeneralBaseUrl = if (targetTy1100Ethernet) {
+    ty1100TargetBaseUrl
+} else {
+    "http://127.0.0.1:10030"
+}
+val vllmSmokingBaseUrl = if (targetTy1100Ethernet) {
+    ty1100TargetBaseUrl
+} else {
+    "http://127.0.0.1:10031"
+}
+val vllmGeneralModel = if (targetTy1100Ethernet) {
+    "Qwen3.5-2B-AWQ"
+} else {
+    "Qwen3.5-9B-AWQ"
+}
 
 android {
     namespace = "com.centralbrain.runtime"
@@ -15,8 +40,8 @@ android {
         applicationId = "com.centralbrain.runtime"
         minSdk = 33
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.4.0-b4"
+        versionCode = 5
+        versionName = "0.5.0-b5"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -33,6 +58,7 @@ android {
                 "String",
                 "MODEL_GATEWAY_PROFILE",
                 if (targetOpenClaw) "\"target_openclaw_transitional\""
+                else if (targetTy1100Ethernet) "\"target_ty1100_vllm_ethernet\""
                 else "\"development_ty1100_vllm\""
             )
             buildConfigField(
@@ -40,12 +66,17 @@ android {
                 "VLLM_DEVELOPMENT_ENABLED",
                 (!targetOpenClaw).toString()
             )
-            buildConfigField("String", "VLLM_BASE_URL", "\"http://127.0.0.1:10030\"")
-            buildConfigField("String", "VLLM_MODEL", "\"Qwen3.5-9B-AWQ\"")
-            buildConfigField("String", "VLLM_GENERAL_BASE_URL", "\"http://127.0.0.1:10030\"")
-            buildConfigField("String", "VLLM_GENERAL_MODEL", "\"Qwen3.5-9B-AWQ\"")
+            buildConfigField(
+                "boolean",
+                "VLLM_TARGET_ETHERNET_ENABLED",
+                targetTy1100Ethernet.toString()
+            )
+            buildConfigField("String", "VLLM_BASE_URL", "\"$vllmGeneralBaseUrl\"")
+            buildConfigField("String", "VLLM_MODEL", "\"$vllmGeneralModel\"")
+            buildConfigField("String", "VLLM_GENERAL_BASE_URL", "\"$vllmGeneralBaseUrl\"")
+            buildConfigField("String", "VLLM_GENERAL_MODEL", "\"$vllmGeneralModel\"")
             buildConfigField("int", "VLLM_GENERAL_CONTEXT_TOKENS", "8192")
-            buildConfigField("String", "VLLM_SMOKING_BASE_URL", "\"http://127.0.0.1:10031\"")
+            buildConfigField("String", "VLLM_SMOKING_BASE_URL", "\"$vllmSmokingBaseUrl\"")
             buildConfigField("String", "VLLM_SMOKING_MODEL", "\"Qwen3.5-2B-AWQ\"")
             buildConfigField("int", "VLLM_SMOKING_CONTEXT_TOKENS", "4096")
             buildConfigField("boolean", "VLLM_MODEL_ROUTING_ENABLED", "true")
@@ -87,6 +118,7 @@ android {
                 "\"target_openclaw_transitional\""
             )
             buildConfigField("boolean", "VLLM_DEVELOPMENT_ENABLED", "false")
+            buildConfigField("boolean", "VLLM_TARGET_ETHERNET_ENABLED", "false")
             buildConfigField("String", "VLLM_BASE_URL", "\"UNCONFIGURED\"")
             buildConfigField("String", "VLLM_MODEL", "\"UNCONFIGURED\"")
             buildConfigField("String", "VLLM_GENERAL_BASE_URL", "\"UNCONFIGURED\"")

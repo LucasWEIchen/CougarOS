@@ -1,6 +1,6 @@
-# Model、Scheduler 与 OpenClaw 过渡 Provider 模块详设
+# Model、Scheduler 与外部模型 Provider 模块详设
 
-版本：1.3
+版本：1.4
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -11,9 +11,9 @@
 
 ## 1. 设计目标与边界
 
-本模块定义统一 Model Provider 生命周期、资源调度、策略路由、座舱 prompt、结构化输出校验，以及当前通过
-车载以太网访问 OpenClaw 的过渡合同。后续替换为 Ollama 或 Vendor NPU 时，上层 Session/Graph/Effect
-语义不变。
+本模块定义统一 Model Provider 生命周期、资源调度、策略路由、座舱 prompt、结构化输出校验，以及 Android
+通过车载以太网直连 TY1100 vLLM 的当前目标合同。后续替换为其他模型服务或 Vendor NPU 时，上层
+Session/Graph/Effect 语义不变。
 
 模型只生成候选场景、参数和摘要；任何输出都必须经过 Schema、Capability 白名单、Governance 和
 Effect gate。Provider 失败不能进入车辆执行。
@@ -28,7 +28,7 @@ Effect gate。Provider 失败不能进入车辆执行。
 | `APP-007` | 吸烟场景文本与同帧图像进入专用 Agent |
 | `S2-MDL-001` | Provider 描述、健康、预热、推理、流式、取消、指标和故障 |
 | `S2-MDL-002` | 先按策略选择 Provider，再按场景确定性选择模型 Profile；绑定身份、上下文和健康且禁止静默回退 |
-| `S2-MDL-003` | 当前 OpenClaw 过渡接口与后续 Provider 替换 |
+| `S2-MDL-003` | 当前 TY1100 vLLM 直连接口与后续 Provider 替换 |
 | `S2-MDL-004` | 严格结构化输出和 capability 白名单 |
 | `S2-MDL-005` | 不可用、非法、超时和取消失败时阻止 Effect |
 | `S2-MDL-006` | 凭据不进入日志、Event 或 HMI |
@@ -53,13 +53,12 @@ Effect gate。Provider 失败不能进入车辆执行。
 | [CabinComplianceAgentRouter.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/agent/CabinComplianceAgentRouter.java) | `routeExplicit`、`routeCandidate` | 专用 Agent 准入 |
 | [smoking agent prompt](../../central-brain/android-runtime/runtime-service/src/main/assets/agents/smoking-detection-agent-v1.md) | 角色、摄像头坐标、判定和输出规则 | 版本化 Agent 指令 |
 | [smoking scenario manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json) | response-only DAG | 场景和策略绑定 |
-| [OpenClawEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OpenClawEndpointConfig.java) | `targetProductionTransitional`、URI getters | 生产过渡端点配置 |
-| [OllamaEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OllamaEndpointConfig.java) | `productionLinkLocal` | 后续 Ollama 端点合同 |
-| [ModelProviderProfiles.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderProfiles.java) | `targetOpenClawTransitional`、`vendorNpuEmpty` | 固定 Provider profile |
+| [VllmEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/VllmEndpointConfig.java) | target Ethernet factories、URI getters | TY1100 固定端点、模型和上下文合同 |
+| [VllmInferenceEngine.java](../../central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/VllmInferenceEngine.java) | `infer`、文字/图文 request、response parser | 当前 target-integration 网络执行器；release 实现待迁移 |
+| [runtime-service build.gradle.kts](../../central-brain/android-runtime/runtime-service/build.gradle.kts) | `centralBrainTargetTy1100Ethernet`、BuildConfig | 互斥目标构建配置 |
 | [ModelRuntimeReadinessSnapshot.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelRuntimeReadinessSnapshot.java) | blockers | production 推理激活门槛 |
 | [model output schema](../../central-brain/android-runtime/runtime-service/src/main/assets/model/model-structured-output-v1.schema.json) | JSON Schema | 输出文件合同 |
-| [OpenClaw target contract](../../central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json) | transport/endpoint/assurance | 机器可读外部合同 |
-| [OpenClaw multimodal contract](../../central-brain/contracts/central_brain_android_openclaw_multimodal_gateway_v1.json) | image/text envelope | 多模态合同 |
+| [TY1100 target contract](../../central-brain/contracts/central_brain_android_ty1100_ethernet_target_v1.json) | endpoint、routing、claims、evidence | 机器可读目标集成合同 |
 
 ## 4. 核心设计
 
@@ -112,16 +111,16 @@ Provider 在发布 route-ready 前必须完成 `/health` 等价健康检查、�
 Context，再放入活动计划和会话摘要，最后放入较旧历史。超限时从最低优先级历史开始裁剪；不得删除当前图像、
 输出 Schema、安全约束或请求 fingerprint 所覆盖的内容。
 
-### 4.5 OpenClaw 过渡边界
+### 4.5 TY1100 vLLM 直连边界
 
-`OpenClawEndpointConfig.targetProductionTransitional()` 固定生产 link-local host、协议版本、连接和读取超时，
-并构造 WebSocket/控制 URI。凭据封装在配置对象中，但不得出现在日志、Event、HMI、异常或文档。
+`VllmEndpointConfig.ty1100General2bViaTargetEthernet()` 与
+`ty1100Smoking2bViaTargetEthernet()` 固定 `169.254.202.110:8000` 和 `Qwen3.5-2B-AWQ`，禁止调用方覆盖
+host、port 或 served model。两个逻辑 Profile 分别保留 8192/4096 token 上限和不同 route identity。
 
-上层 Binder V2、图片 FD、Ethernet Network 选择、protocol 3 frame、流式回调与错误映射由
-[OpenClaw 生产以太网 API 详设](11a-openclaw-production-ethernet-api.md)定义。
-
-当前 `release` 源集尚无实现 `ModelProvider` 的 OpenClaw 网络执行器，也未把该 Provider 装配到
-production router。因此配置与合同已存在，但生产推理尚未激活。
+Provider 使用 OpenAI-compatible `/v1/models` 做身份门禁，使用 `/v1/chat/completions` 发送文字或单帧图文
+请求。完整字段、超时、错误映射与 release 迁移要求由
+[TY1100 vLLM 生产以太网 API 详设](11b-vllm-production-ethernet-api.md)定义。当前网络执行器位于 target
+integration 源集，尚未达到 `PRODUCTION` assurance，不能把局部硬件通过误记为 release 完成。
 
 ### 4.6 结构化输出
 
@@ -173,7 +172,7 @@ sequenceDiagram
     participant P1 as Provider Router
     participant P2 as Profile Router
     participant S as Resource Scheduler
-    participant P as OpenClaw Provider
+    participant P as TY1100 vLLM Provider
     participant V as Output Validator
     participant A as Governance
     G->>P1: ModelRequest + policy snapshot
@@ -223,14 +222,14 @@ sequenceDiagram
 
 ## 9. 增量开发规则
 
-实现 production OpenClaw Provider 时应新增 `ModelProvider` 实现、受控 HTTP/WebSocket transport、流式 parser、
-取消、metrics、fault isolation 和 factory 注入；不得修改 Graph/Effect 合同。切换 Ollama 时新增 profile 和
-Provider，再由 Router policy 选择，不能复用 OpenClaw 响应 parser。
+把 target-integration vLLM 网络执行器迁入 release 时应新增生产 `ModelProvider` 组合、受控 Ethernet Network
+绑定、HTTP/JSON 流式 parser、取消、metrics、fault isolation 和 factory 注入；不得修改 Graph/Effect 合同。
+切换其他模型服务时新增 profile 和 Provider，再由 Router policy 选择，不能绕过统一输出校验。
 
 ## 10. 当前缺口
 
-- production OpenClaw `ModelProvider` 实现和 release 装配尚未完成。
-- 固定凭据需要迁移到受控 secret owner，当前属于发布风险。
-- Vendor NPU 和后续 Ollama Provider 尚未生产合格。
+- production vLLM `ModelProvider` 的 release 源集实现和装配尚未完成。
+- 当前 HTTP 链路尚未完成生产网络隔离、传输保护和服务身份 assurance。
+- Vendor NPU 和其他后续 Provider 尚未生产合格。
 - 任意文本候选动作到 typed Plan、Tool 参数和 EffectIntent 的生产编译器尚未激活。
 - `production_ready=false`，`target_hardware_validated=false`。

@@ -19,6 +19,19 @@ case "$MODEL_ROUTE" in
     build_profile="development_ty1100_vllm"
     expected_protocol="openai_chat_completions"
     expected_transport="ADB_REVERSE_AND_ETHERNET_SSH_TUNNEL"
+    expected_general_endpoint_profile="ty1100_general_9b_via_adb_reverse"
+    expected_smoking_endpoint_profile="ty1100_smoking_2b_via_adb_reverse"
+    expected_general_model="Qwen3.5-9B-AWQ"
+    expected_smoking_model="Qwen3.5-2B-AWQ"
+    ;;
+  target_ty1100_vllm_ethernet)
+    build_profile="target_ty1100_vllm_ethernet"
+    expected_protocol="openai_chat_completions"
+    expected_transport="TARGET_ETHERNET"
+    expected_general_endpoint_profile="ty1100_general_2b_via_target_ethernet"
+    expected_smoking_endpoint_profile="ty1100_smoking_2b_via_target_ethernet"
+    expected_general_model="Qwen3.5-2B-AWQ"
+    expected_smoking_model="Qwen3.5-2B-AWQ"
     ;;
   development_wsl_openclaw)
     build_profile="development_wsl_openclaw"
@@ -48,6 +61,10 @@ case "$SCENARIO" in
     ;;
   smoking)
     scenario_button="centralBrainSmokingButton"
+    ;;
+  freeform)
+    scenario_button=""
+    freeform_input="${CENTRAL_BRAIN_CLIENT2_FREEFORM_INPUT:-Please%sturn%son%sthe%sair%sconditioning}"
     ;;
   *)
     echo "client2_openclaw_development_test_complete=false reason=INVALID_SCENARIO" >&2
@@ -132,8 +149,12 @@ verify_preinstalled_apk() {
 
 case "${CENTRAL_BRAIN_SKIP_ANDROID_INSTALL:-false}" in
   false)
-    "${adb[@]}" install -r -d -t "$(apk_argument "$RUNTIME_APK")" >/dev/null
-    "${adb[@]}" install -r -d -t "$(apk_argument "$CLIENT2_APK")" >/dev/null
+    install_args=(install -r -d -t)
+    if [[ "${adb_base[0]}" == *.exe ]]; then
+      install_args=(install --no-streaming -r -d -t)
+    fi
+    "${adb[@]}" "${install_args[@]}" "$(apk_argument "$RUNTIME_APK")" >/dev/null
+    "${adb[@]}" "${install_args[@]}" "$(apk_argument "$CLIENT2_APK")" >/dev/null
     ;;
   true)
     verify_preinstalled_apk "$RUNTIME_PACKAGE" "$RUNTIME_APK"
@@ -149,6 +170,22 @@ if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
   CENTRAL_BRAIN_ANDROID_SERIAL="${ANDROID_SERIAL:-testboard}" \
     ADB_SERVER_PORT="${ADB_SERVER_PORT:-5038}" \
     "$ROOT/tools/manage_central_brain_ty1100_routed_vllm.sh" start >/dev/null
+elif [[ "$MODEL_ROUTE" == "target_ty1100_vllm_ethernet" ]]; then
+  "${adb[@]}" reverse --remove tcp:10030 >/dev/null 2>&1 || true
+  "${adb[@]}" reverse --remove tcp:10031 >/dev/null 2>&1 || true
+  "${adb[@]}" reverse --remove tcp:8000 >/dev/null 2>&1 || true
+  target_catalog="$("${adb[@]}" shell curl -sS --fail --max-time 5 \
+    "http://169.254.202.110:8000/v1/models" | tr -d '\r')" \
+    || { echo "client2_openclaw_development_test_complete=false reason=TARGET_TY1100_VLLM_NETWORK_UNREACHABLE port=8000" >&2; exit 19; }
+  python3 -c '
+import json
+import sys
+payload = json.load(sys.stdin)
+models = payload.get("data", [])
+if len(models) != 1 or models[0].get("id") != "Qwen3.5-2B-AWQ":
+    raise SystemExit("target_model_catalog_identity_mismatch")
+' <<<"$target_catalog" \
+    || { echo "client2_openclaw_development_test_complete=false reason=TARGET_TY1100_VLLM_IDENTITY_MISMATCH" >&2; exit 19; }
 elif [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
   bridge_env=()
   [[ -n "${ANDROID_TRANSPORT_ID:-}" ]] \
@@ -199,15 +236,28 @@ tap_resource() {
 "${adb[@]}" shell am force-stop "$CLIENT2_PACKAGE"
 "${adb[@]}" shell am start -W -n "$CLIENT2_ACTIVITY" >/dev/null
 sleep 4
-if ! dump_ui | grep -q "${CLIENT2_PACKAGE}:id/${scenario_button}"; then
-  tap_resource centralBrainNavigationTrigger \
-    || { echo "client2_openclaw_development_test_complete=false reason=NAVIGATION_TRIGGER_NOT_FOUND" >&2; exit 9; }
+if [[ "$SCENARIO" == "freeform" ]]; then
+  tap_resource centralBrainPhoneTrigger \
+    || { echo "client2_openclaw_development_test_complete=false reason=PHONE_TRIGGER_NOT_FOUND" >&2; exit 9; }
   sleep 1
+  tap_resource centralBrainFreeformInput \
+    || { echo "client2_openclaw_development_test_complete=false reason=FREEFORM_INPUT_NOT_FOUND" >&2; exit 10; }
+  "${adb[@]}" logcat -c
+  "${adb[@]}" shell input keycombination KEYCODE_CTRL_LEFT KEYCODE_A >/dev/null 2>&1 || true
+  "${adb[@]}" shell input keyevent KEYCODE_DEL
+  "${adb[@]}" shell input text "$freeform_input"
+  tap_resource centralBrainFreeformSubmitButton \
+    || { echo "client2_openclaw_development_test_complete=false reason=FREEFORM_SUBMIT_NOT_FOUND" >&2; exit 10; }
+else
+  if ! dump_ui | grep -q "${CLIENT2_PACKAGE}:id/${scenario_button}"; then
+    tap_resource centralBrainNavigationTrigger \
+      || { echo "client2_openclaw_development_test_complete=false reason=NAVIGATION_TRIGGER_NOT_FOUND" >&2; exit 9; }
+    sleep 1
+  fi
+  "${adb[@]}" logcat -c
+  tap_resource "$scenario_button" \
+    || { echo "client2_openclaw_development_test_complete=false reason=SCENARIO_TRIGGER_NOT_FOUND" >&2; exit 10; }
 fi
-
-"${adb[@]}" logcat -c
-tap_resource "$scenario_button" \
-  || { echo "client2_openclaw_development_test_complete=false reason=SCENARIO_TRIGGER_NOT_FOUND" >&2; exit 10; }
 
 shopping_consent_approved=false
 purchase_commit_approved=false
@@ -253,14 +303,15 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
     fi
   fi
   model_completed=false
-  if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
+  if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" \
+      || "$MODEL_ROUTE" == "target_ty1100_vllm_ethernet" ]]; then
     if [[ "$SCENARIO" == "smoking" ]]; then
       printf '%s\n' "$logs" | grep -q \
-        'vllm_inference_completed=true endpoint_profile=ty1100_smoking_2b_via_adb_reverse model=Qwen3.5-2B-AWQ' \
+        "vllm_inference_completed=true endpoint_profile=${expected_smoking_endpoint_profile} model=${expected_smoking_model}" \
         && model_completed=true
     else
       printf '%s\n' "$logs" | grep -q \
-        'vllm_inference_completed=true endpoint_profile=ty1100_general_9b_via_adb_reverse model=Qwen3.5-9B-AWQ' \
+        "vllm_inference_completed=true endpoint_profile=${expected_general_endpoint_profile} model=${expected_general_model}" \
         && model_completed=true
     fi
   else
@@ -272,10 +323,11 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       && printf '%s\n' "$logs" | grep -Eq \
       'client2_orchestration_snapshot_projected=true .*model_projection_available=true .*simulated_only=true .*hardware_accessed=false'; then
     ui="$(dump_ui)"
-    if [[ "$SCENARIO" == "smoking" ]]; then
+    if [[ "$SCENARIO" == "smoking" || "$SCENARIO" == "freeform" ]]; then
       hmi_complete=false
       printf '%s\n' "$ui" | grep -q 'centralBrainPanel' \
         && printf '%s\n' "$ui" | grep -q 'centralBrainLiveTraceText' \
+        && printf '%s\n' "$ui" | grep -q 'RESULT / COMPLETED' \
         && hmi_complete=true
     else
       hmi_complete=false
@@ -297,6 +349,15 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
           || ! printf '%s\n' "$logs" | grep -q 'model_projection_available=true'; then
         echo "client2_openclaw_development_test_complete=false reason=SMOKING_PROOF_INCOMPLETE" >&2
         exit 21
+      fi
+    elif [[ "$SCENARIO" == "freeform" ]]; then
+      if ! printf '%s\n' "$logs" | grep -Eq \
+              'client2_orchestration_snapshot_projected=true orchestration_state=5 .*effect_count=0' \
+          || ! printf '%s\n' "$ui" | grep -q 'MODEL INPUT / BOUND' \
+          || ! printf '%s\n' "$ui" | grep -q 'MODEL REPLY / android.vllm.prototype' \
+          || ! printf '%s\n' "$ui" | grep -qi 'vehicle bus not accessed'; then
+        echo "client2_openclaw_development_test_complete=false reason=FREEFORM_PROOF_INCOMPLETE" >&2
+        exit 22
       fi
     elif [[ "$SCENARIO" == "multimodal" ]]; then
       if ! { printf '%s\n' "$logs" | grep -Eq \
@@ -330,6 +391,13 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
         'direct_android_ethernet_validated=false'
         'production_configuration_changed=false'
       )
+    elif [[ "$MODEL_ROUTE" == "target_ty1100_vllm_ethernet" ]]; then
+      route_claims=(
+        'real_ty1100_vllm_accessed=true'
+        'direct_android_ethernet_validated=true'
+        'target_model_link_validated=true'
+        'ty1100_configuration_changed=false'
+      )
     elif [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
       route_claims=(
         'real_wsl_openclaw_ollama_accessed=true'
@@ -343,7 +411,7 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
         'ethernet_validated=true'
       )
     fi
-    if [[ "$SCENARIO" == "smoking" ]]; then
+    if [[ "$SCENARIO" == "smoking" || "$SCENARIO" == "freeform" ]]; then
       hmi_effect_claims=(
         'response_only_hmi_projection_verified=true'
         'simulated_hmi_effect_verified=false'
@@ -367,7 +435,8 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       'vehicle_effect_hardware_accessed=false' \
       'production_ready=false' \
       'target_hardware_validated=false'
-    if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" ]]; then
+    if [[ "$MODEL_ROUTE" == "development_ty1100_vllm" \
+        || "$MODEL_ROUTE" == "target_ty1100_vllm_ethernet" ]]; then
       printf '%s\n' 'client2_ty1100_vllm_test_complete=true'
     fi
     exit 0

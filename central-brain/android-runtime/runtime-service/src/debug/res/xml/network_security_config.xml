@@ -3,6 +3,6 @@
     <base-config cleartextTrafficPermitted="false" />
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="false">127.0.0.1</domain>
-        <domain includeSubdomains="false">169.254.208.110</domain>
+        <domain includeSubdomains="false">169.254.202.110</domain>
     </domain-config>
 </network-security-config>

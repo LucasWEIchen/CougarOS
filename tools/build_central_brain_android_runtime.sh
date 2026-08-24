@@ -28,6 +28,9 @@ fi
 case "$MODEL_GATEWAY_PROFILE" in
   development_ty1100_vllm)
     ;;
+  target_ty1100_vllm_ethernet)
+    GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetTy1100Ethernet=true")
+    ;;
   target_openclaw_transitional)
     GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetOpenClaw=true")
     ;;

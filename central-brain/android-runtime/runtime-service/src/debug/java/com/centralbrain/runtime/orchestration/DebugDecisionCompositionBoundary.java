@@ -143,16 +143,16 @@ final class DebugDecisionCompositionBoundary {
                 (mutation, evidence) -> ProactiveConsentPolicy.AuthorityDecision.DENIED);
         modelRegistry = ModelProviderRegistry.createForContractTest();
         if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
-            VllmEndpointConfig endpoint =
-                    VllmEndpointConfig.ty1100General9bViaAdbReverse();
-            VllmEndpointConfig smokingEndpoint =
-                    VllmEndpointConfig.ty1100Smoking2bViaAdbReverse();
+            VllmEndpointConfig endpoint = generalVllmEndpoint();
+            VllmEndpointConfig smokingEndpoint = smokingVllmEndpoint();
             vllmEngine = new VllmInferenceEngine(endpoint);
             smokingVllmEngine = new VllmInferenceEngine(smokingEndpoint);
             openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-general-v1",
-                    "vllm-qwen3.5-9b-awq-ctx8192-v2",
+                    BuildConfig.VLLM_TARGET_ETHERNET_ENABLED
+                            ? "vllm-qwen3.5-2b-awq-ctx8192-target-v1"
+                            : "vllm-qwen3.5-9b-awq-ctx8192-v2",
                     digest(
                             "vllm-model-spec-v2",
                             endpoint.getModelName(),
@@ -362,6 +362,7 @@ final class DebugDecisionCompositionBoundary {
         if (BuildConfig.OPENCLAW_TARGET_ROUTING_ENABLED) {
             if (!BuildConfig.OPENCLAW_TARGET_ENDPOINT_CONFIGURED
                     || BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED
+                    || BuildConfig.VLLM_TARGET_ETHERNET_ENABLED
                     || !"target_openclaw_transitional".equals(
                             BuildConfig.MODEL_GATEWAY_PROFILE)
                     || !"ws://169.254.208.110:18789".equals(BuildConfig.OPENCLAW_BASE_URL)
@@ -374,22 +375,30 @@ final class DebugDecisionCompositionBoundary {
             }
             return NetworkModelMode.OPENCLAW_TARGET;
         }
+        boolean targetEthernet = BuildConfig.VLLM_TARGET_ETHERNET_ENABLED;
+        String expectedProfile = targetEthernet
+                ? "target_ty1100_vllm_ethernet" : "development_ty1100_vllm";
+        String expectedGeneralBaseUrl = targetEthernet
+                ? "http://169.254.202.110:8000" : "http://127.0.0.1:10030";
+        String expectedSmokingBaseUrl = targetEthernet
+                ? "http://169.254.202.110:8000" : "http://127.0.0.1:10031";
+        String expectedGeneralModel = targetEthernet
+                ? VllmEndpointConfig.TARGET_ETHERNET_MODEL
+                : VllmEndpointConfig.GENERAL_MODEL;
         if (!BuildConfig.VLLM_DEVELOPMENT_ENABLED
                 || BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED
                 || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
-                || !"development_ty1100_vllm".equals(BuildConfig.MODEL_GATEWAY_PROFILE)
-                || !"http://127.0.0.1:10030".equals(BuildConfig.VLLM_BASE_URL)
-                || !VllmEndpointConfig.EXPECTED_MODEL.equals(BuildConfig.VLLM_MODEL)
+                || !expectedProfile.equals(BuildConfig.MODEL_GATEWAY_PROFILE)
+                || !expectedGeneralBaseUrl.equals(BuildConfig.VLLM_BASE_URL)
+                || !expectedGeneralModel.equals(BuildConfig.VLLM_MODEL)
                 || !BuildConfig.VLLM_MODEL_ROUTING_ENABLED
                 || !BuildConfig.VLLM_PREWARM_REQUIRED
-                || !"http://127.0.0.1:10030".equals(
-                        BuildConfig.VLLM_GENERAL_BASE_URL)
-                || !VllmEndpointConfig.GENERAL_MODEL.equals(
+                || !expectedGeneralBaseUrl.equals(BuildConfig.VLLM_GENERAL_BASE_URL)
+                || !expectedGeneralModel.equals(
                         BuildConfig.VLLM_GENERAL_MODEL)
                 || BuildConfig.VLLM_GENERAL_CONTEXT_TOKENS
                         != ModelProfileRouter.GENERAL_MAX_CONTEXT_TOKENS
-                || !"http://127.0.0.1:10031".equals(
-                        BuildConfig.VLLM_SMOKING_BASE_URL)
+                || !expectedSmokingBaseUrl.equals(BuildConfig.VLLM_SMOKING_BASE_URL)
                 || !VllmEndpointConfig.SMOKING_MODEL.equals(
                         BuildConfig.VLLM_SMOKING_MODEL)
                 || BuildConfig.VLLM_SMOKING_CONTEXT_TOKENS
@@ -397,6 +406,18 @@ final class DebugDecisionCompositionBoundary {
             throw new IllegalStateException("debug TY1100 vLLM build configuration is invalid");
         }
         return NetworkModelMode.VLLM_DEVELOPMENT;
+    }
+
+    private static VllmEndpointConfig generalVllmEndpoint() {
+        return BuildConfig.VLLM_TARGET_ETHERNET_ENABLED
+                ? VllmEndpointConfig.ty1100General2bViaTargetEthernet()
+                : VllmEndpointConfig.ty1100General9bViaAdbReverse();
+    }
+
+    private static VllmEndpointConfig smokingVllmEndpoint() {
+        return BuildConfig.VLLM_TARGET_ETHERNET_ENABLED
+                ? VllmEndpointConfig.ty1100Smoking2bViaTargetEthernet()
+                : VllmEndpointConfig.ty1100Smoking2bViaAdbReverse();
     }
 
     private static boolean isOpenClawMode(NetworkModelMode mode) {
@@ -642,9 +663,11 @@ final class DebugDecisionCompositionBoundary {
         }
         if (networkModelMode == NetworkModelMode.VLLM_DEVELOPMENT) {
             ModelProfileRouter.TargetHealth generalHealth = targetHealth(
-                    ModelProfileRouter.GENERAL_PROFILE_ID,
+                    BuildConfig.VLLM_TARGET_ETHERNET_ENABLED
+                            ? ModelProfileRouter.TARGET_GENERAL_PROFILE_ID
+                            : ModelProfileRouter.GENERAL_PROFILE_ID,
                     modelSpec,
-                    VllmEndpointConfig.ty1100General9bViaAdbReverse(),
+                    generalVllmEndpoint(),
                     modelProvider,
                     modelHealthRevision,
                     now,
@@ -652,13 +675,20 @@ final class DebugDecisionCompositionBoundary {
             ModelProfileRouter.TargetHealth smokingHealth = targetHealth(
                     ModelProfileRouter.SMOKING_PROFILE_ID,
                     smokingModelSpec,
-                    VllmEndpointConfig.ty1100Smoking2bViaAdbReverse(),
+                    smokingVllmEndpoint(),
                     smokingModelProvider,
                     modelHealthRevision,
                     now,
                     requestDigest);
             profileRoute = ModelProfileRouter.decide(
-                    scenarioId, modelRequest, generalHealth, smokingHealth, now);
+                    scenarioId,
+                    modelRequest,
+                    generalHealth,
+                    smokingHealth,
+                    BuildConfig.VLLM_TARGET_ETHERNET_ENABLED
+                            ? ModelProfileRouter.DeploymentProfile.SINGLE_2B_TARGET_ETHERNET
+                            : ModelProfileRouter.DeploymentProfile.DUAL_MODEL_DEVELOPMENT,
+                    now);
             boolean smokingWorkload = CabinComplianceAgentRouter.SMOKING_SCENARIO_ID
                     .equals(scenarioId);
             ModelProvider selectedProvider = smokingWorkload

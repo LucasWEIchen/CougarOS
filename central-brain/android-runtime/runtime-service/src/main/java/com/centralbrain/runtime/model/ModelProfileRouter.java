@@ -21,7 +21,11 @@ public final class ModelProfileRouter {
     public static final String SMOKING_SCENARIO_ID =
             "scene.cabin.compliance.smoking.v1";
     public static final String GENERAL_PROFILE_ID = "model.general-cockpit.9b.v1";
+    public static final String TARGET_GENERAL_PROFILE_ID =
+            "model.general-cockpit.2b.target.v1";
     public static final String SMOKING_PROFILE_ID = "model.cabin-smoking.2b.v1";
+    public static final String GENERAL_MODEL_ID = "central-intent-general-v1";
+    public static final String SMOKING_MODEL_ID = "central-vision-smoking-v1";
     public static final int GENERAL_MAX_CONTEXT_TOKENS = 8_192;
     public static final int SMOKING_MAX_CONTEXT_TOKENS = 4_096;
     public static final long MAX_HEALTH_VALIDITY_MS = 60_000L;
@@ -53,6 +57,11 @@ public final class ModelProfileRouter {
     public enum WorkloadClass {
         GENERAL_COCKPIT,
         CABIN_SMOKING_COMPLIANCE
+    }
+
+    public enum DeploymentProfile {
+        DUAL_MODEL_DEVELOPMENT,
+        SINGLE_2B_TARGET_ETHERNET
     }
 
     /** Freshness-bounded state for one fixed model process. */
@@ -187,9 +196,26 @@ public final class ModelProfileRouter {
             TargetHealth generalTarget,
             TargetHealth smokingTarget,
             long nowElapsedMs) {
+        return decide(
+                scenarioId,
+                request,
+                generalTarget,
+                smokingTarget,
+                DeploymentProfile.DUAL_MODEL_DEVELOPMENT,
+                nowElapsedMs);
+    }
+
+    public static RouteDecision decide(
+            String scenarioId,
+            ModelContractV2.ModelRequest request,
+            TargetHealth generalTarget,
+            TargetHealth smokingTarget,
+            DeploymentProfile deploymentProfile,
+            long nowElapsedMs) {
         Objects.requireNonNull(request, "request");
         Objects.requireNonNull(generalTarget, "generalTarget");
         Objects.requireNonNull(smokingTarget, "smokingTarget");
+        Objects.requireNonNull(deploymentProfile, "deploymentProfile");
         if (nowElapsedMs < 0) {
             throw new IllegalArgumentException("nowElapsedMs must not be negative");
         }
@@ -215,7 +241,8 @@ public final class ModelProfileRouter {
         }
         TargetHealth target = workload == WorkloadClass.CABIN_SMOKING_COMPLIANCE
                 ? smokingTarget : generalTarget;
-        RejectionReason identity = validateFixedIdentity(workload, target);
+        RejectionReason identity = validateFixedIdentity(
+                workload, target, deploymentProfile);
         if (identity != RejectionReason.NONE) {
             return rejected(DecisionCode.REQUEST_REJECTED, identity, workload, request);
         }
@@ -241,12 +268,22 @@ public final class ModelProfileRouter {
 
     private static RejectionReason validateFixedIdentity(
             WorkloadClass workload,
-            TargetHealth target) {
-        String expectedProfile = workload == WorkloadClass.CABIN_SMOKING_COMPLIANCE
-                ? SMOKING_PROFILE_ID : GENERAL_PROFILE_ID;
+            TargetHealth target,
+            DeploymentProfile deploymentProfile) {
+        boolean smoking = workload == WorkloadClass.CABIN_SMOKING_COMPLIANCE;
+        String expectedProfile = smoking
+                ? SMOKING_PROFILE_ID
+                : deploymentProfile == DeploymentProfile.SINGLE_2B_TARGET_ETHERNET
+                        ? TARGET_GENERAL_PROFILE_ID : GENERAL_PROFILE_ID;
+        String expectedModelId = smoking ? SMOKING_MODEL_ID : GENERAL_MODEL_ID;
+        String expectedServedModel = smoking
+                || deploymentProfile == DeploymentProfile.SINGLE_2B_TARGET_ETHERNET
+                        ? "Qwen3.5-2B-AWQ" : "Qwen3.5-9B-AWQ";
         int expectedContext = workload == WorkloadClass.CABIN_SMOKING_COMPLIANCE
                 ? SMOKING_MAX_CONTEXT_TOKENS : GENERAL_MAX_CONTEXT_TOKENS;
         if (!expectedProfile.equals(target.getProfileId())
+                || !expectedModelId.equals(target.getModelId())
+                || !expectedServedModel.equals(target.getServedModelName())
                 || target.getMaximumContextTokens() != expectedContext) {
             return RejectionReason.TARGET_IDENTITY_MISMATCH;
         }

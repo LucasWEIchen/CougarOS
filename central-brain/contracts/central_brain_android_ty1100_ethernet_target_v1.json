@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "implementation_stage": "P4-R13-TY1100-ETH",
+  "requirement_ids": [
+    "S2-MDL-001",
+    "S2-MDL-002",
+    "S2-MDL-003",
+    "S2-MDL-004",
+    "S2-MDL-005",
+    "S2-OBS-001",
+    "S2-OBS-002",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "android_target": {
+    "device_alias": "production_board",
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "display": "1920x1080",
+    "ethernet_source_ipv4": "169.254.202.100",
+    "build_profile": "target_ty1100_vllm_ethernet",
+    "build_type": "debug_target_integration",
+    "runtime_version": "0.5.0-b5"
+  },
+  "ty1100_target": {
+    "ipv4": "169.254.202.110",
+    "configuration_mutation_allowed": false,
+    "transport": "DIRECT_ANDROID_ETHERNET_HTTP_JSON",
+    "api": "OPENAI_CHAT_COMPLETIONS_COMPATIBLE",
+    "chat_path": "/v1/chat/completions",
+    "models_path": "/v1/models",
+    "health_path": "/health",
+    "arbitrary_endpoint_override_allowed": false,
+    "profiles": [
+      {
+        "endpoint_profile": "TY1100_GENERAL_2B_VIA_TARGET_ETHERNET",
+        "base_url": "http://169.254.202.110:8000",
+        "model": "Qwen3.5-2B-AWQ",
+        "service_maximum_context_tokens": 262144,
+        "android_request_context_limit": 8192
+      },
+      {
+        "endpoint_profile": "TY1100_SMOKING_2B_VIA_TARGET_ETHERNET",
+        "base_url": "http://169.254.202.110:8000",
+        "model": "Qwen3.5-2B-AWQ",
+        "service_maximum_context_tokens": 262144,
+        "android_request_context_limit": 4096
+      }
+    ]
+  },
+  "routing": {
+    "provider_id": "android.vllm.prototype",
+    "provider_assurance": "DEBUG_ONLY",
+    "provider_route_precedes_profile_route": true,
+    "smoking_scenario_profile": "TY1100_SMOKING_2B_VIA_TARGET_ETHERNET",
+    "all_other_scenarios_profile": "TY1100_GENERAL_2B_VIA_TARGET_ETHERNET",
+    "logical_routes_share_one_physical_model_service": true,
+    "fallback_policy": "NO_FALLBACK",
+    "prewarm_required": true,
+    "model_identity_required": true,
+    "model_output_authorizes_effects": false,
+    "vehicle_effect_hardware_accessed": false
+  },
+  "separation": {
+    "adb_reverse_used": false,
+    "wsl_bridge_used": false,
+    "openclaw_used": false,
+    "ty1100_configuration_changed": false,
+    "release_provider_activated": false,
+    "target_integration_evidence_is_production_release_evidence": false
+  },
+  "claim_state": {
+    "android_target_profile_implemented": true,
+    "android_target_profile_built": true,
+    "android_target_profile_installed": true,
+    "direct_android_ethernet_validated": true,
+    "target_model_link_validated": true,
+    "target_model_integration_validated": true,
+    "production_ready": false,
+    "target_hardware_validated": false
+  },
+  "validation_evidence": {
+    "date": "2026-08-24",
+    "device_alias": "production_board",
+    "android_source_ipv4": "169.254.202.100",
+    "ty1100_model_catalog": [
+      "Qwen3.5-2B-AWQ"
+    ],
+    "runtime_apk": {
+      "version": "0.5.0-b5",
+      "sha256": "0fd5c9767de1ebae1bb7391f2f72cd6dbc603d44c3fffbc4bcc752ac73c9b3df"
+    },
+    "client2_apk": {
+      "version": "1.0",
+      "sha256": "a7b46e479996c684a692d1b170ba3db4d8284187fb5afcc55f4262bab625b19f"
+    },
+    "runtime_probe_latency_ms": 2405,
+    "scenario_results": {
+      "cold_latency_ms": 2364,
+      "smoking_multimodal_latency_ms": 897,
+      "fatigue_latency_ms": 3318,
+      "cabin_multimodal_latency_ms": 2613,
+      "freeform_latency_ms": 1978
+    },
+    "model_terminal_response_verified": true,
+    "multimodal_request_verified": true,
+    "approval_chain_verified": true,
+    "client2_1920x1080_projection_verified": true,
+    "vendor_client_process_verified": true,
+    "vendor_render_service_process_verified": true,
+    "runtime_cleartext_hosts": [
+      "127.0.0.1",
+      "169.254.202.110"
+    ],
+    "retired_openclaw_host_cleartext_allowed": false,
+    "adb_reverse_used": false,
+    "ty1100_configuration_changed": false,
+    "vehicle_effect_hardware_accessed": false
+  }
+}

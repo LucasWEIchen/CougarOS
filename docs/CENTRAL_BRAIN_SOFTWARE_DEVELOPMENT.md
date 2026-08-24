@@ -57,8 +57,9 @@
 | Tool 与 Skill Runtime | [08-tool-skill-runtime.md](modules/08-tool-skill-runtime.md) | Manifest、Registry、Resolver、Executor、Skill 校验 |
 | Memory Lifecycle | [09-memory-lifecycle.md](modules/09-memory-lifecycle.md) | Working/Profile/Episodic、Consent、Context Budget |
 | Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
-| Model、Scheduler 与 OpenClaw | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、专用 Agent Prompt、输出校验 |
-| OpenClaw 生产以太网 API | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 上层文字/图片接口、Binder V2、ETH、WebSocket、流式回复 |
+| Model、Scheduler 与外部 Provider | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、专用 Agent Prompt、输出校验 |
+| TY1100 vLLM 生产以太网 API | [11b-vllm-production-ethernet-api.md](modules/11b-vllm-production-ethernet-api.md) | Android 直连 ETH、OpenAI-compatible 文字/图片请求、响应与失败关闭 |
+| OpenClaw 历史过渡接口 | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 已退出当前模型链路，仅保留迁移追溯 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
 | Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态和合规检测 |
 | RenderService 厂商基线 | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | 原版 APK 哈希、签名、共享渲染会话与禁止修改项 |
@@ -519,7 +520,7 @@ Tool 输出必须有最大字节数和稳定 failure code。Tool 不得返回可
 
 事件正文只包含 HMI 所需的有界投影；大型图像通过受控媒体句柄传递，不能嵌入事件日志。
 
-## 15. Model Runtime 与 OpenClaw
+## 15. Model Runtime 与外部 Provider
 
 ### 15.1 `ModelContractV2`
 
@@ -600,43 +601,26 @@ Profile 身份不匹配、目标未就绪、健康快照来自未来或已过期
 近期会话摘要、较旧历史。超限时从末尾按优先级裁剪，不得截断 UTF-8、JSON Schema、图像摘要或安全约束。
 调用方不能通过请求覆盖 Profile 上限。
 
-### 15.5 OpenClaw 过渡 Provider
+### 15.5 TY1100 vLLM 生产目标 Provider
 
-上层应用、Binder V2、图片 FD、车载以太网、WebSocket frame、流式回复和错误映射的字段级设计见
-2.1 节索引的“OpenClaw 生产以太网 API”模块详设。
-
-生产目标连接：
+字段级设计见 2.1 节索引的“TY1100 vLLM 生产以太网 API”模块详设。固定目标为：
 
 ```text
-WebSocket: ws://169.254.208.110:18789/
-Control UI: http://169.254.208.110:18789/chat
-Protocol: 3
+Base URL: http://169.254.202.110:8000
+Catalog:  GET /v1/models
+Inference: POST /v1/chat/completions
+Served model: Qwen3.5-2B-AWQ
+Transport: Android eth0 direct HTTP/JSON
 ```
 
-凭据由受控发布配置持有，不在本文展示。当前源码中的固定凭据可从 APK 提取，是必须在量产准入前整改的
-风险，且不得记录到日志、事件或 HMI。
+Provider 在发送业务请求前读取模型目录并校验唯一模型身份。通用座舱和吸烟合规仍是两个逻辑 Profile，
+但当前目标仅暴露一个 2B 服务，因此两者共享物理 endpoint；Android 侧分别限制为 8192 和 4096 token，
+且 route digest 必须保留不同 profile ID。文字请求使用 `messages[].content` 字符串，图文请求在同一 user
+message 中使用 `text` 和单个 `image_url` Data URL。模型内容在本地完成结构化校验后才可进入 Governance。
 
-协议流程：
-
-1. 建立 RFC 6455 WebSocket。
-2. 接收 `connect.challenge` 和 nonce。
-3. 发送 `connect` 认证请求。
-4. 使用 `chat.send` 发送 session/run/idempotency/text。
-5. 多模态请求在同一个 `chat.send` 中附带一张 PNG/JPEG。
-6. 接收流式事件并绑定当前 run ID。
-7. 必要时用 `chat.history` 查询当前请求的终态。
-8. 取消时发送 `chat.abort`。
-
-限制：
-
-- 最大一张图片，6 MiB。
-- 最大已认证多模态帧 8,500,000 bytes。
-- 连接超时 3000 ms，读取超时 120000 ms。
-- 任意 endpoint override 禁止。
-- 模型结果必须通过 `StructuredModelOutput`。
-
-当前过渡 Provider 尚未达到 `PRODUCTION` assurance，因此 release 路由必须保持关闭，直到实现进入生产
-源集并完成凭据、故障恢复、资源、隐私和目标验收。
+目标集成构建已在 Android 13 生产板验证直接以太网文字与图文终态；没有 ADB reverse，也没有修改 TY1100。
+该证据只把 Provider 提升到 `TARGET_INTEGRATION`，不能替代 release 源集、生产签名、安全/隐私、故障恢复、
+并发/长稳和 OEM 准入，因此 `production_ready=false`。
 
 ### 15.6 `StructuredModelOutput`
 
@@ -984,7 +968,8 @@ Session 结束后清理 Working Memory 和临时媒体。Profile/Episodic 数据
 | Governance/Approval | 已实现 | OEM driver-safety 和 consent owner 未批准 |
 | Tool/Skill/Memory | 已实现 | production registry/authority 未发布 |
 | Model Contract/Router | 已实现 | production Provider 未合格 |
-| OpenClaw | 过渡接口已实现 | production assurance、凭据和发布路由未关闭 |
+| TY1100 vLLM | 目标集成 profile、直连文字/图文和模型身份门禁已实现 | release Provider、生产安全/隐私、长稳和发布路由未关闭 |
+| OpenClaw | 历史过渡接口保留用于迁移追溯 | 已退出当前模型调用链路 |
 | Effect Coordinator | 已实现 | 真实 Vehicle Adapter 未注册 |
 | Native C ABI | 已实现 | Vendor NPU Provider 未实现 |
 | Client2 HMI | 已实现主要闭环 | 厂商渲染/输入边界已恢复；生产物理触摸旋转和 OEM 正式工程迁移未完成 |

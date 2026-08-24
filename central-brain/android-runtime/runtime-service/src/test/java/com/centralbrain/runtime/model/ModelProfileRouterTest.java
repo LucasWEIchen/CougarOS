@@ -91,6 +91,25 @@ public final class ModelProfileRouterTest {
     }
 
     @Test
+    public void targetEthernetRoutesGeneralWorkloadToExplicitShared2bProfile() {
+        ModelProfileRouter.RouteDecision decision = ModelProfileRouter.decide(
+                "scene.comfort.cold.v1",
+                request(
+                        ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                        ModelContractV2.FallbackPolicy.NO_FALLBACK),
+                targetGeneral(true, 900, 1_500),
+                smoking(true, 900, 1_500),
+                ModelProfileRouter.DeploymentProfile.SINGLE_2B_TARGET_ETHERNET,
+                1_000);
+
+        assertEquals(ModelProfileRouter.DecisionCode.SELECTED, decision.getCode());
+        assertEquals(ModelProfileRouter.TARGET_GENERAL_PROFILE_ID, decision.getProfileId());
+        assertEquals(ModelProfileRouter.GENERAL_MODEL_ID, decision.getModelId());
+        assertEquals("Qwen3.5-2B-AWQ", decision.getServedModelName());
+        assertEquals(8_192, decision.getMaximumContextTokens());
+    }
+
+    @Test
     public void requestContractAndFixedProfileIdentityFailClosed() {
         ModelProfileRouter.RouteDecision wrongCapability = ModelProfileRouter.decide(
                 ModelProfileRouter.SMOKING_SCENARIO_ID,
@@ -179,5 +198,19 @@ public final class ModelProfileRouterTest {
                 observedAt,
                 validUntil,
                 DIGEST_B);
+    }
+
+    private static ModelProfileRouter.TargetHealth targetGeneral(
+            boolean ready, long observedAt, long validUntil) {
+        return new ModelProfileRouter.TargetHealth(
+                ModelProfileRouter.TARGET_GENERAL_PROFILE_ID,
+                ModelProfileRouter.GENERAL_MODEL_ID,
+                "Qwen3.5-2B-AWQ",
+                ModelProfileRouter.GENERAL_MAX_CONTEXT_TOKENS,
+                ready,
+                1,
+                observedAt,
+                validUntil,
+                DIGEST_A);
     }
 }

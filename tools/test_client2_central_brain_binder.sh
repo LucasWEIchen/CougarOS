@@ -114,7 +114,7 @@ fi
 
 signer_digest() {
   "$APKSIGNER" verify --print-certs "$1" \
-    | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}'
+    | awk -F': ' '/certificate SHA-256 digest/ {print $NF; exit}'
 }
 
 RUNTIME_SIGNER="$(signer_digest "$RUNTIME_APK")"

@@ -22,6 +22,7 @@ public final class VllmEndpointConfigTest {
         assertEquals("Qwen3.5-9B-AWQ", config.getModelName());
         assertEquals(8_192, config.getMaximumContextTokens());
         assertFalse(config.isProductionProfile());
+        assertFalse(config.isTargetEthernetProfile());
     }
 
     @Test
@@ -40,5 +41,38 @@ public final class VllmEndpointConfigTest {
         assertEquals("Qwen3.5-2B-AWQ", config.getModelName());
         assertEquals(4_096, config.getMaximumContextTokens());
         assertFalse(config.isProductionProfile());
+        assertFalse(config.isTargetEthernetProfile());
+    }
+
+    @Test
+    public void targetGeneralProfileIsFixedToNewEthernetAddress() {
+        VllmEndpointConfig config =
+                VllmEndpointConfig.ty1100General2bViaTargetEthernet();
+
+        assertEquals(VllmEndpointConfig.Profile.TY1100_GENERAL_2B_VIA_TARGET_ETHERNET,
+                config.getProfile());
+        assertEquals("http://169.254.202.110:8000", config.getBaseUri().toString());
+        assertEquals("http://169.254.202.110:8000/v1/chat/completions",
+                config.getChatCompletionsUri().toString());
+        assertEquals("Qwen3.5-2B-AWQ", config.getModelName());
+        assertEquals(8_192, config.getMaximumContextTokens());
+        assertFalse(config.isProductionProfile());
+        org.junit.Assert.assertTrue(config.isTargetEthernetProfile());
+    }
+
+    @Test
+    public void targetSmokingProfileIsFixedToNewEthernetAddress() {
+        VllmEndpointConfig config =
+                VllmEndpointConfig.ty1100Smoking2bViaTargetEthernet();
+
+        assertEquals(VllmEndpointConfig.Profile.TY1100_SMOKING_2B_VIA_TARGET_ETHERNET,
+                config.getProfile());
+        assertEquals("http://169.254.202.110:8000", config.getBaseUri().toString());
+        assertEquals("http://169.254.202.110:8000/v1/chat/completions",
+                config.getChatCompletionsUri().toString());
+        assertEquals("Qwen3.5-2B-AWQ", config.getModelName());
+        assertEquals(4_096, config.getMaximumContextTokens());
+        assertFalse(config.isProductionProfile());
+        org.junit.Assert.assertTrue(config.isTargetEthernetProfile());
     }
 }

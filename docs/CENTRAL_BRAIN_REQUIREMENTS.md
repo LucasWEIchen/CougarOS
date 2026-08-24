@@ -117,10 +117,10 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | --- | --- |
 | `S2-MDL-001` | ModelProvider 必须支持描述、健康、预热、推理、流式输出、取消、指标和故障查询。 |
 | `S2-MDL-002` | 模型路由必须分两级：`PolicyAwareModelRouter` 按场景、模态、隐私、资源、健康和 assurance 选择 Provider，`ModelProfileRouter` 再在已准入 Provider 内按场景选择固定模型 Profile。路由必须绑定模型身份、上下文上限和新鲜健康快照；专用 Profile 不可用时按请求合同失败关闭，禁止静默切换到通用模型。 |
-| `S2-MDL-003` | 当前生产版本通过车载以太网访问外部 OpenClaw，后续可替换为 Ollama Provider。 |
+| `S2-MDL-003` | 当前生产目标通过车载以太网访问 TY1100 上 OpenAI-compatible vLLM 服务；Provider 抽象必须允许后续替换模型底座而不改变 Session、Graph、Governance 或 Effect 合同。目标集成通过不等于 release Provider 已达到量产 assurance。 |
 | `S2-MDL-004` | 模型输出必须通过结构化 Schema、字段长度、枚举和能力白名单校验。 |
 | `S2-MDL-005` | Provider 不可用、输出非法、超时或取消失败时不得进入车辆执行阶段。 |
-| `S2-MDL-006` | 凭据不得写入日志、事件正文或 HMI；当前固定凭据属于待整改的发布风险。 |
+| `S2-MDL-006` | Provider 如需凭据，凭据必须由受控 owner 提供且不得写入日志、事件正文或 HMI；当前 TY1100 vLLM 目标接口不配置应用层凭据，未来服务身份或认证方案仍须独立准入。 |
 | `S2-MDL-007` | 吸烟检测 Agent 只能输出 `smoking_detected`、`person_count`、`location`、`confidence`、`description` 五个字段；未知字段、重复字段、越界值和未规范化的低置信度结果必须拒绝。 |
 | `S2-MDL-008` | 模型输出的 `confidence` 和 token 概率均不得直接解释为真实正确率；参与自动接受或安全决策前，必须由版本化校准器基于独立标注、成组无泄漏的正反例数据完成校准，并在独立测试集同时通过 Brier、ECE、覆盖率和分类质量门槛。校准器缺失、证据不足或模型/提示词/预处理摘要不匹配时必须拒绝启用。 |
 
@@ -219,7 +219,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | 门槛 | 当前状态 | 关闭条件 |
 | --- | --- | --- |
 | Runtime 生产编排 | 未完成 | release backend 发布并接通 durable graph/effect |
-| Model Provider | 未完成 | OpenClaw Provider 达到 production assurance 并通过故障/恢复验收 |
+| Model Provider | 未完成 | TY1100 vLLM release Provider 达到 production assurance 并通过安全、故障/恢复、并发和长稳验收 |
 | Vehicle Adapter | 外部阻塞 | OEM/Vendor 提供 property/service/permission/safety 基线 |
 | NPU Provider | 外部阻塞 | 厂商提供 ABI、模型生命周期、buffer 和故障恢复合同 |
 | Driver Safety | 外部阻塞 | 可信车速、档位、DMS/身份和 OEM 联锁策略获批 |
@@ -279,7 +279,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P4-R5a` Controlled multimodal input binding | 软件必须交付“Controlled multimodal input binding”，满足 APP-004, S2-HMI-008, S2-PER-001, S2-OBS-001，把文字、单图 FD、摘要、Session 和场景绑定为一次消费输入。 | APP-004, S2-HMI-008, S2-PER-001, S2-OBS-001。 | Client2 多模态输入、SDK 生产 AIDL 与 Runtime input store。 | 生产合同和主源码已形成；量产适配、外部服务和目标验收状态以第 6 章为准。 | `已实现` |
 | `P4-R5b` Cabin observation projection | 软件必须交付“Cabin observation projection”，满足 S2-PER-001, S2-MDL-002, S2-SAF-001, S2-OBS-001，只投影座位区域占用和可见饮水容器事实。 | S2-PER-001, S2-MDL-002, S2-SAF-001, S2-OBS-001。 | Runtime model boundary 与 Client2 event projection。 | 调用链显示三个已占用区域和后排右侧饮水容器，并与当前 Run 绑定。 | `已实现` |
 | `P4-R5c` Controlled multi-seat Context | 软件必须交付“Controlled multi-seat Context”，满足 S2-CTX-001/002, S2-TWN-001, S2-SAF-001，使场景支持 CABIN 与四座位区域并投影当前夹具占用。 | S2-CTX-001/002, S2-TWN-001, S2-SAF-001。 | Scenario manifest、生产 decision composition 和 Client2 feedback。 | 场景 zones 包含四座位；UI 显示三个已占用区域并保持 受控 边界。 | `已实现` |
-| `P4-R5d` Shopping semantic model allowlist | 软件必须交付“Shopping semantic model allowlist”，满足 S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001，将多模态输出限制为购物与购买路线候选。 | S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001。 | Cockpit prompt、OpenClaw/Ollama provider 和 structured output validator。 | 必须包含 shopping.search_products 与 navigation.plan_purchase_route；不得要求 HVAC/Media。 | `已实现` |
+| `P4-R5d` Shopping semantic model allowlist | 软件必须交付“Shopping semantic model allowlist”，满足 S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001，将多模态输出限制为购物与购买路线候选。 | S2-MDL-001/002, S2-PER-001, S2-INT-001, S2-SAF-001。 | Cockpit prompt、统一 Model Provider 和 structured output validator。 | 必须包含 shopping.search_products 与 navigation.plan_purchase_route；不得要求 HVAC/Media。 | `已实现` |
 | `P4-R5e` Evidence-bound shopping intent | 软件必须交付“Evidence-bound shopping intent”，满足 S2-INT-001, S2-PER-001, S2-CTX-002, S2-SAF-001，把购物需求表达为必须确认的候选意图。 | S2-INT-001, S2-PER-001, S2-CTX-002, S2-SAF-001。 | Scenario policy node、model action validator 和 Orchestration projection。 | resolve_shopping_intent 只能进入购物同意中断；未确认不得运行 Tool。 | `已实现` |
 | `P4-R5f` Shopping and route-planning scenario DAG | 软件必须交付“Shopping and route-planning scenario DAG”，满足 S2-SCN-001, S2-GRF-001, S2-INT-001, S2-TOL-001，编排观察、购物意图、确认、搜索、预览、提交和总结。 | S2-SCN-001, S2-GRF-001, S2-INT-001, S2-TOL-001。 | Scenario manifest/schema/catalog、compiler、Graph runtime 和 checksum。 | 交付 scene.cabin.multimodal.assist.v1 v2 的 13 节点 DAG、六 Tool、三确认和冻结摘要；目录门禁固定该资产为 v2，并保持其他三个内置资产为 v1。 | `已实现` |
 | `P4-R5g` Independent shopping purchase navigation confirmations | 软件必须交付“Independent shopping purchase navigation confirmations”，满足 S2-SAF-001, S2-HMI-003/009, S2-NAV-001, S2-COM-001，定义购物同意、订单提交和导航启动三个互不兼容的确认。 | S2-SAF-001, S2-HMI-003/009, S2-NAV-001, S2-COM-001。 | Scenario composition、Orchestration approval handling 与 Client2 controls。 | 三个不同 pending_node_id 依次中断；每个 approval digest 只允许对应 Tool 使用。 | `已实现` |
@@ -311,7 +311,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P7-W05` P7 Structured Model Output | P7 Structured Model Output | S2-MDL-001, S2-SAF-001, S2-OBS-001。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | exact JSON、scenario binding、action allowlist、raw log=false。 | `已实现` |
 | `P7-W06` P7 Scenario Evaluation | P7 Scenario Evaluation | S2-MDL-001, S2-SAF-001, S2-OBS-001。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | deterministic evaluation harness、bounded metrics。 | `已实现` |
 | `P7-W07` P7 Resource Admission | P7 Resource Admission | S2-MDL-001, NV-G-004。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | foreground priority、thermal degradation、fail-closed。 | `已实现` |
-| `P7-R3-OC2` OpenClaw target transitional gateway | OpenClaw target transitional gateway | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | 已实现 WebSocket v3、challenge/auth/send/history/abort、文字与图片附件及 Client2 projection；量产网络、凭据治理和发布资格仍须完成第 6 章门槛。 | `已实现/待量产集成` |
+| `P7-R3-OC2` OpenClaw target transitional gateway | OpenClaw target transitional gateway | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002。 | runtime-service 的 Model Provider/Registry/Router 与模型网关。 | 历史版本已实现 WebSocket v3、challenge/auth/send/history/abort、文字与图片附件及 Client2 projection；当前链路已由 P4-R13 的 TY1100 vLLM 直连替代，不再作为新版本实现或验收依据。 | `历史实现/已退出当前链路` |
 | `P9-W01` P9 Performance Budget Contract | P9 Performance Budget Contract | S2-OBS-001。 | 质量、隐私、安全、发布与诊断合同/探针。 | 7 categories/10 metrics、strict report、受控 probe。 | `已实现/待量产集成` |
 | `P9-W02` P9 Stability Fault Matrix Contract | P9 Stability Fault Matrix Contract | S2-REL-001, S2-OBS-001。 | 质量、隐私、安全、发布与诊断合同/探针。 | 3 workloads x 6 faults = 18 cases、strict report。 | `已实现/待量产集成` |
 | `P9-W03a` P9 Parser Security Corpus | P9 Parser Security Corpus | S2-SAF-001, S2-TOL-001, S2-SES-001, S2-MDL-001。 | 质量、隐私、安全、发布与诊断合同/探针。 | 3 parser surfaces/18 hostile cases、deterministic regression。 | `已实现` |
@@ -357,6 +357,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P4-R9` 座舱吸烟合规多 Agent 场景 | 新增“检测吸烟”入口；图文输入经合规 Triage、确定性 Agent Router、吸烟专用 Model Profile、SmokingDetectionAgent 和严格五字段校验后投影结果，场景不得包含 Tool 或 Effect 节点。 | APP-002/003/004/005/007, S2-PER-001, S2-SCN-001/002/004/006, S2-MDL-001/002/004/005/007/008, S2-SAF-004/005/006, S2-HMI-008/011, S2-OBS-001/002 | Client2 HMI、Scenario Catalog、Agent Router、Model Profile Router、Model Provider、模型输出校验 | 软件必须证明显式路由不由模型选择、单图与文本同请求、专用模型身份与上下文合同、无静默 fallback、预热和健康失败关闭、五字段严格校验、UI 实时显示且 `effect.execute` 数量为 0；生产 Provider 准入、目标摄像头和无文字水印样本仍需独立验收。 | `原型实现/生产外部阻塞` |
 | `P4-R11` 厂商三 APK 架构恢复 | Client 必须保持原版泊车/行车显示；Client2 在 AIOS 浮层关闭时必须保持原版 View 层级、车模触摸和按钮行为；共享 RenderService 必须与批准的原版 APK 字节一致。 | APP-001/004, S2-HMI-001/003/004/006, S2-UX-002, DEL-004 | Client 原版 APK、Client2 overlay、RenderService vendor baseline、部署门禁 | Client 和 RenderService 使用批准 SHA-256；Client2 禁止 `setRenderScale`、额外 `TuanjieView` listener、反射式 `c2sSendMessage` 和 Unity bundle 依赖；物理旋转必须在有真实触摸 event 的生产硬件复验。 | `应用修复完成/物理触摸待验收` |
 | `P4-R12` 吸烟判定置信度校准 | 生产接受策略必须区分模型自报置信度、状态 token 概率和经标注数据拟合的真实正确率估计；任何校准器必须绑定模型、Agent 指令、wire schema、预处理和数据清单摘要。 | S2-MDL-004/005/007/008, S2-OBS-001/002 | Model Provider、SmokingDetectionResult、校准配置与发布门禁 | 条件 JSON Schema 已阻止状态/人数/位置/置信度的语义非法组合；平衡试点评测已证明自报置信度失真，但校准分组缺少错误结果，校准器保持未拟合。补充成组困难正反例并通过独立 Brier/ECE/分类门槛后方可启用。 | `部分实现/校准数据阻塞` |
+| `P4-R13` Android 生产板直连 TY1100 vLLM | Android 13 生产板必须通过 `eth0` 直接访问固定 TY1100 `169.254.202.110:8000`，使用 OpenAI-compatible `/v1/models` 与 `/v1/chat/completions`；不得依赖 ADB reverse、WSL bridge 或 OpenClaw，也不得修改 TY1100 配置。当前目标只暴露 `Qwen3.5-2B-AWQ`，因此通用座舱与吸烟专用逻辑路由共享同一物理服务，但继续分别执行 8192/4096 token 请求上限、模型身份检查、预热和无 fallback 策略。 | S2-MDL-001/002/003/004/005, S2-OBS-001/002, XSC-001/005/006, DEL-001/003/004/005 | Runtime target profile、`VllmEndpointConfig`、`ModelProfileRouter`、Client2 HMI、目标以太网合同 | Runtime `0.5.0-b5` 与 Client2 已安装到 1920x1080 Android 13 生产板；模型目录、文字、任意文本、疲劳、吸烟图文和座舱图文链路均返回真实模型终态，APK 摘要与安装包一致，Client/Client2/RenderService/Runtime 同时在线，ADB reverse 为空且 TY1100 配置未改。真实 Vehicle Adapter、生产签名、安全/隐私、长稳和 release Provider 准入仍未完成。 | `目标模型集成验证完成/量产准入未完成` |
 
 ## 8. 退出生产基线的历史 ID
 

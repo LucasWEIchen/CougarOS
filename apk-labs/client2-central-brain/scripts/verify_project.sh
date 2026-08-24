@@ -213,9 +213,9 @@ if [[ -f "$SIGNED_APK" ]]; then
   RUNTIME_APK="$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
   test -f "$RUNTIME_APK"
   RUNTIME_SIGNER="$(apksigner verify --print-certs "$RUNTIME_APK" \
-    | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+    | awk -F': ' '/certificate SHA-256 digest/ {print $NF; exit}')"
   CLIENT2_SIGNER="$(apksigner verify --print-certs "$SIGNED_APK" \
-    | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+    | awk -F': ' '/certificate SHA-256 digest/ {print $NF; exit}')"
   test -n "$RUNTIME_SIGNER"
   test "$RUNTIME_SIGNER" = "$CLIENT2_SIGNER"
 fi

@@ -49,9 +49,9 @@ aapt dump badging "$SIGNED_APK" > "$LOG_DIR/aapt-badging.log" 2>&1
 
 RUNTIME_APK="$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
 RUNTIME_SIGNER="$(apksigner verify --print-certs "$RUNTIME_APK" \
-  | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+  | awk -F': ' '/certificate SHA-256 digest/ {print $NF; exit}')"
 CLIENT2_SIGNER="$(apksigner verify --print-certs "$SIGNED_APK" \
-  | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+  | awk -F': ' '/certificate SHA-256 digest/ {print $NF; exit}')"
 if [[ -z "$RUNTIME_SIGNER" || "$RUNTIME_SIGNER" != "$CLIENT2_SIGNER" ]]; then
   echo "Client2 and Runtime debug signer mismatch" >&2
   exit 1

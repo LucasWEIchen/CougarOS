@@ -280,9 +280,13 @@ public final class VllmInferenceEngine implements LocalModelProvider.LocalInfere
         if (endpoint.getProfile()
                         != VllmEndpointConfig.Profile.TY1100_GENERAL_9B_VIA_ADB_REVERSE
                 && endpoint.getProfile()
-                        != VllmEndpointConfig.Profile.TY1100_SMOKING_2B_VIA_ADB_REVERSE) {
+                        != VllmEndpointConfig.Profile.TY1100_SMOKING_2B_VIA_ADB_REVERSE
+                && endpoint.getProfile()
+                        != VllmEndpointConfig.Profile.TY1100_GENERAL_2B_VIA_TARGET_ETHERNET
+                && endpoint.getProfile()
+                        != VllmEndpointConfig.Profile.TY1100_SMOKING_2B_VIA_TARGET_ETHERNET) {
             throw new IllegalArgumentException(
-                    "debug vLLM engine accepts only the TY1100 prototype profile");
+                    "debug vLLM engine accepts only a fixed TY1100 validation profile");
         }
         this.transport = Objects.requireNonNull(transport, "transport");
         this.clock = Objects.requireNonNull(clock, "clock");
