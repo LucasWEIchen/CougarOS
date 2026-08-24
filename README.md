@@ -34,7 +34,7 @@ flowchart LR
 | --- | --- |
 | [生产软件需求文档](docs/CENTRAL_BRAIN_REQUIREMENTS.md) | 全部生产 Req ID、工作包、需求说明、验收和进度状态 |
 | [生产软件架构文档](docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md) | 自上而下的部署、分层、模块、数据、流程、安全和恢复架构 |
-| [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | 公共开发规则、对外接口摘要，以及 18 份模块详设入口 |
+| [生产软件开发文档](docs/CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md) | 公共开发规则、对外接口摘要，以及 17 份模块详设入口 |
 
 ## 当前状态
 

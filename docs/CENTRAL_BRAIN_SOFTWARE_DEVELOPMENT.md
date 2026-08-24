@@ -59,7 +59,6 @@
 | Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
 | Model、Scheduler 与外部 Provider | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、专用 Agent Prompt、输出校验 |
 | TY1100 vLLM 生产以太网 API | [11b-vllm-production-ethernet-api.md](modules/11b-vllm-production-ethernet-api.md) | Android 直连 ETH、OpenAI-compatible 文字/图片请求、响应与失败关闭 |
-| OpenClaw 历史过渡接口 | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | 已退出当前模型链路，仅保留迁移追溯 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
 | Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态和合规检测 |
 | RenderService 厂商基线 | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | 原版 APK 哈希、签名、共享渲染会话与禁止修改项 |
