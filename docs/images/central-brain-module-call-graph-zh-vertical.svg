@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1710" viewBox="0 0 1120 1710">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#10243a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2463a5"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2f7d4a"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#9a6a00"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#777777"/>
+    </marker>
+    <style>
+      text { font-family: "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", Arial, sans-serif; letter-spacing: 0; }
+      .title { fill: #15202b; font-size: 30px; font-weight: 700; }
+      .subtitle { fill: #52606d; font-size: 15px; }
+      .group { fill: #f8fafc; fill-opacity: 0.72; stroke: #b9c8d8; stroke-width: 1.5; rx: 8; }
+      .group-title { fill: #243b53; font-size: 20px; font-weight: 700; }
+      .node { stroke-width: 2; rx: 6; filter: url(#shadow); }
+      .implemented { fill: #e8f1fa; stroke: #2463a5; }
+      .model { fill: #e7f4ec; stroke: #2f7d4a; }
+      .simulated { fill: #fff3d6; stroke: #9a6a00; }
+      .reserved { fill: #f2f2f2; stroke: #777777; stroke-dasharray: 7 5; }
+      .node-title { fill: #172b3a; font-size: 18px; font-weight: 700; text-anchor: middle; }
+      .node-detail { fill: #40566a; font-size: 14px; text-anchor: middle; }
+      .flow-blue { fill: none; stroke: #2463a5; stroke-width: 2.4; marker-end: url(#arrow-blue); }
+      .flow-green { fill: none; stroke: #2f7d4a; stroke-width: 2.4; marker-end: url(#arrow-green); }
+      .flow-amber { fill: none; stroke: #9a6a00; stroke-width: 2.4; marker-end: url(#arrow-amber); }
+      .flow-gray { fill: none; stroke: #777777; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrow-gray); }
+      .flow-label { fill: #52606d; font-size: 13px; text-anchor: middle; paint-order: stroke; stroke: #ffffff; stroke-width: 5px; stroke-opacity: 0.9; }
+      .legend { fill: #40566a; font-size: 14px; }
+    </style>
+  </defs>
+
+  <text class="title" x="560" y="43" text-anchor="middle">车载中央大脑系统模块调用关系</text>
+  <text class="subtitle" x="560" y="72" text-anchor="middle">当前已实现的软件链路与生产接口边界</text>
+
+  <!-- 1. Client2 HMI -->
+  <rect class="group" x="40" y="100" width="1040" height="225"/>
+  <text class="group-title" x="64" y="134">一、客户端2座舱交互层</text>
+
+  <rect class="node implemented" x="70" y="165" width="300" height="105"/>
+  <text class="node-title" x="220" y="202">场景输入入口</text>
+  <text class="node-detail" x="220" y="228">导航任务面板、电话自由输入</text>
+  <text class="node-detail" x="220" y="250">冷热、疲劳、多模态、吸烟按钮</text>
+
+  <rect class="node implemented" x="410" y="165" width="300" height="105"/>
+  <text class="node-title" x="560" y="202">座舱控制协调模块</text>
+  <text class="node-detail" x="560" y="228">输入校验、场景映射</text>
+  <text class="node-detail" x="560" y="250">会话创建与流程启动</text>
+
+  <rect class="node implemented" x="750" y="165" width="300" height="105"/>
+  <text class="node-title" x="900" y="202">座舱界面状态管理模块</text>
+  <text class="node-detail" x="900" y="228">调用链文本、图片预览</text>
+  <text class="node-detail" x="900" y="250">模型回复与执行动画</text>
+
+  <path class="flow-blue" d="M370 217.5 H410"/>
+  <path class="flow-blue" d="M710 217.5 H750"/>
+  <text class="flow-label" x="730" y="205">状态更新</text>
+
+  <!-- 2. Bridge and SDK -->
+  <rect class="group" x="40" y="345" width="1040" height="265"/>
+  <text class="group-title" x="64" y="379">二、客户端桥接与中央大脑开发接口层</text>
+
+  <rect class="node implemented" x="110" y="410" width="300" height="90"/>
+  <text class="node-title" x="260" y="446">场景会话桥接模块</text>
+  <text class="node-detail" x="260" y="472">建立、恢复并绑定场景会话</text>
+
+  <rect class="node implemented" x="710" y="410" width="300" height="90"/>
+  <text class="node-title" x="860" y="446">编排运行客户端</text>
+  <text class="node-detail" x="860" y="472">暂存输入，校验计划与状态</text>
+
+  <rect class="node implemented" x="410" y="520" width="300" height="70"/>
+  <text class="node-title" x="560" y="549">安卓进程间通信接口</text>
+  <text class="node-detail" x="560" y="573">会话客户端、编排客户端、AIDL</text>
+
+  <path class="flow-blue" d="M560 270 V365 H260 V410"/>
+  <path class="flow-blue" d="M560 365 H860 V410"/>
+  <path class="flow-blue" d="M260 500 V508 H520 V520"/>
+  <path class="flow-blue" d="M860 500 V508 H600 V520"/>
+
+  <!-- 3. Runtime service -->
+  <rect class="group" x="40" y="630" width="1040" height="430"/>
+  <text class="group-title" x="64" y="664">三、中央大脑运行服务层</text>
+
+  <rect class="node implemented" x="70" y="700" width="290" height="90"/>
+  <text class="node-title" x="215" y="736">会话管理模块</text>
+  <text class="node-detail" x="215" y="762">持久化会话、事件与游标</text>
+
+  <rect class="node implemented" x="415" y="700" width="290" height="90"/>
+  <text class="node-title" x="560" y="736">模型输入与结果存储模块</text>
+  <text class="node-detail" x="560" y="762">输入暂存、摘要绑定、结果投影</text>
+
+  <rect class="node implemented" x="760" y="700" width="290" height="90"/>
+  <text class="node-title" x="905" y="736">编排服务入口模块</text>
+  <text class="node-detail" x="905" y="762">请求鉴权、合同校验与状态持久化</text>
+
+  <rect class="node implemented" x="70" y="855" width="290" height="100"/>
+  <text class="node-title" x="215" y="890">技能、工具与工作记忆治理</text>
+  <text class="node-detail" x="215" y="916">合同准入与资源边界校验</text>
+  <text class="node-detail" x="215" y="938">不派发真实业务操作</text>
+
+  <rect class="node implemented" x="415" y="855" width="290" height="100"/>
+  <text class="node-title" x="560" y="890">决策组合模块</text>
+  <text class="node-detail" x="560" y="916">上下文适配、触发条件</text>
+  <text class="node-detail" x="560" y="938">授权策略与模型请求生成</text>
+
+  <rect class="node implemented" x="760" y="855" width="290" height="100"/>
+  <text class="node-title" x="905" y="890">调试仿真编排后端</text>
+  <text class="node-detail" x="905" y="916">组合决策、运行治理与场景图</text>
+  <text class="node-detail" x="905" y="938">生产执行权限保持关闭</text>
+
+  <path class="flow-blue" d="M560 590 V670 H215 V700"/>
+  <path class="flow-blue" d="M560 670 V700"/>
+  <path class="flow-blue" d="M560 670 H905 V700"/>
+  <path class="flow-blue" d="M360 745 H415"/>
+  <path class="flow-blue" d="M905 790 V855"/>
+  <path class="flow-blue" d="M760 905 H705"/>
+  <path class="flow-blue" d="M760 930 V990 H215 V955"/>
+  <text class="flow-label" x="733" y="892">组合调用</text>
+
+  <!-- 4. Model routing and inference -->
+  <rect class="group" x="40" y="1080" width="1040" height="225"/>
+  <text class="group-title" x="64" y="1114">四、模型推理与路由层</text>
+
+  <rect class="node implemented" x="70" y="1150" width="290" height="90"/>
+  <text class="node-title" x="215" y="1186">模型服务路由模块</text>
+  <text class="node-detail" x="215" y="1212">提供方、专用智能体与模型档位路由</text>
+
+  <rect class="node model" x="415" y="1150" width="290" height="90"/>
+  <text class="node-title" x="560" y="1186">大模型推理引擎</text>
+  <text class="node-detail" x="560" y="1212">2B物理服务、通用与吸烟双逻辑路由</text>
+
+  <rect class="node model" x="760" y="1150" width="290" height="90"/>
+  <text class="node-title" x="905" y="1186">TY1100算力设备</text>
+  <text class="node-detail" x="905" y="1212">vLLM模型服务与真实网络推理</text>
+
+  <path class="flow-blue" d="M560 955 V1080 H215 V1150"/>
+  <path class="flow-green" d="M360 1195 H415"/>
+  <path class="flow-green" d="M705 1195 H760"/>
+  <text class="flow-label" x="387" y="1183">选择档位</text>
+  <text class="flow-label" x="733" y="1183">模型请求</text>
+
+  <!-- 5. Graph and effects -->
+  <rect class="group" x="40" y="1325" width="1040" height="250"/>
+  <text class="group-title" x="64" y="1359">五、场景编排与执行反馈层</text>
+
+  <rect class="node implemented" x="70" y="1395" width="290" height="100"/>
+  <text class="node-title" x="215" y="1430">场景目录与智能体图运行模块</text>
+  <text class="node-detail" x="215" y="1456">类型化计划、策略节点、审批节点</text>
+  <text class="node-detail" x="215" y="1478">图状态与执行顺序管理</text>
+
+  <rect class="node simulated" x="415" y="1395" width="290" height="100"/>
+  <text class="node-title" x="560" y="1430">场景效果仿真模块</text>
+  <text class="node-detail" x="560" y="1456">仿真执行记录与状态回读</text>
+  <text class="node-detail" x="560" y="1478">驱动座舱界面反馈动画</text>
+
+  <rect class="node reserved" x="760" y="1395" width="290" height="100"/>
+  <text class="node-title" x="905" y="1430">生产执行适配层</text>
+  <text class="node-detail" x="905" y="1456">厂商SDK、硬件抽象层</text>
+  <text class="node-detail" x="905" y="1478">车身总线与真实状态回读</text>
+
+  <path class="flow-green" d="M905 1240 V1285 H215 V1395"/>
+  <text class="flow-label" x="560" y="1275">严格校验后的模型结果</text>
+  <path class="flow-amber" d="M360 1445 H415"/>
+  <path class="flow-gray" d="M705 1445 H760"/>
+  <text class="flow-label" x="733" y="1433">尚未接通</text>
+
+  <!-- Feedback loop -->
+  <path class="flow-amber" d="M560 1495 V1540 H1070 V300 H900 V270"/>
+  <text class="flow-label" x="805" y="1532">计划、状态、模型回复与仿真执行反馈</text>
+
+  <!-- Legend -->
+  <rect class="node implemented" x="75" y="1620" width="28" height="20" filter="none"/>
+  <text class="legend" x="115" y="1636">已实现并进入调用链</text>
+  <rect class="node model" x="330" y="1620" width="28" height="20" filter="none"/>
+  <text class="legend" x="370" y="1636">真实模型推理</text>
+  <rect class="node simulated" x="555" y="1620" width="28" height="20" filter="none"/>
+  <text class="legend" x="595" y="1636">调试与界面仿真</text>
+  <rect class="node reserved" x="805" y="1620" width="28" height="20" filter="none"/>
+  <text class="legend" x="845" y="1636">仅预留生产接口</text>
+
+  <text class="subtitle" x="560" y="1680" text-anchor="middle">透明背景 · 纵向紧凑版 · 当前软件原型不访问真实车辆总线</text>
+</svg>
