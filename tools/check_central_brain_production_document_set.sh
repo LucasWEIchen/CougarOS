@@ -89,13 +89,13 @@ work_ids = re.findall(
     requirements,
     flags=re.MULTILINE,
 )
-if len(work_ids) != 143 or len(set(work_ids)) != 143:
+if len(work_ids) != 144 or len(set(work_ids)) != 144:
     raise SystemExit(
-        f"requirements must track 143 unique work packages: rows={len(work_ids)}, "
+        f"requirements must track 144 unique work packages: rows={len(work_ids)}, "
         f"unique={len(set(work_ids))}"
     )
 for required_id in (
-    "P0-W01", "P1-W01", "P4-R1", "P4-R7", "P4-R8", "P4-R9", "P4-R12", "P7-R3-OC2",
+    "P0-W01", "P1-W01", "P4-R1", "P4-R7", "P4-R8", "P4-R9", "P4-R12", "P4-R13", "P7-R3-OC2",
     "P6-P7-R1", "P8-W05", "P9-EXT-07", "P10-R1", "SCOPE-05",
 ):
     if required_id not in work_ids:
@@ -171,7 +171,7 @@ for marker in (
     "## 8. Session 与 Persistence",
     "## 11. Agent Graph Runtime",
     "## 12. Governance 与 Approval",
-    "## 15. Model Runtime 与 OpenClaw",
+    "## 15. Model Runtime 与外部 Provider",
     "## 16. Effect 与 Adapter",
     "## 17. Client2 HMI 详设",
     "## 18. Native Runtime",
@@ -303,7 +303,7 @@ for relative in repository_files:
 if legacy_references:
     raise SystemExit("legacy document references remain:\n" + "\n".join(legacy_references))
 
-print("production_requirement_work_package_count=143")
+print("production_requirement_work_package_count=144")
 print(f"production_architecture_mermaid_diagram_count={mermaid_count}")
 print(f"production_module_detailed_design_count={len(module_paths)}")
 PY

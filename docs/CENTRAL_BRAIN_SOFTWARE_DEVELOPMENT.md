@@ -58,7 +58,7 @@
 | Memory Lifecycle | [09-memory-lifecycle.md](modules/09-memory-lifecycle.md) | Working/Profile/Episodic、Consent、Context Budget |
 | Event、Trigger 与 Suggestion | [10-event-trigger-suggestion.md](modules/10-event-trigger-suggestion.md) | Broker、Cursor、QoS、Trigger、主动建议 |
 | Model、Scheduler 与外部 Provider | [11-model-scheduler-openclaw.md](modules/11-model-scheduler-openclaw.md) | Provider、Router、Scheduler、专用 Agent Prompt、输出校验 |
-| TY1100 vLLM 生产以太网 API | [11b-vllm-production-ethernet-api.md](modules/11b-vllm-production-ethernet-api.md) | Android 直连 ETH、OpenAI-compatible 文字/图片请求、响应与失败关闭 |
+| TY1100 vLLM 生产以太网 API | [11a-openclaw-production-ethernet-api.md](modules/11a-openclaw-production-ethernet-api.md) | Android 直连 ETH、OpenAI-compatible 文字/图片请求、响应与失败关闭 |
 | Effect 与 Vehicle Adapter | [12-effect-vehicle-adapter.md](modules/12-effect-vehicle-adapter.md) | Effect Batch、Adapter、Readback、Compensation |
 | Client2 HMI | [13-client2-hmi.md](modules/13-client2-hmi.md) | Reducer、状态树、Timeline、HVAC、座椅、多模态和合规检测 |
 | RenderService 厂商基线 | [14-renderservice-unity.md](modules/14-renderservice-unity.md) | 原版 APK 哈希、签名、共享渲染会话与禁止修改项 |
@@ -617,7 +617,7 @@ Provider 在发送业务请求前读取模型目录并校验唯一模型身份�
 且 route digest 必须保留不同 profile ID。文字请求使用 `messages[].content` 字符串，图文请求在同一 user
 message 中使用 `text` 和单个 `image_url` Data URL。模型内容在本地完成结构化校验后才可进入 Governance。
 
-目标集成构建已在 Android 13 生产板验证直接以太网文字与图文终态；没有 ADB reverse，也没有修改 TY1100。
+目标集成构建已在 Android 13 生产板验证直接以太网文字与图文终态；没有主机端口转发，也没有修改 TY1100。
 该证据只把 Provider 提升到 `TARGET_INTEGRATION`，不能替代 release 源集、生产签名、安全/隐私、故障恢复、
 并发/长稳和 OEM 准入，因此 `production_ready=false`。
 

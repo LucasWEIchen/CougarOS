@@ -1866,7 +1866,7 @@ all returned real model terminals. Client, Client2, RenderService and Runtime re
 1920x1080. Installed APK hashes matched the local artifacts; ADB reverse was empty and no TY1100
 configuration was changed. See
 `central-brain/contracts/central_brain_android_ty1100_ethernet_target_v1.json` and
-`docs/modules/11b-vllm-production-ethernet-api.md`.
+`docs/modules/11a-openclaw-production-ethernet-api.md`.
 
 This is target model-integration evidence, not a production release acceptance. Vehicle effects are
 still simulated and production signing, transport assurance, privacy/security, fault recovery,

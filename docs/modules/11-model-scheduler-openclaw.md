@@ -54,7 +54,6 @@ Effect gate。Provider 失败不能进入车辆执行。
 | [smoking agent prompt](../../central-brain/android-runtime/runtime-service/src/main/assets/agents/smoking-detection-agent-v1.md) | 角色、摄像头坐标、判定和输出规则 | 版本化 Agent 指令 |
 | [smoking scenario manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json) | response-only DAG | 场景和策略绑定 |
 | [VllmEndpointConfig.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/VllmEndpointConfig.java) | target Ethernet factories、URI getters | TY1100 固定端点、模型和上下文合同 |
-| [VllmInferenceEngine.java](../../central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/VllmInferenceEngine.java) | `infer`、文字/图文 request、response parser | 当前 target-integration 网络执行器；release 实现待迁移 |
 | [runtime-service build.gradle.kts](../../central-brain/android-runtime/runtime-service/build.gradle.kts) | `centralBrainTargetTy1100Ethernet`、BuildConfig | 互斥目标构建配置 |
 | [ModelRuntimeReadinessSnapshot.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelRuntimeReadinessSnapshot.java) | blockers | production 推理激活门槛 |
 | [model output schema](../../central-brain/android-runtime/runtime-service/src/main/assets/model/model-structured-output-v1.schema.json) | JSON Schema | 输出文件合同 |
@@ -119,8 +118,8 @@ host、port 或 served model。两个逻辑 Profile 分别保留 8192/4096 token
 
 Provider 使用 OpenAI-compatible `/v1/models` 做身份门禁，使用 `/v1/chat/completions` 发送文字或单帧图文
 请求。完整字段、超时、错误映射与 release 迁移要求由
-[TY1100 vLLM 生产以太网 API 详设](11b-vllm-production-ethernet-api.md)定义。当前网络执行器位于 target
-integration 源集，尚未达到 `PRODUCTION` assurance，不能把局部硬件通过误记为 release 完成。
+[TY1100 vLLM 生产以太网 API 详设](11a-openclaw-production-ethernet-api.md)定义。当前网络执行器尚未迁入 release
+组合根，也未达到 `PRODUCTION` assurance，不能把局部硬件通过误记为 release 完成。
 
 ### 4.6 结构化输出
 
