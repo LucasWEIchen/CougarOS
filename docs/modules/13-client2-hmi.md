@@ -23,7 +23,7 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | --- | --- |
 | `APP-001` | 场景任务入口和语音转写文本 |
 | `APP-002` | 文本与单帧座舱图像形成同一请求 |
-| `APP-005` | 显示模型输入、缩略图和居中预览 |
+| `APP-005` | 显示模型输入、左侧独立图像、模型耗时和居中预览 |
 | `APP-006` | 1..1024 字符任意文本输入、Session 绑定和一次消费 |
 | `APP-007` | “检测吸烟”入口与同帧图像绑定 |
 | `S2-UX-001` | 第一层仅任务入口和实时链路 |
@@ -35,6 +35,9 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | `S2-HMI-008`、`S2-HMI-009` | 多模态输入输出、座位事实、购物与导航确认 |
 | `S2-HMI-010` | 导航/电话双入口、互斥浮层和外部点击关闭 |
 | `S2-HMI-011` | 显示 Agent 路由、图文输入、五字段输出和合规状态 |
+| `S2-HMI-012` | 200 张受控评测帧、逐次随机选图和标签隔离 |
+| `S2-HMI-013` | 图片脱离右侧对话框并在左侧独立显示真实模型耗时 |
+| `S2-HMI-014` | 分层座椅图示和靠背展开动画 |
 | `S2-OBS-002` | 顺序滚动 Runtime/Model/Graph/Effect/Readback 里程碑 |
 
 ## 3. 源码地图
@@ -55,12 +58,16 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | [CockpitRecoveryState.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitRecoveryState.java) | approval/aggregate/compensation | 恢复与撤销 UI |
 | [CockpitDisplayPolicy.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java) | `resolve`、panel bounds | 1920x1080 和大字模式 |
 | [DrivingUxPolicy.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/DrivingUxPolicy.java) | `modeFor` | 驾驶状态显示限制 |
-| [CockpitMultimodalInput.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java) | `load`、`openParcelable`、`decodePreview` | 单帧图像输入 |
+| [CockpitMultimodalInput.java](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java) | `load`、`selectSmokingOrdinal`、`openParcelable`、`decodePreview` | 固定座舱帧、随机评测帧和单帧图文输入 |
 | [CockpitModelPrompt.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java) | `forFreeform`、`validateActions` | 任意文本座舱上下文与动作白名单 |
 | [freeform manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.aios.freeform.v1.json) | `scene.aios.freeform.v1` | 任意文本 response-only 场景图 |
 | [smoking manifest](../../central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.compliance.smoking.v1.json) | `scene.cabin.compliance.smoking.v1` | 吸烟检测 response-only 场景图 |
 | [SmokingDetectionResult.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/SmokingDetectionResult.java) | 五字段检测输出 | HMI 接收内容的上游校验边界 |
 | [main_layout.central_brain_panel.xml](../../apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml) | overlay、buttons、trace、preview | HMI View 结构 |
+| [prepare_workspace.sh](../../apk-labs/client2-central-brain/scripts/prepare_workspace.sh) | `copy_smoking_dataset` | 将 100+100 张受控帧打入调试 APK 的 `res/raw` |
+| [central_brain_seat_back.xml](../../apk-labs/client2-central-brain/patches/res/drawable/central_brain_seat_back.xml) | headrest/back/bolster/lumbar paths | 可旋转座椅靠背矢量层 |
+| [central_brain_seat_base.xml](../../apk-labs/client2-central-brain/patches/res/drawable/central_brain_seat_base.xml) | cushion/side bolster/lower shell paths | 静态座椅坐垫矢量层 |
+| [central_brain_seat_rail.xml](../../apk-labs/client2-central-brain/patches/res/drawable/central_brain_seat_rail.xml) | rails/brackets | 座椅滑轨矢量层 |
 | [client2 project contract](../../apk-labs/client2-central-brain/client2-central-brain.project.json) | requirements、layout、bridge | 集成清单 |
 
 ## 4. 核心设计
@@ -106,8 +113,11 @@ HMI checkpoint、SharedPreferences、Event、审计或错误消息；界面显�
 
 `INTENT → CONTEXT → PLAN → POLICY → GRAPH → EFFECT → READBACK`
 
-`CockpitControlCoordinator.appendLiveTrace()` 只接受有界 stage/status/detail，并以序列顺序追加。模型输入显示
-用户文字；存在图像时显示等比缩略图。模型输出显示结构化校验后的 assistant text 和候选动作摘要。
+`CockpitControlCoordinator.appendLiveTrace()` 只接受有界 stage/status/detail，并以序列顺序追加。模型输入文字
+保留在右侧链路；图像不得成为链路内部子 View，而由 `centralBrainModelInputImageOverlay` 在桌面左侧独立显示。
+`renderModelLatency()` 只读取 `CockpitSimulatedScenarioState.getModelLatencyMs()`，在模型完成后把真实投影值写到
+图像下方；开始、失败或缺失投影分别显示 `-- ms`、失败或 `UNAVAILABLE`，禁止由 HMI 自行计时冒充 Provider
+耗时。模型输出显示结构化校验后的 assistant text 和候选动作摘要。
 
 ### 4.4 HVAC 与座椅
 
@@ -117,10 +127,17 @@ HMI checkpoint、SharedPreferences、Event、审计或错误消息；界面显�
 `SeatControlIntent` 的 `reclineDegrees` 增大表示靠背展开。`CockpitSeatState.evaluate()` 根据 driving、occupancy、
 belt 和 evidence 决定 ALLOW/DENY/APPROVAL；HMI 本地判断只负责禁用控件，最终决定来自 Governance。
 
+座椅执行图由四个独立视觉层组成：滑轨、坐垫/侧翼、靠背/头枕、转轴。只有
+`centralBrainSeatBack` 围绕底部转轴旋转，`animateSeat(15, 30)` 将角度增量映射为负向屏幕旋转，使靠背顶部
+远离坐垫；坐垫和滑轨保持稳定。角度文字与动画使用同一个 `ValueAnimator` 值，但动画完成仍只表示
+界面仿真状态，不能写入 `reported`。
+
 ### 4.5 浮层与预览
 
-主面板为 1920x1080 右侧半透明 overlay，由底部导航热区切换；点击面板外关闭。图像预览覆盖屏幕中心，
-点击图外退出。`CockpitDisplayPolicy.panelFitsDisplay()` 必须在渲染前通过。
+主面板为 1920x1080 右侧半透明 overlay，由底部导航热区切换；点击面板外关闭。多模态输入使用左侧
+`520x356dp` 独立浮层，其中图像固定为 `496x279dp`、`FIT_CENTER`，耗时栏固定在图像下方。购物/路线反馈
+出现时从 `248dp` 下移到 `500dp`，不得遮挡图像或耗时。点击图像打开屏幕中心预览，点击图外退出。
+`CockpitDisplayPolicy.panelFitsDisplay()` 必须在渲染前通过。
 
 ### 4.6 厂商渲染与输入隔离
 
@@ -134,8 +151,14 @@ AIOS HVAC/Seat 动画是明确标注的 UI 仿真，不覆盖 Unity 原生温度
 
 ### 4.7 吸烟检测投影
 
-`CockpitMultimodalInput` 用场景白名单选择图像资源、触发文字、文件名、字节数和 SHA-256，不能由任意 UI tag
-拼接资源名。“检测吸烟”触发后，链路依次显示 `MODEL INPUT`、`AGENT ROUTER`、`MODEL OUTPUT` 和
+`CockpitMultimodalInput` 用场景白名单选择图像源、触发文字、MIME、文件名、字节数和 SHA-256，不能由任意
+UI tag 拼接资源名。`cabin.multimodal` 继续使用固定 PNG；`cabin.smoking` 的调试输入从 200 个已签名 APK
+资源中以 `Random.nextInt(200)` 逐次选择，前 100 个映射到正例资源、后 100 个映射到反例资源。传给模型的
+文件名统一为 `cabin-evaluation-frame-NNN.jpg`，不得包含 `positive`、`negative` 或 `smoking` 标签。每次只
+读取、哈希和解码命中的一张图，不得把 200 张同时载入内存。生产构建必须用相同的 typed input 合同接入
+相机 authority，并排除调试数据集。
+
+“检测吸烟”触发后，链路依次显示 `MODEL INPUT`、`AGENT ROUTER`、`MODEL OUTPUT` 和
 `COMPLIANCE RESULT`。最终状态只取 `DETECTED`、`NOT_DETECTED` 或 `UNCERTAIN`，详细内容显示经过 Runtime
 校验的五字段紧凑 JSON。
 
@@ -220,7 +243,7 @@ sequenceDiagram
     O->>A: specialist prompt + image
     A-->>O: validated five-field JSON
     O-->>H: model projection + graph completion
-    H-->>U: route + input + result status
+    H-->>U: 左侧图像 + latencyMs + route + result status
 ```
 
 ## 7. 失败关闭与并发
@@ -229,6 +252,7 @@ sequenceDiagram
 - Session handle 与 callback 使用 generation/connection 所有权，旧连接回调不得覆盖新状态。
 - overflow 后显示恢复状态并从 Runtime cursor 重放。
 - 图像加载、解码和 Parcelable 都执行字节上限与资源关闭。
+- 评测资源的类别只用于 APK 内部资源映射，不得进入模型可见文件名、请求文字或输出。
 - 任意文本在 Session 接收后清空进程内暂存，不能进入 checkpoint 或日志。
 - 模型候选动作没有直接执行权；缺少 typed Plan 时 Effect 记录必须为零。
 - HMI 动画只能表示“请求中/执行投影”，不能把本地动画终点写成 reported success。
@@ -242,15 +266,16 @@ sequenceDiagram
 - [ ] 场景按钮只启动 Session/Orchestration，不直接调用执行器。
 - [ ] timeline 阶段按 Runtime sequence 增量显示。
 - [ ] 模型输入文字与实际请求一致。
-- [ ] 图像等比缩略、可放大、点击图外退出。
+- [ ] 图像只在左侧独立浮层等比显示，不嵌入右侧对话框，可放大并通过点击图外退出。
+- [ ] 图像下方耗时来自模型投影 `latencyMs`，缺失时显示 unavailable。
 - [ ] 导航入口只切换固定任务面板，电话入口只切换任意文本输入。
 - [ ] 两个入口互斥，输入卡可通过关闭控件或浮层外点击关闭。
 - [ ] 输入 1..1024 字符且原文不持久化。
 - [ ] 任意文本回复和候选动作来自 Model/Runtime 事件，不由 HMI 合成。
-- [ ] “检测吸烟”绑定专用场景、受控图像和实际模型输出。
+- [ ] “检测吸烟”绑定专用场景，从 100+100 个 APK 资源中逐次随机选图，且不泄漏类别标签。
 - [ ] 合规状态来自五字段投影，且不显示 Tool/Effect 成功。
 - [ ] HVAC desired/reported 分离，18.0..30.0、0.5 步进。
-- [ ] 座椅角度增大表示展开，并显示安全决定。
+- [ ] 座椅包含头枕、靠背、侧翼、坐垫、转轴和滑轨，角度增大表示展开，并显示安全决定。
 - [ ] unknown/partial/retry/undo/compensation 有独立显示。
 - [ ] 1920x1080 panel bounds 和触摸目标符合 policy。
 - [ ] 原版渲染容器和右上 `topControls` 属性保持不变。

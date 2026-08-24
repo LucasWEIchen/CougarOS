@@ -789,7 +789,7 @@ View 只根据 state 渲染；点击事件转换为 reducer input 或 SDK comman
 
 1. 获取当前座舱帧。
 2. 将图片与文本绑定到同一请求。
-3. 显示文字和图片缩略图。
+3. 右侧链路显示文字，桌面左侧独立显示等比图片；模型完成后在图片下方显示 Provider `latencyMs`。
 4. 模型输出乘员和意图候选。
 5. 编译购物与路线 DAG。
 6. 显示候选、独立审批和后续执行。
@@ -806,7 +806,8 @@ View 只根据 state 渲染；点击事件转换为 reducer input 或 SDK comman
 “检测吸烟”：
 
 1. 使用 `cabin.smoking` 打开 `scene.cabin.compliance.smoking.v1` Session。
-2. `CockpitMultimodalInput` 从场景白名单选择触发文字、图像资源、文件名、字节数和 SHA-256。
+2. `CockpitMultimodalInput` 从场景白名单选择触发文字和图像源。调试构建以 100 张正例和 100 张反例
+   组成受控资源目录，每次触发以 `Random.nextInt(200)` 选择一帧；模型可见文件名不得携带类别标签。
 3. Runtime 通过 `CabinComplianceAgentRouter.routeExplicit()` 选择 `agent.cabin.smoking-detection.v1`。
 4. 图文 Provider 返回五字段紧凑 JSON，`SmokingDetectionResult` 严格校验并规范化状态。
 5. HMI 按顺序显示输入、Agent 路由、模型输出与 `DETECTED`、`NOT_DETECTED` 或 `UNCERTAIN`。
@@ -838,6 +839,7 @@ SESSION_COMPLETED / PARTIAL / FAILED
 - 温度使用与 Unity 原界面一致的字体、位置和材质。
 - AIOS 执行反馈使用明确标注的 UI 仿真层；没有 OEM 源码级 bridge 时，不修改 Unity 原生温度资源。
 - 座椅靠背 15 度到 30 度为展开方向。
+- 座椅图示必须分离滑轨、坐垫/侧翼、靠背/头枕和转轴；仅靠背围绕转轴旋转，禁止使用两个矩形代替。
 - 动画进度不等于 Effect readback；完成状态由 Runtime 投影。
 
 ### 17.5 显示与触摸
@@ -845,6 +847,8 @@ SESSION_COMPLETED / PARTIAL / FAILED
 - 设计分辨率 1920x1080。
 - Client2 悬浮层不得修改车模渲染 viewport。
 - RenderService 使用批准的原版 APK；Client2 不设置 RenderScale、不覆盖 `TuanjieView` 触摸监听，覆盖层只拦截自身可交互区域。
+- 多模态图像使用左侧独立 `520x356dp` 浮层，图像为 `496x279dp FIT_CENTER`，真实模型耗时位于图片下方；右侧调用链内不得包含图片 View。
+- 左侧购物/路径反馈在图像存在时下移到 `500dp`，不得与图像或耗时重叠。
 - 图片居中预览时点击遮罩关闭，点击图片本身不关闭。
 - 行驶受限模式隐藏长文本、禁用高风险入口并保留紧急取消。
 

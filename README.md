@@ -41,12 +41,12 @@ flowchart LR
 | 范围 | 状态 |
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
-| P4-R7/P4-R8/P4-R9/P4-R10/P4-R11/P4-R13 HMI 与模型链路 | 当前 Draft 分支已包含厂商三 APK 架构恢复、双入口、任意文本、吸烟合规多 Agent 与 TY1100 vLLM 链路；生产板直连模型集成已验证，RenderService 保持原版只读基线，物理触摸旋转仍需正式验收 |
-| Client2 集成合同 | `0.23.0`，保留 P4-R9 “检测吸烟”图文入口并完成 P4-R11 厂商渲染边界恢复 |
+| P4-R7/P4-R8/P4-R9/P4-R10/P4-R11/P4-R13/P4-R14 HMI 与模型链路 | 当前 Draft 分支已包含厂商三 APK 架构恢复、双入口、任意文本、吸烟合规多 Agent、TY1100 vLLM、随机评测帧、左侧图像/耗时浮层和分层座椅反馈；RenderService 保持原版只读基线，生产相机与物理触摸仍需正式验收 |
+| Client2 集成合同 | `0.24.0`，包含 200 帧调试资源随机选择、模型标签隔离、左侧图像/耗时投影和精细座椅展开动画 |
 | Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
 | 当前生产目标模型环境 | [TY1100 生产以太网接口详设](docs/modules/11a-openclaw-production-ethernet-api.md)：Android `169.254.202.100` 直连 TY1100 `169.254.202.110:8000`；当前唯一模型为 `Qwen3.5-2B-AWQ`，通用/吸烟逻辑路由分别保留 8192/4096 token 上限，强制身份检查、预热且不静默 fallback |
 | Model Prompt API | 直连 vLLM Provider 接收受控 `CockpitModelPrompt`，支持文字与单帧图文输入；Provider 不获得执行权限 |
-| 座舱吸烟合规 Agent | 确定性 Agent Router、Model Profile Router、版本化指令、五字段严格校验和三分支条件 Schema 已形成；[正反例平衡评测及逐项优化证据](central-brain/evaluation/smoking-detection/README.md)覆盖固定 200 张。TY1100 2B 原型保持 `longest_edge=786432`，prefix caching 因 0 命中已关闭；快速通道用保留 `]` 的 stop 扩展把 completion 从 12 降到 11 token，测试集准确率仍为 100%，端到端均值 1407 ms、P95 1898 ms。Android 13 `testboard` 单场景实链路为 1073 ms；模型自报置信度仍不可校准，目标摄像头、并发和长稳验收待完成 |
+| 座舱吸烟合规 Agent | 确定性 Agent Router、Model Profile Router、版本化指令、五字段严格校验和三分支条件 Schema 已形成；[正反例平衡评测及逐项优化证据](central-brain/evaluation/smoking-detection/README.md)覆盖固定 200 张。调试 APK 已完整内置 100+100 张 1920x1080 图片，每次触发随机选一张且不向模型泄漏类别标签；图片与模型耗时独立显示在桌面左侧。生产相机、并发和长稳验收待完成 |
 | 任意文本动作权限 | 当前仅投影模型回复与白名单候选，动态 Tool/Effect 编译保持关闭 |
 | Android 生产板直连 TY1100 | `P4-R13` 与[机器可读合同](central-brain/contracts/central_brain_android_ty1100_ethernet_target_v1.json)已记录真实文字/图文链路、APK 摘要和局部时延；未使用 ADB reverse，未修改 TY1100 |
 | 发布配置边界 | `target_ty1100_vllm_ethernet` 已完成目标集成构建与安装；release Provider 激活、生产签名、安全/隐私和长稳准入仍未完成 |

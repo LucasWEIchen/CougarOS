@@ -8,6 +8,12 @@
     </LinearLayout>
     <LinearLayout android:layout_gravity="end|top" android:orientation="horizontal" android:id="@id/topControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="8.0dp" />
 
+    <LinearLayout android:id="@+id/centralBrainModelInputImageOverlay" android:orientation="vertical" android:layout_width="520.0dp" android:layout_height="356.0dp" android:layout_gravity="left|top" android:layout_marginLeft="32.0dp" android:layout_marginTop="128.0dp" android:background="@drawable/central_brain_model_input_background" android:elevation="7.0dp" android:padding="12.0dp" android:visibility="gone">
+        <TextView android:id="@+id/centralBrainModelInputImageTitle" android:layout_width="match_parent" android:layout_height="20.0dp" android:gravity="center_vertical" android:text="模型输入 · 座舱图像" android:textColor="#26343B" android:textSize="12.0sp" android:textStyle="bold" />
+        <ImageView android:id="@+id/centralBrainModelInputImage" android:layout_width="496.0dp" android:layout_height="279.0dp" android:layout_marginTop="6.0dp" android:adjustViewBounds="true" android:background="#26000000" android:clickable="true" android:contentDescription="点击放大座舱模型输入图片" android:focusable="true" android:scaleType="fitCenter" />
+        <TextView android:id="@+id/centralBrainModelLatencyText" android:layout_width="match_parent" android:layout_height="27.0dp" android:gravity="center_vertical" android:text="模型运行中 · -- ms" android:textColor="#176F68" android:textSize="12.0sp" android:textStyle="bold" />
+    </LinearLayout>
+
     <LinearLayout android:id="@+id/centralBrainActuatorOverlay" android:orientation="vertical" android:layout_width="430.0dp" android:layout_height="520.0dp" android:layout_gravity="left|top" android:layout_marginLeft="32.0dp" android:layout_marginTop="248.0dp" android:background="@drawable/central_brain_effect_feedback_background" android:elevation="7.0dp" android:padding="22.0dp" android:visibility="gone">
         <TextView android:id="@+id/centralBrainActuatorTitleText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="座舱执行反馈" android:textColor="#172129" android:textSize="21.0sp" android:textStyle="bold" />
         <TextView android:id="@+id/centralBrainActuatorStateText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6.0dp" android:text="UI SIMULATION ONLY" android:textColor="#176F68" android:textSize="11.0sp" android:textStyle="bold" />
@@ -24,9 +30,13 @@
 
         <FrameLayout android:id="@+id/centralBrainSeatFeedbackRegion" android:layout_width="match_parent" android:layout_height="210.0dp" android:layout_marginTop="8.0dp">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="left|top" android:text="驾驶席" android:textColor="#4A5661" android:textSize="12.0sp" android:textStyle="bold" />
-            <View android:id="@+id/centralBrainSeatBack" android:layout_width="82.0dp" android:layout_height="138.0dp" android:layout_gravity="center" android:layout_marginLeft="-72.0dp" android:layout_marginTop="-30.0dp" android:background="@drawable/central_brain_seat_part" />
-            <View android:layout_width="150.0dp" android:layout_height="55.0dp" android:layout_gravity="center" android:layout_marginLeft="44.0dp" android:layout_marginTop="92.0dp" android:background="@drawable/central_brain_seat_part" />
-            <TextView android:id="@+id/centralBrainActuatorSeatAngleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="right|center_vertical" android:text="靠背 15°" android:textColor="#172129" android:textSize="17.0sp" android:textStyle="bold" />
+            <FrameLayout android:id="@+id/centralBrainSeatModel" android:layout_width="250.0dp" android:layout_height="190.0dp" android:layout_gravity="left|bottom" android:contentDescription="驾驶席座椅展开动画">
+                <ImageView android:layout_width="190.0dp" android:layout_height="26.0dp" android:layout_gravity="left|bottom" android:layout_marginLeft="28.0dp" android:layout_marginBottom="2.0dp" android:contentDescription="座椅滑轨" android:src="@drawable/central_brain_seat_rail" />
+                <ImageView android:layout_width="175.0dp" android:layout_height="90.0dp" android:layout_gravity="left|bottom" android:layout_marginLeft="64.0dp" android:layout_marginBottom="18.0dp" android:contentDescription="座椅坐垫和侧翼" android:src="@drawable/central_brain_seat_base" />
+                <ImageView android:id="@+id/centralBrainSeatBack" android:layout_width="108.0dp" android:layout_height="165.0dp" android:layout_gravity="left|bottom" android:layout_marginLeft="28.0dp" android:layout_marginBottom="48.0dp" android:contentDescription="座椅靠背和头枕" android:src="@drawable/central_brain_seat_back" />
+                <View android:layout_width="24.0dp" android:layout_height="24.0dp" android:layout_gravity="left|bottom" android:layout_marginLeft="101.0dp" android:layout_marginBottom="61.0dp" android:background="@drawable/central_brain_seat_hinge" android:contentDescription="座椅靠背转轴" />
+            </FrameLayout>
+            <TextView android:id="@+id/centralBrainActuatorSeatAngleText" android:layout_width="112.0dp" android:layout_height="wrap_content" android:layout_gravity="right|center_vertical" android:gravity="right" android:text="靠背 15°" android:textColor="#172129" android:textSize="17.0sp" android:textStyle="bold" />
         </FrameLayout>
 
         <LinearLayout android:id="@+id/centralBrainShoppingFeedbackRegion" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="330.0dp" android:layout_marginTop="16.0dp" android:visibility="gone">
@@ -68,7 +78,6 @@
                     <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
                         <LinearLayout android:id="@+id/centralBrainModelInputSurface" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="14.0dp" android:visibility="gone">
                             <TextView android:id="@+id/centralBrainModelInputText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="模型输入 · 处理一下 + 座舱图像" android:textColor="#BDE9E5" android:textSize="11.0sp" android:textStyle="bold" />
-                            <ImageView android:id="@+id/centralBrainModelInputThumbnail" android:layout_width="240.0dp" android:layout_height="135.0dp" android:layout_gravity="center_horizontal" android:layout_marginTop="8.0dp" android:adjustViewBounds="true" android:background="#26000000" android:clickable="true" android:contentDescription="点击放大座舱模型输入图片" android:focusable="true" android:scaleType="fitCenter" />
                         </LinearLayout>
                         <TextView android:id="@+id/centralBrainLiveTraceText" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="monospace" android:lineSpacingExtra="6.0dp" android:text="等待语音场景输入" android:textColor="#EAF5F7" android:textIsSelectable="true" android:textSize="12.0sp" />
                     </LinearLayout>

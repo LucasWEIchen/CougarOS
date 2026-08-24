@@ -149,7 +149,9 @@ public final class CockpitControlCoordinator implements
     private TextView shoppingRouteView;
     private TextView shoppingBoundaryView;
     private TextView modelInputTextView;
-    private ImageView modelInputThumbnail;
+    private TextView modelInputImageTitleView;
+    private TextView modelInputLatencyView;
+    private ImageView modelInputImage;
     private ImageView imagePreview;
     private ScrollView liveTraceScroll;
     private ProgressBar actuatorFanProgress;
@@ -178,6 +180,7 @@ public final class CockpitControlCoordinator implements
     private View shoppingFeedbackRegion;
     private View seatBackView;
     private View modelInputSurface;
+    private View modelInputImageOverlay;
     private View imagePreviewOverlay;
     private View approvalControls;
     private Button engineerDetailButton;
@@ -322,11 +325,14 @@ public final class CockpitControlCoordinator implements
         shoppingRouteView = findTextView("centralBrainShoppingRouteText");
         shoppingBoundaryView = findTextView("centralBrainShoppingBoundaryText");
         modelInputTextView = findTextView("centralBrainModelInputText");
-        View thumbnail = findView("centralBrainModelInputThumbnail");
-        modelInputThumbnail = thumbnail instanceof ImageView ? (ImageView) thumbnail : null;
+        modelInputImageTitleView = findTextView("centralBrainModelInputImageTitle");
+        modelInputLatencyView = findTextView("centralBrainModelLatencyText");
+        View inputImage = findView("centralBrainModelInputImage");
+        modelInputImage = inputImage instanceof ImageView ? (ImageView) inputImage : null;
         View preview = findView("centralBrainImagePreview");
         imagePreview = preview instanceof ImageView ? (ImageView) preview : null;
         modelInputSurface = findView("centralBrainModelInputSurface");
+        modelInputImageOverlay = findView("centralBrainModelInputImageOverlay");
         imagePreviewOverlay = findView("centralBrainImagePreviewOverlay");
         approvalControls = findView("centralBrainApprovalControls");
         View traceScroll = findView("centralBrainLiveTraceScroll");
@@ -369,8 +375,8 @@ public final class CockpitControlCoordinator implements
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
         }
-        if (modelInputThumbnail != null) {
-            modelInputThumbnail.setOnClickListener(ignored -> showImagePreview());
+        if (modelInputImage != null) {
+            modelInputImage.setOnClickListener(ignored -> showImagePreview());
         }
         if (imagePreviewOverlay != null) {
             imagePreviewOverlay.setOnClickListener(ignored -> hideImagePreview());
@@ -689,8 +695,8 @@ public final class CockpitControlCoordinator implements
             modelInputBitmap.recycle();
             modelInputBitmap = null;
         }
-        if (modelInputThumbnail != null) {
-            modelInputThumbnail.setImageDrawable(null);
+        if (modelInputImage != null) {
+            modelInputImage.setImageDrawable(null);
         }
         if (imagePreview != null) {
             imagePreview.setImageDrawable(null);
@@ -698,14 +704,16 @@ public final class CockpitControlCoordinator implements
         admittedModelActions.clear();
         multimodalConsumptionProved = false;
         setVisible(modelInputSurface, false);
-        setVisible(modelInputThumbnail, false);
+        setVisible(modelInputImageOverlay, false);
+        setVisible(modelInputImage, false);
+        setText(modelInputLatencyView, "模型运行中 · -- ms");
         hideImagePreview();
         if (CockpitMultimodalInput.isMultimodalScenario(scenarioId)) {
             try {
                 pendingMultimodalInput = CockpitMultimodalInput.load(activity, scenarioId);
                 modelInputBitmap = pendingMultimodalInput.decodePreview();
-                if (modelInputThumbnail != null) {
-                    modelInputThumbnail.setImageBitmap(modelInputBitmap);
+                if (modelInputImage != null) {
+                    modelInputImage.setImageBitmap(modelInputBitmap);
                 }
                 if (imagePreview != null) {
                     imagePreview.setImageBitmap(modelInputBitmap);
@@ -715,8 +723,12 @@ public final class CockpitControlCoordinator implements
                         "模型输入 · “" + pendingMultimodalInput.getInputText()
                                 + "” + 座舱图像 · "
                                 + pendingMultimodalInput.getImageByteCount() + " bytes");
+                setText(
+                        modelInputImageTitleView,
+                        modelInputImageTitle(pendingMultimodalInput));
                 setVisible(modelInputSurface, true);
-                setVisible(modelInputThumbnail, true);
+                setVisible(modelInputImageOverlay, true);
+                setVisible(modelInputImage, true);
                 appendLiveTrace(
                         "MODEL INPUT",
                         "STAGING",
@@ -1061,6 +1073,7 @@ public final class CockpitControlCoordinator implements
                     simulated.getModelProviderId(),
                     simulated.getAssistantDisplayText());
         }
+        renderModelLatency(simulated);
         animateSimulatedEffects(simulated);
         if (simulated.getLifecycle() == CockpitSimulatedScenarioState.Lifecycle.COMPLETED) {
             appendLiveTrace(
@@ -1074,6 +1087,9 @@ public final class CockpitControlCoordinator implements
     public void onSimulatedScenarioFailure(String uiScenarioId, String failureCode) {
         accept(CockpitHmiReducer.Event.simulatedScenarioFailure(
                 uiScenarioId, failureCode));
+        if (CockpitMultimodalInput.isMultimodalScenario(uiScenarioId)) {
+            setText(modelInputLatencyView, "模型调用失败 · -- ms");
+        }
         appendLiveTrace("RESULT", "FAILED", failureCode);
     }
 
@@ -1170,6 +1186,31 @@ public final class CockpitControlCoordinator implements
                 + " ui_scenario_id=" + safeDisplayToken(scenarioId)
                 + " raw_utterance_logged=false"
                 + " effect_animation_only=true");
+    }
+
+    private static String modelInputImageTitle(CockpitMultimodalInput input) {
+        int ordinal = input.getDatasetOrdinal();
+        if (ordinal > 0) {
+            return String.format(
+                    Locale.ROOT,
+                    "模型输入 · 内置评测帧 %03d / %d",
+                    ordinal,
+                    CockpitMultimodalInput.SMOKING_DATASET_IMAGE_COUNT);
+        }
+        return "模型输入 · 当前座舱帧";
+    }
+
+    private void renderModelLatency(CockpitSimulatedScenarioState simulated) {
+        if (!CockpitMultimodalInput.isMultimodalScenario(simulated.getUiScenarioId())
+                || !simulated.isModelInferenceCompleted()) {
+            return;
+        }
+        long latencyMs = simulated.getModelLatencyMs();
+        setText(
+                modelInputLatencyView,
+                latencyMs > 0L
+                        ? "模型运行耗时 · " + latencyMs + " ms"
+                        : "模型运行耗时 · UNAVAILABLE");
     }
 
     private void appendLiveTrace(String stage, String status, String detail) {
@@ -1370,8 +1411,22 @@ public final class CockpitControlCoordinator implements
             ViewGroup.LayoutParams params = actuatorOverlay.getLayoutParams();
             int targetHeight = Math.round((fatigue || multimodal ? 520.0f : 300.0f)
                     * activity.getResources().getDisplayMetrics().density);
+            int targetTop = Math.round((multimodal ? 500.0f : 248.0f)
+                    * activity.getResources().getDisplayMetrics().density);
+            boolean changed = false;
             if (params != null && params.height != targetHeight) {
                 params.height = targetHeight;
+                changed = true;
+            }
+            if (params instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams margins =
+                        (ViewGroup.MarginLayoutParams) params;
+                if (margins.topMargin != targetTop) {
+                    margins.topMargin = targetTop;
+                    changed = true;
+                }
+            }
+            if (changed) {
                 actuatorOverlay.setLayoutParams(params);
             }
         }

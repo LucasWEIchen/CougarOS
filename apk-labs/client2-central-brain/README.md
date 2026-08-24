@@ -23,6 +23,8 @@ then rebuilds and signs a debug APK.
 | Platform difference visibility | `DEL-004` | Documents that this is an APK patch path, not a production system-service path. |
 | AI SDK entry point | `APP-004`, `S2-HMI-007`, `XSC-001` | The right panel exposes scene triggers and live Runtime milestones; it must not call NPU directly. |
 | Dual-entry free-form AIOS input | `APP-006`, `S2-HMI-010`, `S2-MDL-004/005` | Navigation toggles fixed tasks; phone toggles bounded free-form text that enters the Session/model pipeline and only returns a reply plus allowlisted candidate actions. |
+| Multimodal image projection | `APP-002/005/007`, `S2-HMI-008/011/012/013` | Bundles 100 positive and 100 negative smoking frames for debug selection, displays image and model latency in an independent left overlay, and keeps the right dialog text-only. |
+| Seat execution visualization | `S2-HMI-007/014`, `S2-ADP-004` | Uses layered vector headrest, back, bolsters, cushion, hinge and rails; only the back rotates in the recline direction. |
 | Cockpit model context | `S2-MDL-002` | Ollama/OpenClaw share a bounded automotive driver-service prompt and action allowlist. |
 | Live execution projection | `S2-OBS-002` | Ten bounded Runtime/model/effect milestones feed one 32-line scrolling trace. |
 | Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
@@ -92,7 +94,8 @@ Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
 ├── floating overlay: 600x760 translucent Central Brain panel in the 1920x1080 safe frame
 ├── untouched vendor Unity/TuanjieView render and input surface
-├── left actuator overlay: HVAC and scenario-dependent Seat animation
+├── left image overlay: 496x279 multimodal frame plus projected model latency
+├── left actuator overlay: HVAC, layered Seat animation, shopping and route feedback
 └── bottom trigger rail: phone target for free-form text and navigation target for fixed tasks
 ```
 
@@ -122,11 +125,20 @@ HTTP fallback.
 `OrchestrationRuntimeClient.Callback.onPipelineMilestone` projects RUNTIME,
 INTENT, CONTEXT, MODEL, PLAN, POLICY, GRAPH, SAFETY, EFFECT and READBACK states.
 `CockpitControlCoordinator` paces the view at 360 ms, retains 32 lines and shows
-MODEL/RUNNING before network I/O. Cold animates 26.5 to 28.0 degrees C in the
+MODEL/RUNNING before network I/O. Multimodal images are never children of the
+right trace dialog: they use a fixed left overlay, expose the model projection
+latency below the image, and retain the existing center-preview interaction.
+The debug build copies all tracked `passenger_smoking_100` and
+`passenger_unbelted_nonsmoking_100` frames into APK `res/raw`; each smoking
+trigger selects one of 200 entries, while the model-visible filename omits the
+ground-truth class. Production camera ingress remains a separate authority.
+Cold animates 26.5 to 28.0 degrees C in the
 explicit UI-only actuator surface. Fatigue
 animates fan 1 to 3 and shows a left-side driver-seat 15 to 30 degree response.
-The seat back uses a bottom-center pivot and negative rotation so increasing
-recline moves away from the cushion. The Coordinator does not attach a listener
+The seat uses separate rail, cushion/bolster, back/headrest and hinge layers;
+the back uses a bottom-center pivot and negative rotation so increasing
+recline moves away from the cushion. Shopping feedback moves below a visible
+multimodal frame instead of overlapping it. The Coordinator does not attach a listener
 to `TuanjieView`, call `setRenderScale`, reflect into RenderService, or send
 Unity messages. These effects remain `SIMULATED`; no vehicle bus or hardware
 readback is accessed.

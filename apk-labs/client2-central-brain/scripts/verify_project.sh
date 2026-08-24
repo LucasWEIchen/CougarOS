@@ -44,7 +44,11 @@ for resource_file in \
   'central_brain_action_button.xml' \
   'central_brain_live_trace_background.xml' \
   'central_brain_effect_feedback_background.xml' \
-  'central_brain_seat_part.xml'; do
+  'central_brain_model_input_background.xml' \
+  'central_brain_seat_back.xml' \
+  'central_brain_seat_base.xml' \
+  'central_brain_seat_rail.xml' \
+  'central_brain_seat_hinge.xml'; do
   test -f "$PROJECT_DIR/patches/res/drawable/$resource_file"
 done
 
@@ -105,6 +109,10 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q "centralBrainTiredButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainMultimodalButton" "$WORK_DIR/res/layout/main_layout.xml"
   test -f "$WORK_DIR/res/raw/central_brain_cabin_frame.png"
+  test "$(find "$WORK_DIR/res/raw" -maxdepth 1 -type f \
+    -name 'central_brain_smoking_positive_*.jpg' | wc -l)" -eq 100
+  test "$(find "$WORK_DIR/res/raw" -maxdepth 1 -type f \
+    -name 'central_brain_smoking_negative_*.jpg' | wc -l)" -eq 100
   for surface_id in \
     centralBrainLiveTraceScroll \
     centralBrainLiveTraceText \
@@ -118,7 +126,10 @@ if [[ -d "$WORK_DIR" ]]; then
     centralBrainSeatBack \
     centralBrainActuatorSeatAngleText \
     centralBrainModelInputSurface \
-    centralBrainModelInputThumbnail \
+    centralBrainModelInputImageOverlay \
+    centralBrainModelInputImageTitle \
+    centralBrainModelInputImage \
+    centralBrainModelLatencyText \
     centralBrainImagePreviewOverlay \
     centralBrainImagePreview; do
     rg -q "$surface_id" "$WORK_DIR/res/layout/main_layout.xml"
@@ -169,6 +180,11 @@ if [[ -d "$WORK_DIR" ]]; then
     fi
   done
   rg -q 'UI SIMULATION ONLY' "$WORK_DIR/res/layout/main_layout.xml"
+  if rg -q 'centralBrainModelInputThumbnail|central_brain_seat_part' \
+      "$WORK_DIR/res/layout/main_layout.xml"; then
+    echo "legacy inline image or block-seat surface remains in Client2" >&2
+    exit 1
+  fi
   if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' \
       "$WORK_DIR/res/layout/main_layout.xml"; then
     echo "legacy multi-surface or manual actuator controls remain in voice-first HMI" >&2
@@ -209,6 +225,10 @@ if [[ -f "$SIGNED_APK" ]]; then
     exit 1
   fi
   jar tf "$SIGNED_APK" | rg -q '^classes2\.dex$'
+  test "$(jar tf "$SIGNED_APK" \
+    | rg -c '^res/raw/central_brain_smoking_positive_[0-9]{3}\.jpg$')" -eq 100
+  test "$(jar tf "$SIGNED_APK" \
+    | rg -c '^res/raw/central_brain_smoking_negative_[0-9]{3}\.jpg$')" -eq 100
 
   RUNTIME_APK="$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
   test -f "$RUNTIME_APK"

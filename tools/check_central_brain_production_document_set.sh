@@ -89,13 +89,13 @@ work_ids = re.findall(
     requirements,
     flags=re.MULTILINE,
 )
-if len(work_ids) != 144 or len(set(work_ids)) != 144:
+if len(work_ids) != 145 or len(set(work_ids)) != 145:
     raise SystemExit(
-        f"requirements must track 144 unique work packages: rows={len(work_ids)}, "
+        f"requirements must track 145 unique work packages: rows={len(work_ids)}, "
         f"unique={len(set(work_ids))}"
     )
 for required_id in (
-    "P0-W01", "P1-W01", "P4-R1", "P4-R7", "P4-R8", "P4-R9", "P4-R12", "P4-R13", "P7-R3-OC2",
+    "P0-W01", "P1-W01", "P4-R1", "P4-R7", "P4-R8", "P4-R9", "P4-R12", "P4-R13", "P4-R14", "P7-R3-OC2",
     "P6-P7-R1", "P8-W05", "P9-EXT-07", "P10-R1", "SCOPE-05",
 ):
     if required_id not in work_ids:
@@ -116,7 +116,8 @@ required_atomic_ids = (
     "S2-UX-001", "S2-UX-002", "S2-UX-003", "S2-HMI-001",
     "S2-HMI-002", "S2-HMI-003", "S2-HMI-004", "S2-HMI-005",
     "S2-HMI-006", "S2-HMI-007", "S2-HMI-008", "S2-HMI-009",
-    "S2-HMI-010", "S2-HMI-011",
+    "S2-HMI-010", "S2-HMI-011", "S2-HMI-012", "S2-HMI-013",
+    "S2-HMI-014",
     "S2-PER-001", "S2-OBS-001", "S2-OBS-002", "S2-REL-001",
 )
 for requirement_id in required_atomic_ids:
@@ -303,7 +304,7 @@ for relative in repository_files:
 if legacy_references:
     raise SystemExit("legacy document references remain:\n" + "\n".join(legacy_references))
 
-print("production_requirement_work_package_count=144")
+print("production_requirement_work_package_count=145")
 print(f"production_architecture_mermaid_diagram_count={mermaid_count}")
 print(f"production_module_detailed_design_count={len(module_paths)}")
 PY

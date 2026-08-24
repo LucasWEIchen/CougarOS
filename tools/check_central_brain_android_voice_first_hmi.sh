@@ -72,7 +72,9 @@ grep -Fq 'modelUnavailableCapabilities' "$BACKEND"
 for id in \
   centralBrainTiredButton centralBrainColdButton centralBrainLiveTraceScroll \
   centralBrainLiveTraceText centralBrainActuatorOverlay \
-  centralBrainActuatorFanProgress centralBrainSeatFeedbackRegion centralBrainSeatBack; do
+  centralBrainActuatorFanProgress centralBrainSeatFeedbackRegion centralBrainSeatModel \
+  centralBrainSeatBack centralBrainModelInputImageOverlay centralBrainModelInputImage \
+  centralBrainModelLatencyText; do
   grep -Fq "$id" "$LAYOUT"
 done
 if grep -Eq 'centralBrain(Driver|Passenger)TemperatureOverlay' "$LAYOUT"; then
@@ -102,6 +104,14 @@ grep -Fq 'animateFan(1, 3)' "$COORDINATOR"
 grep -Fq 'animateSeat(15.0f, 30.0f)' "$COORDINATOR"
 grep -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' "$COORDINATOR"
 grep -Fq 'setVisible(seatFeedbackRegion, fatigue)' "$COORDINATOR"
+grep -Fq 'modelInputImageTitle' "$COORDINATOR"
+grep -Fq 'simulated.getModelLatencyMs()' "$COORDINATOR"
+grep -Fq 'multimodal ? 500.0f : 248.0f' "$COORDINATOR"
+for seat_resource in central_brain_seat_back central_brain_seat_base \
+  central_brain_seat_rail central_brain_seat_hinge; do
+  grep -Fq "@drawable/$seat_resource" "$LAYOUT"
+  test -f "$ROOT_DIR/apk-labs/client2-central-brain/patches/res/drawable/$seat_resource.xml"
+done
 grep -Fq 'onPipelineMilestone' "$CLIENT" "$COORDINATOR"
 grep -Fq 'Demo auto-continue · no authority granted' "$CLIENT"
 grep -Fq 'No vehicle-bus evidence' "$CLIENT"

@@ -21,8 +21,9 @@ import sys
 contract = json.load(open(sys.argv[1], encoding="utf-8"))
 assert contract["schema_version"] == 1
 assert contract["profile_id"] == "android13-client2-multimodal-model-io-hmi-requirement-v1"
-assert contract["maturity"] == "controlled_frame_debug_implementation_android13_arm64_verified"
-assert {"S2-HMI-008", "S2-MDL-002", "S2-OBS-002"}.issubset(
+assert contract["maturity"] == "bundled_random_frame_debug_implementation_android13_arm64_verified"
+assert {"S2-HMI-008", "S2-HMI-012", "S2-HMI-013", "S2-HMI-014",
+        "S2-MDL-002", "S2-OBS-002"}.issubset(
     contract["requirement_ids"])
 
 surface = contract["surface"]
@@ -41,12 +42,16 @@ assert text["truncation_must_be_explicit"] is True
 image = contract["image"]
 assert image["maximum_images_per_model_input"] == 1
 assert image["allowlisted_mime_types"] == ["image/png", "image/jpeg"]
-assert image["thumbnail_max_width_dp"] == 320
-assert image["thumbnail_max_height_dp"] == 180
-assert image["thumbnail_scale_type"] == "FIT_CENTER"
+assert image["presentation_surface"] == "LEFT_INDEPENDENT_OVERLAY"
+assert image["inline_in_trace_dialog"] is False
+assert image["display_width_dp"] == 496
+assert image["display_height_dp"] == 279
+assert image["display_scale_type"] == "FIT_CENTER"
 assert image["preserve_aspect_ratio"] is True
 assert image["crop_allowed"] is False
-assert image["text_and_thumbnail_visible_together"] is True
+assert image["text_and_image_visible_together"] is True
+assert image["model_latency_visible_below_image"] is True
+assert image["model_latency_source"] == "MODEL_PROJECTION_LATENCY_MS"
 assert image["tap_opens_center_preview"] is True
 assert image["preview_max_screen_width_ratio"] == 0.9
 assert image["preview_max_screen_height_ratio"] == 0.85
@@ -78,7 +83,8 @@ for key in (
     "frontend_multimodal_ingress_bound",
     "actual_model_input_projected_to_hmi",
     "actual_model_output_projected_to_hmi",
-    "image_thumbnail_rendered",
+    "image_independent_overlay_rendered",
+    "model_latency_rendered_below_image",
     "image_center_preview_interaction_implemented",
     "android13_arm64_model_io_hmi_verified",
 ):
@@ -87,7 +93,7 @@ assert claims["repository_software_requirements_complete"] is True
 assert claims["open_repository_software_requirement_count"] == 0
 assert claims["production_ready"] is False
 assert claims["target_hardware_validated"] is False
-assert claims["implementation_stage"] == "P4-R5-SHOPPING-ROUTE"
+assert claims["implementation_stage"] == "P4-R14-DATASET-IMAGE-LATENCY-SEAT"
 evidence = contract["development_evidence"]
 assert evidence["android_api"] == 33
 assert evidence["abi"] == "arm64-v8a"
@@ -105,7 +111,9 @@ grep -Fq '`P4-R4` Multimodal model I/O live HMI' \
 for marker in \
   'centralBrainMultimodalButton' \
   'centralBrainModelInputText' \
-  'centralBrainModelInputThumbnail' \
+  'centralBrainModelInputImageOverlay' \
+  'centralBrainModelInputImage' \
+  'centralBrainModelLatencyText' \
   'centralBrainImagePreviewOverlay' \
   'centralBrainImagePreview'; do
   grep -Fq "$marker" "$LAYOUT" \
@@ -128,10 +136,12 @@ printf '%s\n' \
   'multimodal_model_io_hmi_requirement_defined=true' \
   'model_io_hmi_implemented=true' \
   'frontend_multimodal_ingress_bound=true' \
+  'image_independent_overlay_implemented=true' \
+  'model_latency_below_image_implemented=true' \
   'image_center_preview_interaction_implemented=true' \
   'android13_arm64_model_io_hmi_verified=true' \
   'repository_software_requirements_complete=true' \
   'open_repository_software_requirement_count=0' \
   'production_ready=false' \
   'target_hardware_validated=false' \
-  'implementation_stage=P4-R5-SHOPPING-ROUTE'
+  'implementation_stage=P4-R14-DATASET-IMAGE-LATENCY-SEAT'

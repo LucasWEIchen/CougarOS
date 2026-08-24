@@ -148,9 +148,11 @@ HMI 由任务入口、输入/输出流、执行链路、审批条和执行器反
 - 底部电话入口切换任意文本输入框；两个浮层互斥，输入卡关闭控件或点击浮层外可关闭输入。
 - 任意文本只是 Session 绑定的用户目标，不能绕过 Scenario、Model、Governance 或 Effect。
 - 输入和模型输出按到达顺序滚动显示。
-- 图片以缩略图显示，点击后居中预览，点击外部区域退出。
+- 图像在桌面左侧独立浮层等比显示，不嵌入右侧调用链；模型投影的 `latencyMs` 固定显示在图像下方。
+- 点击左侧图像后居中预览，点击外部区域退出；多模态执行反馈在纵向上避让图像浮层。
 - Plan 节点、Effect、审批和 readback 形成一条连续链路。
 - HVAC 温度、座椅角度等 UI 状态来自 Runtime 投影，不使用固定结果文本。
+- 座椅反馈由头枕、靠背、侧翼、坐垫、转轴和滑轨组成，靠背展开动画不构成车辆 readback。
 - 1920x1080 下 HMI 不改变车模画布的原始比例、清晰度和触摸坐标。
 
 Client、Client2 与 RenderService 的厂商渲染关系是受保护边界：
@@ -444,7 +446,7 @@ sequenceDiagram
 
     User->>H: “处理一下” + 当前座舱图像
     H->>R: bounded text/image request
-    R-->>H: 输入文字与图片缩略图
+    R-->>H: 输入文字 + 左侧图像 + 模型 latencyMs
     R->>M: cockpit prompt + multimodal content
     M-->>R: occupants + intent candidates
     R->>P: evidence-bound candidate
