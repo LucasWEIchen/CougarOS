@@ -1,0 +1,32 @@
+{
+  "project": "tuanjie-client-render-quality",
+  "version": "0.1.0",
+  "requirement_ids": [
+    "APP-001",
+    "APP-004",
+    "S2-HMI-006",
+    "S2-HMI-015",
+    "P4-R15"
+  ],
+  "source": {
+    "package": "com.tuanjie.urasclient",
+    "apk": "apks/original/client_20260306_170919.apk",
+    "sha256": "5832ea4d5868ede11b89b150fdefd37453ecee11ddb5ea247abe1cbea8c25d8b"
+  },
+  "quality_policy": {
+    "surface_size": "1920x1080",
+    "render_scale": 1.25,
+    "internal_render_target": "2400x1350",
+    "api": "TuanjieView.setRenderScale(float)",
+    "apply_point": "after original TuanjieView addView",
+    "reconnect_policy": "re-arm mNeedSetRenderScale before original syncViewDataToRenderService",
+    "renderservice_modified": false,
+    "unity_assets_modified": false,
+    "touch_listener_modified": false
+  },
+  "release": {
+    "test_environment_only": true,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -31,11 +31,28 @@
         "S2-HMI-012",
         "S2-HMI-013",
         "S2-HMI-014",
+        "S2-HMI-015",
         "S2-ADP-001",
         "S2-OBS-001",
         "DEL-001",
         "DEL-003",
         "DEL-004"
+      ]
+    },
+    {
+      "id": "client2-vendor-render-quality-policy",
+      "type": "apktool-smali-public-api",
+      "target": "MainActivity.smali and client TuanjieView.smali",
+      "source": "apk-labs/tuanjie-client-render-quality/scripts/patch_render_scale.py",
+      "summary": "Keeps the Android output Surface at 1920x1080, requests the approved 1.25 internal render scale through the vendor public API after the original view attachment, and re-arms the existing synchronization flag after RenderService reconnect. It does not modify RenderService, Unity assets, layout geometry, or touch listeners.",
+      "req_ids": [
+        "APP-001",
+        "APP-004",
+        "S2-HMI-006",
+        "S2-HMI-015",
+        "S2-UX-002",
+        "DEL-004",
+        "P4-R15"
       ]
     },
     {
@@ -69,7 +86,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds the ScenarioClient-backed Session implementation, formal OrchestrationClient V1 projection, immutable HMI state, owner-scoped consume-once free-form model input, and UI-only actuator feedback. It does not install a TuanjieView touch listener, change render scale, call RenderService messages, or depend on a modified Unity bundle.",
+      "summary": "Embeds the ScenarioClient-backed Session implementation, formal OrchestrationClient V1 projection, immutable HMI state, owner-scoped consume-once free-form model input, and UI-only actuator feedback. The bridge does not install a TuanjieView touch listener, control render quality, call RenderService messages, or depend on a modified Unity bundle.",
       "req_ids": [
         "APP-004",
         "APP-006",
@@ -112,6 +129,7 @@
     "DEV-119: Client2 now consumes formal Orchestration V1 only for the debug profile; production Context, approval authority, vehicle adapters and target evidence remain external",
     "DEV-133: Unity-native temperature and seat motion are application demonstration state, not Vehicle/VHAL actuation or readback",
     "DEV-134: free-form model output is limited to a response and allowlisted candidate actions; production Tool and Effect dispatch remain fail closed",
-    "DEV-135: the bundled 200-frame smoking corpus is debug-only input; production camera authority and release package-size policy remain external"
+    "DEV-135: the bundled 200-frame smoking corpus is debug-only input; production camera authority and release package-size policy remain external",
+    "DEV-136: the 1.25 render-quality policy preserves a 1920x1080 output Surface, but production power, thermal, long-duration and concurrent-display qualification remain external"
   ]
 }

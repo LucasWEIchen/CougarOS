@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 PROJECT_DIR="$ROOT_DIR/apk-labs/client2-central-brain"
 BASELINE_DIR="$ROOT_DIR/reverse/client2/apktool"
 WORK_DIR="${CLIENT2_CB_WORK_DIR:-$ROOT_DIR/builds/client2-central-brain/workdir}"
+RENDER_QUALITY_PATCHER="$ROOT_DIR/apk-labs/tuanjie-client-render-quality/scripts/patch_render_scale.py"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
@@ -32,6 +33,11 @@ rm -rf "$WORK_DIR/build" "$WORK_DIR/dist"
 python3 "$PROJECT_DIR/scripts/apply_static_panel_patch.py" \
   --work-dir "$WORK_DIR" \
   --patch-xml "$PROJECT_DIR/patches/main_layout.central_brain_panel.xml"
+
+python3 "$RENDER_QUALITY_PATCHER" \
+  --work-dir "$WORK_DIR" \
+  --package-name com.tuanjie.urasclient2 \
+  --scale 1.25
 
 copy_smoking_dataset() {
   local category source_dir index number source_file target_file

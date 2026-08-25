@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件需求文档
 
-版本：2.2
+版本：2.3
 状态：生产需求权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-08-21
+更新日期：2026-08-25
 
 `production_document_scope=true`
 `production_requirements_document=true`
@@ -178,6 +178,7 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `S2-HMI-012` | 图像源必须区分评测资源 Provider 与生产相机 Provider。评测 Provider 应支持将 100 张吸烟正例和 100 张非吸烟反例完整打入受控 APK，并在每次触发吸烟检测时从 200 张中等概率随机选择一张；正反例标签不得进入模型可见文件名、提示词或 HMI 结果。生产发布必须排除评测数据，且不得以该数据集替代真实相机输入。 |
 | `S2-HMI-013` | “检测吸烟”和“处理一下”的图像必须显示在桌面左侧独立浮层，不得嵌入右侧调用链对话框；真实模型投影的 `latencyMs` 必须在图像下方显示，未知或失败时明确显示 unavailable。 |
 | `S2-HMI-014` | 座椅执行反馈必须使用可辨识的头枕、靠背、侧翼、坐垫、转轴和滑轨图示；靠背围绕转轴按展开方向渐进旋转，动画终点不得伪装为车辆 readback。 |
+| `S2-HMI-015` | Client 与 Client2 的 Android 输出 Surface 必须保持 `1920x1080`。只允许统一的渲染质量策略在原始 `TuanjieView` 加入原容器后，以及 RenderService 重连后，调用厂商公开 `setRenderScale(1.25f)`，对应 `2400x1350` 内部渲染目标。两端必须使用相同策略，不得改变 Surface 尺寸、View 层级、触摸链、RenderService APK 或 Unity 资源。同机与批准原版 A/B 验收时，中位帧率下降不得超过 10% 且不得低于 27 FPS，p95 帧间隔不得超过 55 ms。 |
 
 ### 4.9 可观测性与发布
 
@@ -355,13 +356,14 @@ Central Brain 是部署在 Android 13 座舱域控制器上的车载 AIOS 中枢
 | `P9-EXT-07` Complete release/field retest | Complete release/field retest | S2-OBS-001, S2-REL-001, DEL-004/005。 | 目标验证、OEM/Vendor owner 与发布责任人。 | 完成条件：取得并审查“named replacement release、target report、owner/tester evidence；ISSUE-052/053”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。 | `外部阻塞` |
 | `SCOPE-04` Unapproved kernel/Driver/HAL extension | 在未取得独立批准和明确接口基线前，项目不得实现或推断“Unapproved kernel/Driver/HAL extension”。 | 用户批准的范围约束。 | 项目治理；不分配实现模块。 | 通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 SUSPENDED。 | `挂起` |
 | `SCOPE-05` Unconfirmed protocol binding | 在未取得独立批准和明确接口基线前，项目不得实现或推断“Unconfirmed protocol binding”。 | 用户批准的范围约束。 | 项目治理；不分配实现模块。 | 通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 SUSPENDED。 | `挂起` |
-| `P4-R7` 双屏渲染、动态 HVAC 与车模触摸交互 | 生产 HMI 必须保持原版 Client/Client2/RenderService 的双屏会话、渲染质量和车模触摸交互；连续温度不得以破坏厂商资源或输入链为代价。 | S2-HMI-006, S2-HMI-007, S2-ADP-003 | Client2 座舱 HMI、RenderService 集成层 | RenderScale、TuanjieView listener 和 Addressables 重写已撤回；原生动态 HVAC 转为 OEM 源码级接口事项。 | `原版架构恢复/物理触摸待验收` |
+| `P4-R7` 双屏渲染、动态 HVAC 与车模触摸交互 | 生产 HMI 必须保持原版 Client/Client2/RenderService 的双屏会话、渲染质量和车模触摸交互；连续温度不得以破坏厂商资源或输入链为代价。 | S2-HMI-006, S2-HMI-007, S2-HMI-015, S2-ADP-003 | Client/Client2 座舱 HMI、RenderService 集成层 | TuanjieView listener 和 Addressables 重写已撤回；渲染质量只由 P4-R15 受控策略管理，原生动态 HVAC 转为 OEM 源码级接口事项。 | `原版架构恢复/量产触摸待验收` |
 | `P4-R8` 双入口与任意文本 AIOS 任务 | 导航入口承载固定场景任务，电话入口承载任意自然语言输入；输入必须进入 Session、座舱上下文、模型、结构化校验和白名单候选动作链路。 | APP-001/003/004/006, S2-HMI-006/010, S2-MDL-004/005, S2-OBS-001/002, S2-SAF-004 | Client2 座舱 HMI、Central Brain SDK、Scenario 与 Model Runtime | Draft 实现必须证明双入口互斥、1..1024 字符边界、一次消费、实际模型回复和候选动作投影；动态 Tool/Effect 计划与车辆执行继续失败关闭。 | `设计完成/实现待合并` |
 | `P4-R9` 座舱吸烟合规多 Agent 场景 | 新增“检测吸烟”入口；图文输入经合规 Triage、确定性 Agent Router、吸烟专用 Model Profile、SmokingDetectionAgent 和严格五字段校验后投影结果，场景不得包含 Tool 或 Effect 节点。 | APP-002/003/004/005/007, S2-PER-001, S2-SCN-001/002/004/006, S2-MDL-001/002/004/005/007/008, S2-SAF-004/005/006, S2-HMI-008/011, S2-OBS-001/002 | Client2 HMI、Scenario Catalog、Agent Router、Model Profile Router、Model Provider、模型输出校验 | 软件必须证明显式路由不由模型选择、单图与文本同请求、专用模型身份与上下文合同、无静默 fallback、预热和健康失败关闭、五字段严格校验、UI 实时显示且 `effect.execute` 数量为 0；生产 Provider 准入、目标摄像头和无文字水印样本仍需独立验收。 | `原型实现/生产外部阻塞` |
-| `P4-R11` 厂商三 APK 架构恢复 | Client 必须保持原版泊车/行车显示；Client2 在 AIOS 浮层关闭时必须保持原版 View 层级、车模触摸和按钮行为；共享 RenderService 必须与批准的原版 APK 字节一致。 | APP-001/004, S2-HMI-001/003/004/006, S2-UX-002, DEL-004 | Client 原版 APK、Client2 overlay、RenderService vendor baseline、部署门禁 | Client 和 RenderService 使用批准 SHA-256；Client2 禁止 `setRenderScale`、额外 `TuanjieView` listener、反射式 `c2sSendMessage` 和 Unity bundle 依赖；物理旋转必须在有真实触摸 event 的生产硬件复验。 | `应用修复完成/物理触摸待验收` |
+| `P4-R11` 厂商三 APK 架构恢复 | Client 必须保持原版泊车/行车显示；Client2 在 AIOS 浮层关闭时必须保持原版 View 层级、车模触摸和按钮行为；共享 RenderService 必须与批准的原版 APK 字节一致。 | APP-001/004, S2-HMI-001/003/004/006/015, S2-UX-002, DEL-004 | Client、Client2 overlay、RenderService vendor baseline、部署门禁 | Client/Client2 只允许 P4-R15 的公开 API 质量策略；Coordinator 继续禁止渲染操作、额外 `TuanjieView` listener、反射式 `c2sSendMessage` 和 Unity bundle 依赖；物理旋转必须在有真实触摸 event 的生产硬件复验。 | `应用修复完成/量产触摸待验收` |
 | `P4-R12` 吸烟判定置信度校准 | 生产接受策略必须区分模型自报置信度、状态 token 概率和经标注数据拟合的真实正确率估计；任何校准器必须绑定模型、Agent 指令、wire schema、预处理和数据清单摘要。 | S2-MDL-004/005/007/008, S2-OBS-001/002 | Model Provider、SmokingDetectionResult、校准配置与发布门禁 | 条件 JSON Schema 已阻止状态/人数/位置/置信度的语义非法组合；平衡试点评测已证明自报置信度失真，但校准分组缺少错误结果，校准器保持未拟合。补充成组困难正反例并通过独立 Brier/ECE/分类门槛后方可启用。 | `部分实现/校准数据阻塞` |
 | `P4-R13` Android 生产板直连 TY1100 vLLM | Android 13 生产板必须通过 `eth0` 直接访问固定 TY1100 `169.254.202.110:8000`，使用 OpenAI-compatible `/v1/models` 与 `/v1/chat/completions`；不得依赖主机端口转发、开发桥接或 OpenClaw，也不得修改 TY1100 配置。当前目标只暴露 `Qwen3.5-2B-AWQ`，因此通用座舱与吸烟专用逻辑路由共享同一物理服务，但继续分别执行 8192/4096 token 请求上限、模型身份检查、预热和无 fallback 策略。 | S2-MDL-001/002/003/004/005, S2-OBS-001/002, XSC-001/005/006, DEL-001/003/004/005 | Runtime target profile、`VllmEndpointConfig`、`ModelProfileRouter`、Client2 HMI、目标以太网合同 | Runtime `0.5.0-b5` 与 Client2 已安装到 1920x1080 Android 13 生产板；模型目录、文字、任意文本、疲劳、吸烟图文和座舱图文链路均返回真实模型终态，APK 摘要与安装包一致，Client/Client2/RenderService/Runtime 同时在线，主机端口转发未启用且 TY1100 配置未改。真实 Vehicle Adapter、生产签名、安全/隐私、长稳和 release Provider 准入仍未完成。 | `目标模型集成验证完成/量产准入未完成` |
 | `P4-R14` 图像源隔离、独立图像耗时与精细座椅反馈 | 吸烟检测和“处理一下”的输入图像、帧标识与真实模型耗时必须在左侧独立显示；疲劳反馈必须使用分层座椅模型。图像源必须区分评测资源 Provider 与生产相机 Provider，二者复用同一个 typed input 合同，生产包不得携带评测标签。 | APP-002/004/005/007, S2-HMI-006/007/008/011/012/013/014, S2-MDL-002/007, S2-OBS-001/002, DEL-001/003/004 | Client2 图像源接口、`CockpitMultimodalInput`、`CockpitControlCoordinator`、HMI XML/VectorDrawable、模型投影合同 | 左侧独立图像与 `latencyMs` 投影、执行器浮层避让和分层座椅展开的软件实现已形成。生产相机 authority、release 资源排除门禁、目标显示验收和车辆 readback 仍未完成。 | `软件实现/生产输入与验收待完成` |
+| `P4-R15` Client/Client2 1080P 输出与受控渲染质量 | Client 与 Client2 必须保持全屏 `1920x1080` Surface，并由同一策略请求 `1.25` 内部渲染比例；RenderService 重启后必须自动恢复策略，不得破坏原始车模触摸、车门、AIOS 浮层或厂商 RenderService。 | APP-001/004, S2-HMI-006/015, S2-UX-002, DEL-004 | Client/Client2 渲染质量策略、共用构建补丁、RenderService 基线门禁 | 静态门禁必须确认公开 API 、唯一策略值、重连恢复和零 Surface/触摸/Unity 改写；量产放行还需同机原版 A/B、帧率、功耗、温度和长稳验收。 | `软件实现/量产显示验收待完成` |
 
 ## 8. 退出生产基线的历史 ID
 

@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 PROJECT_DIR="$ROOT_DIR/apk-labs/client2-central-brain"
 WORK_DIR="${CLIENT2_CB_WORK_DIR:-$ROOT_DIR/builds/client2-central-brain/workdir}"
 SIGNED_APK="$ROOT_DIR/builds/client2-central-brain/signed/client2-central-brain.debug.apk"
+RENDER_QUALITY_PROJECT="$ROOT_DIR/apk-labs/tuanjie-client-render-quality"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
@@ -18,6 +19,8 @@ bash -n "$PROJECT_DIR/scripts/verify_project.sh"
 bash -n "$PROJECT_DIR/scripts/install_debug_apk.sh"
 python3 -m py_compile "$PROJECT_DIR/scripts/apply_static_panel_patch.py"
 rm -rf "$PROJECT_DIR/scripts/__pycache__"
+python3 -m py_compile "$RENDER_QUALITY_PROJECT/scripts/patch_render_scale.py"
+rm -rf "$RENDER_QUALITY_PROJECT/scripts/__pycache__"
 python3 -m json.tool "$PROJECT_DIR/client2-central-brain.project.json" >/dev/null
 python3 - "$PROJECT_DIR/patches/main_layout.central_brain_panel.xml" <<'PY'
 import sys
@@ -199,6 +202,16 @@ if [[ -d "$WORK_DIR" ]]; then
     exit 1
   fi
   rg -q "CockpitControlCoordinator;->install" "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali"
+  test "$(rg -c 'Central Brain controlled render-quality policy' \
+    "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali")" -eq 1
+  test "$(rg -c -- '->setRenderScale\(F\)V' \
+    "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali")" -eq 1
+  rg -Fq 'const/high16 v0, 0x3fa00000    # 1.25f' \
+    "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali"
+  test "$(rg -c 'Central Brain render-quality reconnect policy' \
+    "$WORK_DIR/smali/com/unity3d/renderservice/client/TuanjieView.smali")" -eq 1
+  rg -Fq -- '->mNeedSetRenderScale:Z' \
+    "$WORK_DIR/smali/com/unity3d/renderservice/client/TuanjieView.smali"
   test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
   test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$UiUpdate.smali"
   test -f "$WORK_DIR/unknown/classes2.dex"

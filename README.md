@@ -41,8 +41,8 @@ flowchart LR
 | 范围 | 状态 |
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
-| P4-R7/P4-R8/P4-R9/P4-R10/P4-R11/P4-R13/P4-R14 HMI 与模型链路 | 当前 Draft 分支已包含厂商三 APK 架构恢复、双入口、任意文本、吸烟合规多 Agent、TY1100 vLLM、随机评测帧、左侧图像/耗时浮层和分层座椅反馈；RenderService 保持原版只读基线，生产相机与物理触摸仍需正式验收 |
-| Client2 集成合同 | `0.24.0`，包含 200 帧调试资源随机选择、模型标签隔离、左侧图像/耗时投影和精细座椅展开动画 |
+| P4-R7/P4-R8/P4-R9/P4-R10/P4-R11/P4-R13/P4-R14/P4-R15 HMI 与模型链路 | 当前 Draft 分支已包含厂商三 APK 架构恢复、双入口、任意文本、吸烟合规多 Agent、TY1100 vLLM、随机评测帧、左侧图像/耗时浮层、分层座椅反馈，以及 Client/Client2 统一的 1920x1080 Surface + 1.25 内部渲染质量策略；RenderService 保持原版只读基线，量产相机、触摸、功耗、温度和长稳仍需正式验收 |
+| Client2 集成合同 | `0.25.0`，包含 200 帧调试资源随机选择、模型标签隔离、左侧图像/耗时投影、精细座椅展开动画和服务重连渲染质量恢复 |
 | Scenario Catalog | 6 个版本化场景；吸烟检测场景为无 Tool/Effect 的 response-only DAG |
 | 当前生产目标模型环境 | [TY1100 生产以太网接口详设](docs/modules/11a-openclaw-production-ethernet-api.md)：Android `169.254.202.100` 直连 TY1100 `169.254.202.110:8000`；当前唯一模型为 `Qwen3.5-2B-AWQ`，通用/吸烟逻辑路由分别保留 8192/4096 token 上限，强制身份检查、预热且不静默 fallback |
 | Model Prompt API | 直连 vLLM Provider 接收受控 `CockpitModelPrompt`，支持文字与单帧图文输入；Provider 不获得执行权限 |

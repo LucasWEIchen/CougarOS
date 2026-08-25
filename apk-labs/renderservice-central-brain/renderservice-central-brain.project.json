@@ -5,8 +5,10 @@
     "APP-001",
     "APP-004",
     "S2-HMI-001",
+    "S2-HMI-015",
     "S2-UX-002",
-    "DEL-004"
+    "DEL-004",
+    "P4-R15"
   ],
   "source_apk": "apks/original/service_20260306_171242.apk",
   "source_sha256": "a24fbb471399e152c172455afbaee92e311f24f63910b263a577d58d59d7c633",
@@ -14,6 +16,7 @@
   "implementation": {
     "unity_asset_patch_enabled": false,
     "render_scale_override_enabled": false,
+    "client_render_quality_policy_owner": "apk-labs/tuanjie-client-render-quality",
     "touch_listener_override_enabled": false,
     "client1_render_index": 0,
     "client2_render_index": 1,

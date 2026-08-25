@@ -1,6 +1,6 @@
 # Client2 座舱 HMI 模块详设
 
-版本：1.1
+版本：1.2
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -38,6 +38,7 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | `S2-HMI-012` | 200 张受控评测帧、逐次随机选图和标签隔离 |
 | `S2-HMI-013` | 图片脱离右侧对话框并在左侧独立显示真实模型耗时 |
 | `S2-HMI-014` | 分层座椅图示和靠背展开动画 |
+| `S2-HMI-015` | Client/Client2 保持 1920x1080 Surface，通过唯一质量策略请求 1.25 内部渲染比例 |
 | `S2-OBS-002` | 顺序滚动 Runtime/Model/Graph/Effect/Readback 里程碑 |
 
 ## 3. 源码地图
@@ -65,6 +66,8 @@ HMI 只投影 Runtime 状态，不得凭动画或本地状态宣称车辆动作�
 | [SmokingDetectionResult.java](../../central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/SmokingDetectionResult.java) | 五字段检测输出 | HMI 接收内容的上游校验边界 |
 | [main_layout.central_brain_panel.xml](../../apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml) | overlay、buttons、trace、preview | HMI View 结构 |
 | [prepare_workspace.sh](../../apk-labs/client2-central-brain/scripts/prepare_workspace.sh) | `copy_smoking_dataset` | 将 100+100 张受控帧打入调试 APK 的 `res/raw` |
+| [patch_render_scale.py](../../apk-labs/tuanjie-client-render-quality/scripts/patch_render_scale.py) | `patch_main_activity`、`patch_tuanjie_view_reconnect` | Client/Client2 共用质量策略与重连恢复 |
+| [render-quality contract](../../apk-labs/tuanjie-client-render-quality/tuanjie-client-render-quality.project.json) | `surface_size`、`render_scale`、`reconnect_policy` | 机器可读渲染边界 |
 | [central_brain_seat_back.xml](../../apk-labs/client2-central-brain/patches/res/drawable/central_brain_seat_back.xml) | headrest/back/bolster/lumbar paths | 可旋转座椅靠背矢量层 |
 | [central_brain_seat_base.xml](../../apk-labs/client2-central-brain/patches/res/drawable/central_brain_seat_base.xml) | cushion/side bolster/lower shell paths | 静态座椅坐垫矢量层 |
 | [central_brain_seat_rail.xml](../../apk-labs/client2-central-brain/patches/res/drawable/central_brain_seat_rail.xml) | rails/brackets | 座椅滑轨矢量层 |
@@ -142,8 +145,14 @@ belt 和 evidence 决定 ALLOW/DENY/APPROVAL；HMI 本地判断只负责禁用�
 ### 4.6 厂商渲染与输入隔离
 
 Client2 补丁必须保留原版 `view1/view2/view3` 容器和 `topControls` 属性。AIOS 只追加默认隐藏的
-Android overlay，不得给 `TuanjieView` 设置触摸监听、调用 `setRenderScale`、反射访问
-RenderService 或发送 Unity GameObject 消息。浮层隐藏时，车模区域的触摸全部由厂商输入链处理。
+Android overlay，不得给 `TuanjieView` 设置触摸监听、反射访问 RenderService 或发送 Unity
+GameObject 消息。浮层隐藏时，车模区域的触摸全部由厂商输入链处理。
+
+`CockpitControlCoordinator` 和任何业务 View 不得调用 `setRenderScale`。质量请求只能由
+`patch_render_scale.py` 在构建时注入：原始 `TuanjieView` 完成 `addView` 后调用公开
+`setRenderScale(1.25f)`；`onServiceConnected()` 将现有 `mNeedSetRenderScale` 重新置位后继续原始
+`syncViewDataToRenderService()`。Client2 输出 Surface 继续为 1920x1080，只将内部渲染目标设为
+2400x1350。不得注入第二个质量值、直接发送 Binder 交易或改写 RenderService。
 
 AIOS HVAC/Seat 动画是明确标注的 UI 仿真，不覆盖 Unity 原生温度，不写入共享 RenderService，
 也不作为 Effect/readback 成功证据。详见
@@ -280,6 +289,8 @@ sequenceDiagram
 - [ ] 1920x1080 panel bounds 和触摸目标符合 policy。
 - [ ] 原版渲染容器和右上 `topControls` 属性保持不变。
 - [ ] Coordinator 无 `setRenderScale`、TuanjieView listener、RenderService 反射和 Unity message。
+- [ ] MainActivity 只存在一次 `setRenderScale(1.25f)`，且 Surface/crop/bounds 仍为 1920x1080。
+- [ ] RenderService 重连后 index 1 重发 1.25，无私有字段或直接 Binder 调用。
 - [ ] AIOS 面板关闭后车门、车模和底部原生控件不受覆盖层拦截。
 
 ## 9. 增量开发规则
@@ -291,7 +302,7 @@ timeline 文案和 accessibility label。新增车辆控件必须复用 Session/
 ## 10. 当前缺口
 
 - `apk-labs` 集成源仍需迁移到 OEM 可持续构建的正式 Client2 工程。
-- P4-R7 的侵入式 RenderScale/Unity 资源修改已撤回；生产物理触摸旋转仍待验收。
+- P4-R7 的 Unity 资源和输入链改写已撤回；P4-R15 只保留公开 API 的受控质量策略，量产帧率、功耗、温度、长稳和真实手指触摸仍待验收。
 - 真实语音、相机 authority、车辆 readback 和生产 Orchestration 后端尚未闭环。
 - 任意文本到动态 typed Plan、Tool 参数和 EffectIntent 的生产编译链尚未闭环。
 - `production_ready=false`，`target_hardware_validated=false`。

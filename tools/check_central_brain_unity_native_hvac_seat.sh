@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: APP-001/004, S2-HMI-001/003/004, S2-UX-002, DEL-004.
+# Req IDs: APP-001/004, S2-HMI-001/003/004/015, S2-UX-002, DEL-004, P4-R15.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLIENT_PROJECT="$ROOT_DIR/apk-labs/client2-central-brain"
@@ -14,8 +14,7 @@ for path in "$COORDINATOR" "$LAYOUT" \
   test -f "$path"
 done
 
-bash "$RENDER_PROJECT/scripts/verify_project.sh"
-bash "$CLIENT_PROJECT/scripts/verify_project.sh"
+bash "$ROOT_DIR/tools/check_tuanjie_client_render_quality.sh"
 
 grep -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' "$COORDINATOR"
 grep -Fq 'android:layout_gravity="end|top"' "$LAYOUT"
@@ -45,7 +44,12 @@ printf '%s\n' \
   'client1_vendor_ui_preserved=true' \
   'client2_vendor_render_hierarchy_preserved=true' \
   'client2_vendor_touch_path_preserved=true' \
-  'client2_render_scale_override_enabled=false' \
+  'client_output_surface=1920x1080' \
+  'client2_output_surface=1920x1080' \
+  'client_render_quality_policy=1.25' \
+  'client2_render_quality_policy=1.25' \
+  'client2_business_render_control=false' \
+  'renderservice_render_scale_override_enabled=false' \
   'renderservice_vendor_apk_preserved=true' \
   'seat_recline_simulation_direction_verified=true' \
   'vehicle_bus_accessed=false' \

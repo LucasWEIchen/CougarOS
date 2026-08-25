@@ -1,6 +1,6 @@
 # RenderService 厂商渲染基线模块详设
 
-版本：2.0
+版本：2.1
 适用范围：Android 13 生产软件
 上级文档：[生产软件开发文档](../CENTRAL_BRAIN_SOFTWARE_DEVELOPMENT.md)
 
@@ -13,7 +13,8 @@
 
 本模块保护 Client、Client2 与 RenderService 的原始共享渲染架构。活动交付必须使用批准的
 RenderService 原版 APK，不改写 Unity Addressables、TextMeshPro、材质、输入 recognizer、
-RenderScale、引擎二进制或 APK 签名。
+引擎二进制或 APK 签名。Client/Client2 只能通过厂商公开 `TuanjieView` API 提交统一的
+受控渲染质量请求，不得将渲染控制权交给 AIOS 业务层。
 
 AIOS HMI 位于 Client2 Android overlay 和 Central Brain Runtime 中。没有 OEM Unity 源码、稳定
 typed bridge 和真实 readback 时，AIOS 不得通过 APK 资源重写实现原生 HVAC 或座椅状态。
@@ -24,10 +25,12 @@ typed bridge 和真实 readback 时，AIOS 不得通过 APK 资源重写实现�
 | --- | --- |
 | `APP-001`、`APP-004` | 保持 Client 仪表与 Client2 座舱原始页面可用 |
 | `S2-HMI-001`、`S2-HMI-004` | AIOS 仿真反馈不冒充 Unity 或车辆 readback |
-| `S2-HMI-006` | 保持厂商原始画布尺寸、比例和渲染参数 |
+| `S2-HMI-006` | 保持厂商原始画布尺寸、比例和触摸坐标 |
+| `S2-HMI-015` | Client/Client2 统一保持 1920x1080 Surface 并使用 1.25 内部渲染比例 |
 | `S2-UX-002` | 保持车模触摸、车门按钮和原始页面交互 |
 | `DEL-004` | 对 APK 基线、签名和外部 OEM 依赖给出明确边界 |
 | `P4-R11` | 三 APK 原始架构恢复与防回归 |
+| `P4-R15` | Client/Client2 渲染质量策略、服务重连恢复与性能门禁 |
 
 ## 3. 源码地图
 
@@ -38,6 +41,8 @@ typed bridge 和真实 readback 时，AIOS 不得通过 APK 资源重写实现�
 | [project contract](../../apk-labs/renderservice-central-brain/renderservice-central-brain.project.json) | `vendor_baseline_passthrough` | 机器可读交付约束 |
 | [Client2 coordinator](../../apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java) | overlay lifecycle | 证明 AIOS 不进入 TuanjieView/RenderService |
 | [Client2 layout](../../apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml) | original render subtree、hidden overlays | 保留原始渲染树并追加默认隐藏浮层 |
+| [render-quality patcher](../../apk-labs/tuanjie-client-render-quality/scripts/patch_render_scale.py) | `patch_main_activity`、`patch_tuanjie_view_reconnect` | 唯一 Client/Client2 质量策略注入点 |
+| [render-quality contract](../../apk-labs/tuanjie-client-render-quality/tuanjie-client-render-quality.project.json) | `surface_size`、`render_scale`、`reconnect_policy` | 固定尺寸、策略和禁止改写项 |
 | [cross-module gate](../../tools/check_central_brain_unity_native_hvac_seat.sh) | forbidden Unity overrides | Client2/RenderService 联合防回归 |
 
 历史 `patch_unity_hvac_bundle.py` 与 `build_unaligned_apk.py` 仅保留审计价值，不被任何活动构建、
@@ -66,21 +71,34 @@ sequenceDiagram
     participant C1 as Client
     participant C2 as Client2
     participant RS as Vendor RenderService
-    C1->>RS: bind/start render index 0
-    RS-->>C1: instrument/parking/driving surface
-    C2->>RS: bind/start render index 1
-    RS-->>C2: cockpit/vehicle surface
+    C1->>RS: bind/start index 0, Surface 1920x1080
+    C1->>RS: public render scale 1.25
+    RS-->>C1: instrument/parking/driving output
+    C2->>RS: bind/start index 1, Surface 1920x1080
+    C2->>RS: public render scale 1.25
+    RS-->>C2: cockpit/vehicle output
 ```
 
 RenderService 被安装或进程重启后，部署方必须先恢复 Client1，再恢复 Client2。Android display ID
 和 RenderService index 是不同编号空间，不得相互替代。单显示设备只能顺序验证两个 Activity，
 不能据此宣称双屏同时验收。
 
-### 4.3 Client2 输入保护
+### 4.3 受控渲染质量策略
+
+`patch_render_scale.py` 同时服务 Client 和 Client2，仅允许 `1.0`、`1.25`、`1.5` 三个审核值，
+活动策略固定为 `1.25`。它要求解析到且仅一个原始 `TuanjieView.addView` 锚点，然后调用
+公开 `setRenderScale(1.25f)`。不使用 `SurfaceHolder.setFixedSize`，因此 Window、Surface、crop 和 bounds
+仍为 1920x1080，RenderService 只在内部以 2400x1350 渲染并下采样输出。
+
+`setRenderScale()` 使用 `mNeedSetRenderScale` 保存待同步状态。为避免 RenderService 进程恢复后退回默认值，
+客户端 `onServiceConnected()` 在调用原始 `syncViewDataToRenderService()` 前只将该布尔标志重新置位。
+该修复不解析服务私有字段，不构造 Binder 交易，不修改 RenderService APK。
+
+### 4.4 Client2 输入保护
 
 `CockpitControlCoordinator` 禁止：
 
-- 调用 `setRenderScale` 或改变 TuanjieView Surface 尺寸；
+- 调用 `setRenderScale` 或改变 TuanjieView Surface 尺寸；质量策略只能存在于共用构建补丁；
 - 给 TuanjieView 安装 `OnTouchListener`；
 - 反射读取 RenderService 私有字段；
 - 调用 `c2sSendMessage` 修改 Unity GameObject；
@@ -89,7 +107,7 @@ RenderService 被安装或进程重启后，部署方必须先恢复 Client1，�
 AIOS 面板、文字输入和图片预览默认 `GONE`。面板可见时只消费自身范围和外部关闭事件；面板关闭
 后车模区域必须由厂商 TuanjieView 接收。底部电话和导航透明热区必须保持有界，不得覆盖车模区域。
 
-### 4.4 HVAC 与座椅接口
+### 4.5 HVAC 与座椅接口
 
 当前 AIOS 动画属于明确标注的界面仿真反馈，不写入 Unity，也不作为车辆执行证据。正式实现预留：
 
@@ -136,7 +154,8 @@ flowchart TD
 
 - 基线文件缺失、哈希不符、包名不符或签名无效时停止交付。
 - 活动构建出现 Unity patcher、重签、zipalign 或归档重写时门禁失败。
-- Client2 出现 RenderScale、TuanjieView listener、RenderService 反射或 Unity 消息时门禁失败。
+- Client/Client2 出现非 1.25 质量值、重复质量调用、Surface 改尺寸、TuanjieView listener、RenderService 反射或 Unity 消息时门禁失败。
+- RenderService 重连后未重发 index 0/index 1 的 1.25 请求时失败关闭，不以视觉推测代替日志证据。
 - 物理触摸设备不存在时，只能报告输入源阻塞，不能用合成滑动代替生产触摸验收。
 - 只有单 Android display 时，只能分别验证 Client/Client2，不能声明双屏会话完成。
 
@@ -148,6 +167,9 @@ flowchart TD
 - [ ] Client2 原始 `view1/view2/view3` 和 `topControls` 层级、属性保持。
 - [ ] AIOS overlay 默认隐藏且不改变 TuanjieView 尺寸。
 - [ ] Coordinator 无 TuanjieView listener、RenderScale 和 Unity message。
+- [ ] Client/Client2 的 Surface、crop、bounds 均为 1920x1080，内部渲染目标为 2400x1350。
+- [ ] Client index 0 与 Client2 index 1 在冷启动和 RenderService 重连后均仅提交一次 1.25 请求。
+- [ ] 同机原版 A/B 的中位帧率降幅不超过 10% 且不低于 27 FPS，p95 帧间隔不超过 55 ms。
 - [ ] Client 仪表/泊车/行车页面可单独启动并形成 Surface。
 - [ ] Client2 车门按钮和其他原始点击可用。
 - [ ] 车模旋转在带真实触摸 event 的生产硬件上人工复验。
@@ -164,5 +186,6 @@ flowchart TD
 
 - OEM Unity 源码级 typed HVAC/Seat bridge 未提供，原生动态温度需求保持接口挂起。
 - 生产硬件真实手指车模旋转证据待补。
+- 1.25 策略的量产功耗、温度、长稳和多屏同时运行证据待补。
 - 双屏同时显示需要目标硬件提供独立 Android display；不能由应用虚构。
 - `production_ready=false`，`target_hardware_validated=false`。

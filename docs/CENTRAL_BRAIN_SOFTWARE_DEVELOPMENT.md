@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件开发文档
 
-版本：2.4
+版本：2.5
 状态：生产软件详设与接口权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-08-21
+更新日期：2026-08-25
 
 `production_document_scope=true`
 `production_development_document=true`
@@ -34,6 +34,7 @@
 | `central-brain/android-runtime/native-runtime` | Native | JNI、稳定 C ABI、资源与 Vendor 扩展入口 |
 | `central-brain/contracts` | 机器可读合同 | Schema、能力、发布和外部接口约束 |
 | `apk-labs/client2-central-brain` | Client2 集成代码 | 座舱 HMI、输入、执行链路和 Unity 协同 |
+| `apk-labs/tuanjie-client-render-quality` | Client/Client2 渲染质量策略 | 1080P Surface 保护、统一内部渲染比例和重连恢复 |
 | `apk-labs/renderservice-central-brain` | RenderService 厂商基线保护 | 校验并透传原版 APK，禁止 Unity 资源重写、重签和输入改写 |
 | `docs/modules` | 模块详设 | 需求、源码、符号、接口、流程、校对清单和增量规则 |
 
@@ -75,7 +76,7 @@
 | Runtime Service | 独立 APK | `INTERNET`，三个 signature Binder 权限 |
 | Central Brain SDK | AAR | AIDL/Parcelable/Java facade |
 | Native Runtime | AAR + `.so` | JNI，C ABI v1 |
-| RenderService 集成 | 厂商 APK 只读基线 | Client/Client2 共享渲染会话；OEM 源码级扩展接口预留 |
+| RenderService 集成 | 厂商 APK 只读基线 | Client/Client2 共享渲染会话；质量策略只经 Client 公开 API 输入，OEM 源码级扩展接口预留 |
 
 ### 3.2 Runtime Service
 
@@ -844,9 +845,11 @@ SESSION_COMPLETED / PARTIAL / FAILED
 
 ### 17.5 显示与触摸
 
-- 设计分辨率 1920x1080。
-- Client2 悬浮层不得修改车模渲染 viewport。
-- RenderService 使用批准的原版 APK；Client2 不设置 RenderScale、不覆盖 `TuanjieView` 触摸监听，覆盖层只拦截自身可交互区域。
+- Android 显示、Window 和 `TuanjieView` Surface 固定为 1920x1080；禁止通过 `setFixedSize`、局部 viewport 或布局缩放修改输出尺寸。
+- Client2 悬浮层不得修改车模渲染 viewport，也不得覆盖 `TuanjieView` 触摸监听；覆盖层只拦截自身可交互区域。
+- RenderService 使用批准的原版 APK。`patch_render_scale.py` 是唯一允许写入渲染质量请求的构建步骤：它在 Client/Client2 原始 `TuanjieView` 完成 `addView` 后调用公开 `setRenderScale(1.25f)`，使内部渲染目标为 2400x1350。
+- `TuanjieView.onServiceConnected()` 只重新置位已有 `mNeedSetRenderScale` 标志，再进入原始 `syncViewDataToRenderService()`；禁止直接 Binder 交易、反射私有字段或改写 RenderService。
+- 变更质量策略必须同时验证 Client index 0 和 Client2 index 1，并执行同机原版 A/B、车模旋转、车门、AIOS 入口、服务重连、帧率、功耗、温度和长稳门禁。
 - 多模态图像使用左侧独立 `520x356dp` 浮层，图像为 `496x279dp FIT_CENTER`，真实模型耗时位于图片下方；右侧调用链内不得包含图片 View。
 - 左侧购物/路径反馈在图像存在时下移到 `500dp`，不得与图像或耗时重叠。
 - 图片居中预览时点击遮罩关闭，点击图片本身不关闭。
@@ -975,7 +978,7 @@ Session 结束后清理 Working Memory 和临时媒体。Profile/Episodic 数据
 | OpenClaw | 历史过渡接口保留用于迁移追溯 | 已退出当前模型调用链路 |
 | Effect Coordinator | 已实现 | 真实 Vehicle Adapter 未注册 |
 | Native C ABI | 已实现 | Vendor NPU Provider 未实现 |
-| Client2 HMI | 已实现主要闭环 | 厂商渲染/输入边界已恢复；生产物理触摸旋转和 OEM 正式工程迁移未完成 |
+| Client2 HMI | 已实现主要闭环 | 厂商渲染/输入边界已恢复，Client/Client2 受控渲染质量策略已形成；量产显示、触摸、功耗、温度、长稳和 OEM 正式工程迁移未完成 |
 | Release/Privacy/Safety | 合同已实现 | owner 审批和目标证据外部阻塞 |
 
 因此当前仓库的软件合同和大部分模块已形成，但不能声明为量产就绪，也不能声明真实车辆或 NPU

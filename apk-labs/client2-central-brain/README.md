@@ -29,7 +29,7 @@ then rebuilds and signs a debug APK.
 | Live execution projection | `S2-OBS-002` | Ten bounded Runtime/model/effect milestones feed one 32-line scrolling trace. |
 | Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
 | Uni Info Bus / SOA / Governance | `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006` | Runtime remains the single app-facing ingress; Client2 does not bypass it for model or vehicle access. |
-| Vendor render/input preservation | `APP-001/004`, `S2-HMI-001/003/004`, `S2-UX-002`, `DEL-004` | The original Client/Client2 render hierarchy, TuanjieView touch path, render scale and vendor RenderService APK remain unchanged. AIOS effects stay in an Android overlay until an OEM source-level adapter is available. |
+| Vendor render/input preservation | `APP-001/004`, `S2-HMI-001/003/004/015`, `S2-UX-002`, `DEL-004`, `P4-R15` | The original Client/Client2 render hierarchy, 1920x1080 Surface, TuanjieView touch path and vendor RenderService APK remain unchanged. A shared build policy requests a 1.25 internal render scale through the vendor public API and restores it after service reconnect. AIOS effects stay in an Android overlay until an OEM source-level adapter is available. |
 
 ## Commands
 
@@ -50,6 +50,7 @@ Verify the project and latest signed output:
 
 ```bash
 bash tools/check_client2_central_brain_demo.sh
+bash tools/check_tuanjie_client_render_quality.sh
 ```
 
 Install to the currently selected Android device or emulator:
@@ -93,7 +94,7 @@ right-side overlay in the existing root `FrameLayout`:
 Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
 ├── floating overlay: 600x760 translucent Central Brain panel in the 1920x1080 safe frame
-├── untouched vendor Unity/TuanjieView render and input surface
+├── 1920x1080 vendor Unity/TuanjieView output and untouched input surface
 ├── left image overlay: 496x279 multimodal frame plus projected model latency
 ├── left actuator overlay: HVAC, layered Seat animation, shopping and route feedback
 └── bottom trigger rail: phone target for free-form text and navigation target for fixed tasks
@@ -139,9 +140,12 @@ The seat uses separate rail, cushion/bolster, back/headrest and hinge layers;
 the back uses a bottom-center pivot and negative rotation so increasing
 recline moves away from the cushion. Shopping feedback moves below a visible
 multimodal frame instead of overlapping it. The Coordinator does not attach a listener
-to `TuanjieView`, call `setRenderScale`, reflect into RenderService, or send
-Unity messages. These effects remain `SIMULATED`; no vehicle bus or hardware
-readback is accessed.
+to `TuanjieView`, control render quality, reflect into RenderService, or send
+Unity messages. The separate shared build policy calls the vendor public
+`setRenderScale(1.25f)` only after the original view attachment and re-arms the
+existing synchronization flag after RenderService reconnect. The Android Surface
+remains 1920x1080 while the internal target is 2400x1350. These effects remain
+`SIMULATED`; no vehicle bus or hardware readback is accessed.
 
 The companion project `apk-labs/renderservice-central-brain` now verifies and
 passes through the original vendor APK byte-for-byte. The earlier Addressables

@@ -21,6 +21,7 @@ python3 -m json.tool "$PROJECT_JSON" >/dev/null
 rg -Fq '"delivery_mode": "vendor_baseline_passthrough"' "$PROJECT_JSON"
 rg -Fq '"unity_asset_patch_enabled": false' "$PROJECT_JSON"
 rg -Fq '"render_scale_override_enabled": false' "$PROJECT_JSON"
+rg -Fq '"client_render_quality_policy_owner": "apk-labs/tuanjie-client-render-quality"' "$PROJECT_JSON"
 rg -Fq '"touch_listener_override_enabled": false' "$PROJECT_JSON"
 rg -Fq 'EXPECTED_SHA256="a24fbb471399e152c172455afbaee92e311f24f63910b263a577d58d59d7c633"' "$BUILD_SCRIPT"
 rg -Fq 'cp -f "$SOURCE_APK" "$OUTPUT_APK"' "$BUILD_SCRIPT"

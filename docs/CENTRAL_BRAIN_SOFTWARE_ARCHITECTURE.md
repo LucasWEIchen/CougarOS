@@ -1,9 +1,9 @@
 # CougarOS Central Brain 生产软件架构文档
 
-版本：2.3
+版本：2.4
 状态：生产架构权威基线
 适用平台：Android 13 座舱域控制器
-更新日期：2026-08-24
+更新日期：2026-08-25
 
 `production_document_scope=true`
 `production_architecture_document=true`
@@ -153,7 +153,7 @@ HMI 由任务入口、输入/输出流、执行链路、审批条和执行器反
 - Plan 节点、Effect、审批和 readback 形成一条连续链路。
 - HVAC 温度、座椅角度等 UI 状态来自 Runtime 投影，不使用固定结果文本。
 - 座椅反馈由头枕、靠背、侧翼、坐垫、转轴和滑轨组成，靠背展开动画不构成车辆 readback。
-- 1920x1080 下 HMI 不改变车模画布的原始比例、清晰度和触摸坐标。
+- 1920x1080 下 HMI 不改变车模画布的原始比例和触摸坐标；渲染清晰度由独立的受控质量策略统一管理。
 
 Client、Client2 与 RenderService 的厂商渲染关系是受保护边界：
 
@@ -161,14 +161,18 @@ Client、Client2 与 RenderService 的厂商渲染关系是受保护边界：
 flowchart LR
     C1["原版 Client<br/>仪表/泊车/行车"] -->|"Render index 0"| RS["原版 RenderService<br/>只读厂商基线"]
     C2["Client2 原版渲染树<br/>TuanjieView"] -->|"Render index 1"| RS
+    Q["受控渲染质量策略<br/>1920x1080 Surface / 1.25"] -->|"公开 TuanjieView API"| C1
+    Q -->|"同一策略"| C2
     O["AIOS Android Overlay<br/>默认隐藏"] -->|"Session/Orchestration Binder"| RT["Central Brain Runtime"]
     O -. "同一 Activity 叠加但不改写输入" .-> C2
 ```
 
-AIOS 不得调用 `TuanjieView.setRenderScale()`、覆盖其触摸监听、反射访问 RenderService
-或要求修改后的 Unity bundle。浮层关闭时，只允许保留导航/电话入口的有界透明热区；车模区域的
-事件必须继续进入厂商输入链。共享 RenderService 更新后必须按 Client1 后 Client2 的顺序重建
-双路会话，但不得通过资源重写修复 UI。
+AIOS Coordinator 与业务 View 不得操作渲染质量。唯一例外是构建期共用策略：它在原始
+`TuanjieView` 加入原容器后调用厂商公开 `setRenderScale(1.25f)`，并在 RenderService 重连时
+复用现有同步机制重发。该策略只提高内部渲染目标到 `2400x1350`，Android Surface、裁剪和输出
+继续为 `1920x1080`。禁止变更 View 层级、Surface 尺寸、触摸监听、RenderService 私有字段或 Unity bundle。
+浮层关闭时，只允许保留导航/电话入口的有界透明热区；车模区域的事件必须继续进入厂商输入链。
+共享 RenderService 恢复后必须重建双路会话并重发质量策略，不得通过资源重写修复 UI。
 
 ### 5.2 Central Brain SDK
 
